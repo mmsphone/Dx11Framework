@@ -1,17 +1,17 @@
 ﻿//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
-// 다음에서 사용 Dx11Framework.rc
+// 다음에서 사용 Client.rc
 
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128
-#define IDD_DX11FRAMEWORK_DIALOG	102
+#define IDD_CLIENT_DIALOG	102
 #define IDD_ABOUTBOX			103
 #define IDM_ABOUT				104
 #define IDM_EXIT				105
-#define IDI_DX11FRAMEWORK			107
+#define IDI_CLIENT			107
 #define IDI_SMALL				108
-#define IDC_DX11FRAMEWORK			109
+#define IDC_CLIENT			109
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1

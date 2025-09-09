@@ -25,9 +25,6 @@
     <Filter Include="02.System">
       <UniqueIdentifier>{ad1d1b1a-d989-4533-9fb0-116192839606}</UniqueIdentifier>
     </Filter>
-    <Filter Include="02.System\Device">
-      <UniqueIdentifier>{f6518a25-a986-4281-abfd-de9a459c780c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02.System\Timer">
       <UniqueIdentifier>{df134e2e-33fd-4b24-bf25-ff5fb39245a0}</UniqueIdentifier>
     </Filter>
@@ -58,8 +55,69 @@
     <Filter Include="05.Component\VIBuffer">
       <UniqueIdentifier>{38ead284-d421-498e-9203-2b5ab28308f4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="02.System\Renderer">
+    <Filter Include="02.System\Graphic">
+      <UniqueIdentifier>{f6518a25-a986-4281-abfd-de9a459c780c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02.System\Input">
+      <UniqueIdentifier>{76b8fe85-392b-43f9-bd3d-00c079ba7137}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\TimeManager">
+      <UniqueIdentifier>{8fc78e4d-eae8-4ef4-9564-eb6d19f86e27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\RenderManager">
       <UniqueIdentifier>{867cdede-e809-424f-999e-f83eb0d612bf}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Engine_Defines.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine_Enum.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine_Function.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine_Macro.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine_Struct.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine_Typedef.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphic.h">
+      <Filter>02.System\Graphic</Filter>
+    </ClInclude>
+    <ClInclude Include="Base.h">
+      <Filter>00.Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>02.System\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>02.System\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeManager.h">
+      <Filter>03.Utility\TimeManager</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Graphic.cpp">
+      <Filter>02.System\Graphic</Filter>
+    </ClCompile>
+    <ClCompile Include="Base.cpp">
+      <Filter>00.Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>02.System\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>02.System\Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeManager.cpp">
+      <Filter>03.Utility\TimeManager</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

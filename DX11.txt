@@ -1,0 +1,23 @@
+DX11
+
+스레드 생성 : 코드 흐름을 추가한다
+프로세스 다수 X 하나의 프로세스로 읽는 흐름만 다수
+메인 스레드 출력 시 메인 스레드의 노는 시간을 다른 역할 수행에 이용
+주로 리소드 로드, 출력, 연산에 이용
+그리기 연산에 사용하면 안됨기초
+
+IDXGISwapChain : 화면에 출력될 버퍼인 전면 버퍼와 후면 버퍼를 교체해주는 역할
+ID3D11ShaderResourceView : 셰이더에 전달될 수 있는 텍스처 타입
+ID3D11RenderTargetView : 렌더타겟용으로 사용될 수 있는 텍스처 타입
+ID3D11DepthStencilView : 깊이스텐실 버퍼로서 사용될 수 있는 타입
+
+D3D11CreateDevice : Device와 Context 객체를 만들어주는 함수
+
+멀티샘플링(안티 앨리어싱) : 계단현상 방지, 후처리 랜더링을 하려면 멀티샘플링 지원 X
+
+깊이 버퍼와 백버퍼 크기 : 깊이 버퍼의 픽셀 개수는 백버퍼의 픽셀 개수와 동일해야 랜더링이 가능함
+
+텍스처 생성 시 BindFlags에 사용 용도의 플래그 필요
+D3D11_BIND_DEPTH_STENCIL
+D3D11_BIND_RENDER_TARGET
+D3D11_BIND_SHADER_RESOURCE

@@ -1,4 +1,4 @@
-#ifndef Engine_Macro_h__
+﻿#ifndef Engine_Macro_h__
 #define Engine_Macro_h__
 
 
@@ -51,5 +51,7 @@
 			return iRefCnt;										\
 		}
 
+#define CHECKNULLPTR(PTR) if(PTR == nullptr)
+#define CHECKPTR(PTR) if(PTR != nullptr)
 
 #endif // Engine_Macro_h__

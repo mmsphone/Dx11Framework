@@ -21,3 +21,23 @@ D3D11CreateDevice : Device와 Context 객체를 만들어주는 함수
 D3D11_BIND_DEPTH_STENCIL
 D3D11_BIND_RENDER_TARGET
 D3D11_BIND_SHADER_RESOURCE
+
+map의 insert와 emplace차이
+insert는 객체를 직접 유니폼으로 묶어 만들어서 넣음
+emplace는 객체 생성에 필요한 데이터만 넘겨 함수 내부에서 객체 생성
+
+cpu와 gpu의 차이
+cpu는 고성능이지만 코어 개수가 적음
+gpu는 저성능이지만 코어 개수가 많음
+
+dx9->dx11이 되면서 x64운영체제로 cpu 운용하기가 용이해져
+저장용 데이터와 SIMD 연산용 데이터를 나눔
+float4와 vector
+float4x4와 matrix
+
+디버그 -> 릴리즈 모드로 넘어가면
+컴파일러가 데이터 영역의 데이터 주소를 임의로 변경 가능해
+전역 선언할 때 포인터를 사용하지 않는 것이 좋음
+
+mip-map : 부드러운 랜더링을 위해 더 작은 사이즈들을 미리 만들어 한번에 가져오는 것
+ex) 64x64면 32x32, 16x16, 8x8, 4x4, 2x2, 1x1 까지 한번에 생성

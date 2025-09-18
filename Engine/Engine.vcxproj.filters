@@ -10,9 +10,6 @@
     <Filter Include="03.Utility">
       <UniqueIdentifier>{fa4a27a6-cfb9-40db-afec-1e575b197574}</UniqueIdentifier>
     </Filter>
-    <Filter Include="03.Utility\GameInstance">
-      <UniqueIdentifier>{24877b48-31cf-4bc9-b8d8-3a4ab5518dfe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="03.Utility\PrototypeManager">
       <UniqueIdentifier>{a6f9c5d2-085d-4faf-927d-71779d38a8c2}</UniqueIdentifier>
     </Filter>
@@ -24,21 +21,6 @@
     </Filter>
     <Filter Include="02.System">
       <UniqueIdentifier>{ad1d1b1a-d989-4533-9fb0-116192839606}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="02.System\Timer">
-      <UniqueIdentifier>{df134e2e-33fd-4b24-bf25-ff5fb39245a0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="04.Prototype">
-      <UniqueIdentifier>{ef610190-7f7a-4769-b8c9-cbc4c83a3ccc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="04.Prototype\Scene">
-      <UniqueIdentifier>{60ae4ed6-6b67-42c6-a048-2aeb2b6395b5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="04.Prototype\Object">
-      <UniqueIdentifier>{382c9ed8-0e0a-4aab-be0b-e3dd2fd2c678}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="04.Prototype\UI">
-      <UniqueIdentifier>{02c6861d-15fa-4b58-b600-98ac09acac2b}</UniqueIdentifier>
     </Filter>
     <Filter Include="05.Component">
       <UniqueIdentifier>{b10fee1d-253a-4cfe-9eaf-a6c01c1d4829}</UniqueIdentifier>
@@ -66,6 +48,36 @@
     </Filter>
     <Filter Include="03.Utility\RenderManager">
       <UniqueIdentifier>{867cdede-e809-424f-999e-f83eb0d612bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\EngineUtility">
+      <UniqueIdentifier>{24877b48-31cf-4bc9-b8d8-3a4ab5518dfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility">
+      <UniqueIdentifier>{ef610190-7f7a-4769-b8c9-cbc4c83a3ccc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Prototypes">
+      <UniqueIdentifier>{848f9b82-7fdc-46df-8e6f-62406841b246}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Prototypes\Object">
+      <UniqueIdentifier>{382c9ed8-0e0a-4aab-be0b-e3dd2fd2c678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Prototypes\Scene">
+      <UniqueIdentifier>{60ae4ed6-6b67-42c6-a048-2aeb2b6395b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Prototypes\UI">
+      <UniqueIdentifier>{02c6861d-15fa-4b58-b600-98ac09acac2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Timer">
+      <UniqueIdentifier>{df134e2e-33fd-4b24-bf25-ff5fb39245a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Prototypes\Camera">
+      <UniqueIdentifier>{409b4406-076f-4be8-8d19-a569013ebcae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Layer">
+      <UniqueIdentifier>{a9dcc083-2b3a-4234-9a5f-58964570eee5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\Model">
+      <UniqueIdentifier>{4f03eec9-99f1-4e8b-8893-e20670b575c4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -97,10 +109,34 @@
       <Filter>02.System\Input</Filter>
     </ClInclude>
     <ClInclude Include="Timer.h">
-      <Filter>02.System\Timer</Filter>
+      <Filter>04.ForUtility\Timer</Filter>
     </ClInclude>
     <ClInclude Include="TimeManager.h">
       <Filter>03.Utility\TimeManager</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineUtility.h">
+      <Filter>03.Utility\EngineUtility</Filter>
+    </ClInclude>
+    <ClInclude Include="PrototypeManager.h">
+      <Filter>03.Utility\PrototypeManager</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectManager.h">
+      <Filter>03.Utility\ObjectManager</Filter>
+    </ClInclude>
+    <ClInclude Include="UI.h">
+      <Filter>04.ForUtility\Prototypes\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>04.ForUtility\Prototypes\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>04.ForUtility\Prototypes\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>04.ForUtility\Prototypes\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Layer.h">
+      <Filter>04.ForUtility\Layer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -114,10 +150,34 @@
       <Filter>02.System\Input</Filter>
     </ClCompile>
     <ClCompile Include="Timer.cpp">
-      <Filter>02.System\Timer</Filter>
+      <Filter>04.ForUtility\Timer</Filter>
     </ClCompile>
     <ClCompile Include="TimeManager.cpp">
       <Filter>03.Utility\TimeManager</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineUtility.cpp">
+      <Filter>03.Utility\EngineUtility</Filter>
+    </ClCompile>
+    <ClCompile Include="PrototypeManager.cpp">
+      <Filter>03.Utility\PrototypeManager</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectManager.cpp">
+      <Filter>03.Utility\ObjectManager</Filter>
+    </ClCompile>
+    <ClCompile Include="UI.cpp">
+      <Filter>04.ForUtility\Prototypes\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>04.ForUtility\Prototypes\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>04.ForUtility\Prototypes\Object</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>04.ForUtility\Prototypes\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Layer.cpp">
+      <Filter>04.ForUtility\Layer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

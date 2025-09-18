@@ -14,9 +14,10 @@ private:
 	virtual ~Input() = default;
 
 public:
+	//DInput 초기화
 	HRESULT Initialize(HINSTANCE InstanceHandle, HWND WindowHandle);
 	void	Update();
-
+	//DInput 상태값 조회
 	_byte	Get_DIKeyState(_ubyte byKeyID);
 	_byte	Get_DIMouseState(MOUSEKEYSTATE eMouse);
 	_long	Get_DIMouseMove(MOUSEMOVESTATE eMouseState);

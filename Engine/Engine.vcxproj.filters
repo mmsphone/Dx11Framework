@@ -34,9 +34,6 @@
     <Filter Include="05.Component\Transform">
       <UniqueIdentifier>{90111b9a-0285-4391-8f02-fb05ec075433}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05.Component\VIBuffer">
-      <UniqueIdentifier>{38ead284-d421-498e-9203-2b5ab28308f4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02.System\Graphic">
       <UniqueIdentifier>{f6518a25-a986-4281-abfd-de9a459c780c}</UniqueIdentifier>
     </Filter>
@@ -78,6 +75,15 @@
     </Filter>
     <Filter Include="05.Component\Model">
       <UniqueIdentifier>{4f03eec9-99f1-4e8b-8893-e20670b575c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\VertexIndexBuffer">
+      <UniqueIdentifier>{38ead284-d421-498e-9203-2b5ab28308f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\LightManager">
+      <UniqueIdentifier>{1317c2b8-4ee1-4cd9-9f4e-1d34cf6554ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Light">
+      <UniqueIdentifier>{38f81652-d825-4b43-ac58-a4afb65e4bfb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -138,6 +144,33 @@
     <ClInclude Include="Layer.h">
       <Filter>04.ForUtility\Layer</Filter>
     </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>03.Utility\SceneManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>05.Component\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>05.Component\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>05.Component\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>05.Component\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>05.Component</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexIndexBuffer.h">
+      <Filter>05.Component\VertexIndexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderManager.h">
+      <Filter>03.Utility\RenderManager</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>04.ForUtility\Light</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graphic.cpp">
@@ -178,6 +211,33 @@
     </ClCompile>
     <ClCompile Include="Layer.cpp">
       <Filter>04.ForUtility\Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>03.Utility\SceneManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>05.Component\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>05.Component\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>05.Component\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>05.Component\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>05.Component</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexIndexBuffer.cpp">
+      <Filter>05.Component\VertexIndexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderManager.cpp">
+      <Filter>03.Utility\RenderManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>04.ForUtility\Light</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

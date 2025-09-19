@@ -14,7 +14,7 @@ protected:
 public:
 	//레퍼런스 카운트 증가, 증가한 값 반환
 	_uint AddRef();
-	//레퍼런스 카운트 감소 밑 삭제, 감소 전 값 반환
+	//레퍼런스 카운트 감소와 삭제, 감소 전 값 반환
 	_uint Release();
 
 protected:

@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="00.Default">
+      <UniqueIdentifier>{e86f9b39-253e-4883-989c-7be970e5fdb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01.Define">
+      <UniqueIdentifier>{6fb1720a-b832-4938-b66c-594e71a5007e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02.MainApp">
+      <UniqueIdentifier>{dbe246f0-f98b-413b-ab2a-89ebb8eecbac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object">
+      <UniqueIdentifier>{a8419f21-91ec-4652-9f04-1716c056b154}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Background">
+      <UniqueIdentifier>{af2bca54-0abf-4f7d-8201-63b6c24c1d45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Scene">
+      <UniqueIdentifier>{9754532e-3905-4ac8-bc0c-7b2e0c646e76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Scene\LoadingScene">
+      <UniqueIdentifier>{7d5d7266-5bcf-44b9-b968-97180548c766}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Scene\LogoScene">
+      <UniqueIdentifier>{2c925693-384e-419c-82d0-032fff238dbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Loader">
+      <UniqueIdentifier>{9d1aab35-024d-4aa1-b40a-79604ed04cd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Scene\GameScene">
+      <UniqueIdentifier>{ecb31d66-b250-4b86-88fe-fc8ece6aa811}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Cam">
+      <UniqueIdentifier>{46b529dc-b509-4507-a905-3648fa821d73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Cam\FreeCam">
+      <UniqueIdentifier>{83ab0ef4-b24f-4dfc-b9ea-8257bb3125ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Monster">
+      <UniqueIdentifier>{ac48fd65-0440-487b-8db1-ff2a7650d3ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Player">
+      <UniqueIdentifier>{541792d3-9c58-4480-82c3-642502f287cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Sky">
+      <UniqueIdentifier>{e45059da-b801-48f6-808c-3a0205eb79de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Terrain">
+      <UniqueIdentifier>{a1124139-7f1d-4bb6-b335-1b89ae780ad4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Player\PlayerBody">
+      <UniqueIdentifier>{81a62149-2e3a-46b0-a13a-8fd3b4bd4e16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Object\Player\PlayerWeapon">
+      <UniqueIdentifier>{a146345a-5c72-45c2-9967-c97ebead5444}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Client.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MainApp.h">
+      <Filter>02.MainApp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Client_Defines.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LoadingScene.h">
+      <Filter>04.Scene\LoadingScene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Loader.h">
+      <Filter>03.Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LogoScene.h">
+      <Filter>04.Scene\LogoScene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\GameScene.h">
+      <Filter>04.Scene\GameScene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FreeCam.h">
+      <Filter>05.Object\Cam\FreeCam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Background.h">
+      <Filter>05.Object\Background</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Monster.h">
+      <Filter>05.Object\Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Terrain.h">
+      <Filter>05.Object\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Sky.h">
+      <Filter>05.Object\Sky</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Player.h">
+      <Filter>05.Object\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\PlayerBody.h">
+      <Filter>05.Object\Player\PlayerBody</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\PlayerWeapon.h">
+      <Filter>05.Object\Player\PlayerWeapon</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Client.ico">
+      <Filter>00.Default</Filter>
+    </Image>
+    <Image Include="small.ico">
+      <Filter>00.Default</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Client.rc">
+      <Filter>00.Default</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Client.cpp">
+      <Filter>00.Default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MainApp.cpp">
+      <Filter>02.MainApp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LoadingScene.cpp">
+      <Filter>04.Scene\LoadingScene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Loader.cpp">
+      <Filter>03.Loader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LogoScene.cpp">
+      <Filter>04.Scene\LogoScene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\GameScene.cpp">
+      <Filter>04.Scene\GameScene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FreeCam.cpp">
+      <Filter>05.Object\Cam\FreeCam</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Background.cpp">
+      <Filter>05.Object\Background</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Monster.cpp">
+      <Filter>05.Object\Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Terrain.cpp">
+      <Filter>05.Object\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Sky.cpp">
+      <Filter>05.Object\Sky</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Player.cpp">
+      <Filter>05.Object\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\PlayerBody.cpp">
+      <Filter>05.Object\Player\PlayerBody</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\PlayerWeapon.cpp">
+      <Filter>05.Object\Player\PlayerWeapon</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="ShaderOp.hlsl" />
+  </ItemGroup>
+</Project>

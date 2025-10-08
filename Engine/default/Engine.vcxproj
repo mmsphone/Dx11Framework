@@ -36,6 +36,7 @@
     <ClInclude Include="..\public\Engine_Typedef.h" />
     <ClInclude Include="..\public\FontManager.h" />
     <ClInclude Include="..\public\Graphic.h" />
+    <ClInclude Include="..\public\IMGUIManager.h" />
     <ClInclude Include="..\public\Input.h" />
     <ClInclude Include="..\public\Layer.h" />
     <ClInclude Include="..\public\Light.h" />
@@ -75,6 +76,7 @@
     <ClCompile Include="..\private\EngineUtility.cpp" />
     <ClCompile Include="..\private\FontManager.cpp" />
     <ClCompile Include="..\private\Graphic.cpp" />
+    <ClCompile Include="..\private\IMGUIManager.cpp" />
     <ClCompile Include="..\private\Input.cpp" />
     <ClCompile Include="..\private\Layer.cpp" />
     <ClCompile Include="..\private\Light.cpp" />

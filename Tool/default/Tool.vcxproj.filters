@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="00.Default">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="01.Define">
+      <UniqueIdentifier>{4c116804-30c7-48fb-a40b-af8d9203ba62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="02.MainApp">
+      <UniqueIdentifier>{77deeb21-f0ad-47be-ad7f-fcd838180c1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Scene">
+      <UniqueIdentifier>{b7b800d0-d88b-45e1-84b1-66a891921eb4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Object">
+      <UniqueIdentifier>{2a89a709-af37-43c7-a90f-3ea9f2cee895}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Assimp">
+      <UniqueIdentifier>{9d4179a8-33a9-4a8b-90bb-5e1f1381971d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="Tool.h">
+      <Filter>00.Default</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MainApp.h">
+      <Filter>02.MainApp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Tool_Defines.h">
+      <Filter>01.Define</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\AssimpTool.h">
+      <Filter>05.Assimp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Tool.rc">
+      <Filter>00.Default</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>00.Default</Filter>
+    </Image>
+    <Image Include="Tool.ico">
+      <Filter>00.Default</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Tool.cpp">
+      <Filter>00.Default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MainApp.cpp">
+      <Filter>02.MainApp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\AssimpTool.cpp">
+      <Filter>05.Assimp</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

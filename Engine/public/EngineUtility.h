@@ -69,6 +69,13 @@ public:
 	HRESULT AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath);
 	HRESULT DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor = XMVectorSet(1.f, 1.f, 1.f, 1.f));
 
+	//IMGUIManager
+	HRESULT InitializeIMGUI(HWND hWnd);
+	HRESULT BeginIMGUI();
+	HRESULT ShowIMGUI();
+	HRESULT RenderIMGUI();
+	HRESULT ShutdownIMGUI();
+
 private:
 	class Graphic* m_pGraphic = { nullptr };
 	class Input* m_pInput = { nullptr };
@@ -80,6 +87,7 @@ private:
 	class Pipeline* m_pPipeLine = { nullptr };
 	class LightManager* m_pLightManager = { nullptr };
 	class FontManager* m_pFontManager = { nullptr };
+	class IMGUIManager* m_pIMGUIManager = { nullptr };
 };
 
 NS_END

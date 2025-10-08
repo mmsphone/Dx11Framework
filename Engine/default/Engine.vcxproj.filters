@@ -127,6 +127,9 @@
     <Filter Include="06.ForModel\Channel">
       <UniqueIdentifier>{783c88f2-22e3-489f-afbd-036522cca6e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03.Utility\GUIManager">
+      <UniqueIdentifier>{5af64c5d-1a87-4276-9443-29556018c079}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -258,6 +261,9 @@
     <ClInclude Include="..\public\Channel.h">
       <Filter>06.ForModel\Channel</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\IMGUIManager.h">
+      <Filter>03.Utility\GUIManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Base.cpp">
@@ -367,6 +373,9 @@
     </ClCompile>
     <ClCompile Include="..\private\Channel.cpp">
       <Filter>06.ForModel\Channel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\IMGUIManager.cpp">
+      <Filter>03.Utility\GUIManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

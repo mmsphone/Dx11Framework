@@ -130,6 +130,12 @@
     <Filter Include="03.Utility\GUIManager">
       <UniqueIdentifier>{5af64c5d-1a87-4276-9443-29556018c079}</UniqueIdentifier>
     </Filter>
+    <Filter Include="04.ForUtility\Panel">
+      <UniqueIdentifier>{28558fc7-3cbf-403a-81ad-0d11ca4e6ee8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\IMGUI">
+      <UniqueIdentifier>{b458aea9-18d7-40d0-baf6-ce98747420a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -264,6 +270,9 @@
     <ClInclude Include="..\public\IMGUIManager.h">
       <Filter>03.Utility\GUIManager</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\Panel.h">
+      <Filter>04.ForUtility\Panel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Base.cpp">
@@ -376,6 +385,30 @@
     </ClCompile>
     <ClCompile Include="..\private\IMGUIManager.cpp">
       <Filter>03.Utility\GUIManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Panel.cpp">
+      <Filter>04.ForUtility\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\imgui_widgets.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\imgui_tables.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\imgui.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\imgui_demo.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\imgui_draw.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\backends\imgui_impl_dx11.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\backends\imgui_impl_win32.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

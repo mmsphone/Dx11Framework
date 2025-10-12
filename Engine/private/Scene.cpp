@@ -25,5 +25,5 @@ void Scene::Free()
 {
     __super::Free();
 
-    m_pEngineUtility->DestroyInstance();
+    SafeRelease(m_pEngineUtility);
 }

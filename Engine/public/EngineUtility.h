@@ -70,11 +70,15 @@ public:
 	HRESULT DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor = XMVectorSet(1.f, 1.f, 1.f, 1.f));
 
 	//IMGUIManager
-	HRESULT InitializeIMGUI(HWND hWnd);
 	HRESULT BeginIMGUI();
-	HRESULT ShowIMGUI();
 	HRESULT RenderIMGUI();
 	HRESULT ShutdownIMGUI();
+	HRESULT AddPanel(const string& PanelName, class Panel* pPanel);
+	HRESULT RemovePanel(const string& PanelName);
+	HRESULT ClearPanels();
+	HRESULT SetPanelOpen(const string& PanelName, bool open);
+	ImGuiContext* GetIMGUIContext();
+	void DrawPanels();
 
 private:
 	class Graphic* m_pGraphic = { nullptr };

@@ -17,22 +17,37 @@ HRESULT Input::Initialize(HINSTANCE InstanceHandle, HWND WindowHandle)
 	//Keyboard 설정
 	m_pKeyboard->SetDataFormat(&c_dfDIKeyboard); // keyboard data
 	m_pKeyboard->SetCooperativeLevel(WindowHandle, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE); // keyboard input
-	m_pKeyboard->Acquire(); // keyboard access
+	if (FAILED(m_pKeyboard->Acquire())) // keyboard access
+		return E_FAIL;
 	//Mouse 생성
 	if (FAILED(m_pInputSDK->CreateDevice(GUID_SysMouse, &m_pMouse, nullptr)))
 		return E_FAIL;
 	//Mouse 설정
 	m_pMouse->SetDataFormat(&c_dfDIMouse); // mouse data
 	m_pMouse->SetCooperativeLevel(WindowHandle, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE); // mouse input
-	m_pMouse->Acquire(); // mouse access
+	if (FAILED(m_pMouse->Acquire())) // mouse access
+		return E_FAIL;
 
 	return S_OK;
 }
 
 void Input::Update()
 {
-	m_pKeyboard->GetDeviceState(256, m_byKeyState);
-	m_pMouse->GetDeviceState(sizeof(m_tMouseState), &m_tMouseState);
+	HRESULT hr = m_pKeyboard->GetDeviceState(256, m_byKeyState);
+	if (FAILED(hr))
+	{
+		if(hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED)
+			m_pKeyboard->Acquire();
+		else
+		ZeroMemory(m_byKeyState, sizeof(m_byKeyState));
+	}
+	if (FAILED(m_pMouse->GetDeviceState(sizeof(m_tMouseState), &m_tMouseState)))
+	{
+		if (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED)
+			m_pMouse->Acquire();
+		else
+		ZeroMemory(&m_tMouseState, sizeof(m_tMouseState));
+	}
 }
 
 _byte Input::GetKeyState(_ubyte byKeyID)
@@ -42,12 +57,25 @@ _byte Input::GetKeyState(_ubyte byKeyID)
 
 _byte Input::GetMouseState(MOUSEKEYSTATE eMouse)
 {
-	return m_tMouseState.rgbButtons[ENUM_CLASS(eMouse)];
+	if (eMouse < 0 || eMouse >= MOUSEKEYSTATE::MOUSEKEYSTATE_END)
+		return 0;
+
+	return m_tMouseState.rgbButtons[eMouse];
 }
 
 _long Input::GetMouseMove(MOUSEMOVESTATE eMouseState)
 {
-	return *(((_long*)&m_tMouseState) + ENUM_CLASS(eMouseState));
+	switch (eMouseState)
+	{
+	case MOUSEMOVESTATE::X:
+		return m_tMouseState.lX;
+	case MOUSEMOVESTATE::Y:
+		return m_tMouseState.lY;
+	case MOUSEMOVESTATE::MOVE_WHEEL:
+		return m_tMouseState.lZ;
+	default:
+		return 0;
+	}
 }
 
 Input* Input::Create(HINSTANCE InstanceHandle, HWND WindowHandle)

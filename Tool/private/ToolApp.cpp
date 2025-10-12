@@ -1,15 +1,15 @@
-﻿#include "MainApp.h"
+﻿#include "ToolApp.h"
 #include "EngineUtility.h"
 
-#include "ModelScene"
+#include "ModelScene.h"
 
-MainApp::MainApp()
+ToolApp::ToolApp()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
 {
 	SafeAddRef(m_pEngineUtility);
 }
 
-HRESULT MainApp::Initialize()
+HRESULT ToolApp::Initialize()
 {
 	ENGINE_DESC			EngineDesc{};
 	EngineDesc.hInstance = g_hInstance;
@@ -22,18 +22,25 @@ HRESULT MainApp::Initialize()
 	if (FAILED(m_pEngineUtility->InitializeEngine(EngineDesc)))
 		return E_FAIL;
 
-	if (FAILED(StartScene(SCENE::MODEL)))
+	ImGui::SetCurrentContext(m_pEngineUtility->GetIMGUIContext());
+
+	if (FAILED(m_pEngineUtility->ChangeScene(SCENE::MODEL, ModelScene::Create(SCENE::MODEL))))
 		return E_FAIL;
 
 	return S_OK;
 }
 
-void MainApp::Update(_float fTimeDelta)
+void ToolApp::Update(_float fTimeDelta)
 {
+
+	m_pEngineUtility->BeginIMGUI();
+		
 	m_pEngineUtility->UpdateEngine(fTimeDelta);
+
+	m_pEngineUtility->DrawPanels();
 }
 
-HRESULT MainApp::Render()
+HRESULT ToolApp::Render()
 {
 	_float4		vClearColor = _float4(0.f, 0.f, 1.f, 1.f);
 
@@ -45,15 +52,17 @@ HRESULT MainApp::Render()
 
 	m_pEngineUtility->DrawFont(TEXT("Font_Default"), TEXT("ab이거 봐라de"), _float2(0.f, 0.f));
 
+	m_pEngineUtility->RenderIMGUI();
+
 	/* 후면버퍼를 전면으로 보여준다. */
 	m_pEngineUtility->EndDraw();
 
 	return S_OK;
 }
 
-MainApp* MainApp::Create()
+ToolApp* ToolApp::Create()
 {
-	MainApp* pInstance = new MainApp();
+	ToolApp* pInstance = new ToolApp();
 
 	if (FAILED(pInstance->Initialize()))
 	{
@@ -64,7 +73,7 @@ MainApp* MainApp::Create()
 	return pInstance;
 }
 
-void MainApp::Free()
+void ToolApp::Free()
 {
 	__super::Free();
 
@@ -72,12 +81,7 @@ void MainApp::Free()
 	m_pEngineUtility->DestroyInstance();
 }
 
-HRESULT MainApp::ReadyPrototypeForStatic()
+HRESULT ToolApp::ReadyPrototypeForStatic()
 {
 	return S_OK;
-}
-
-HRESULT MainApp::StartScene(SCENE eStartLevelID)
-{
-	return m_pEngineUtility->ChangeScene(SCENE::MODEL, ModelScene::Create(eStartLevelID));
 }

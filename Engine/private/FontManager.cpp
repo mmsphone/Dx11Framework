@@ -41,11 +41,10 @@ FontManager* FontManager::Create()
 void FontManager::Free()
 {
 	__super::Free();
-	m_pEngineUtility->DestroyInstance();
+	SafeRelease(m_pEngineUtility);
 
 	for (auto& Pair : m_Fonts)
 		SafeRelease(Pair.second);
-
 	m_Fonts.clear();
 }
 

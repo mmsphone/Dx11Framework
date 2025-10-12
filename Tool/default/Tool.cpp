@@ -2,11 +2,16 @@
 //
 
 #include "framework.h"
+
 #include "Tool.h"
 
-#include "MainApp.h"
+#include "ToolApp.h"
 
 #include "EngineUtility.h"
+
+#include "imgui.h"
+#include "backends/imgui_impl_win32.h"
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 #define MAX_LOADSTRING 100
 
@@ -35,7 +40,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 여기에 코드를 입력합니다.
-    MainApp* pMainApp = { nullptr };
+    ToolApp* pMainApp = { nullptr };
     EngineUtility* pEngineUtility = { nullptr };
 
     // 전역 문자열을 초기화합니다.
@@ -53,7 +58,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    pMainApp = MainApp::Create();
+    pMainApp = ToolApp::Create();
     if (nullptr == pMainApp)
         return FALSE;
 
@@ -178,6 +183,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        return true;
+
     switch (message)
     {
     case WM_COMMAND:

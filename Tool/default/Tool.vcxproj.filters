@@ -17,8 +17,26 @@
     <Filter Include="04.Object">
       <UniqueIdentifier>{2a89a709-af37-43c7-a90f-3ea9f2cee895}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05.Assimp">
+    <Filter Include="03.Scene\ModelScene">
+      <UniqueIdentifier>{c3caa56a-7aa5-41cb-8a79-42ca5dbca52e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Scene\MapScene">
+      <UniqueIdentifier>{3bdb70e5-42aa-4ccf-97cf-b96ca36e9914}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Panel">
       <UniqueIdentifier>{9d4179a8-33a9-4a8b-90bb-5e1f1381971d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Panel\Model">
+      <UniqueIdentifier>{bad110ee-17cf-46c7-89de-26c261d26295}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Panel\Map">
+      <UniqueIdentifier>{6801a911-a092-465f-b48d-ee5854641a8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IMGUI">
+      <UniqueIdentifier>{5679d548-5601-4123-bf66-15d0d1ebdad2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImportHelper">
+      <UniqueIdentifier>{2e6360ce-82b9-43b3-a240-2bb54f0fbd90}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -34,14 +52,29 @@
     <ClInclude Include="Tool.h">
       <Filter>00.Default</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\MainApp.h">
+    <ClInclude Include="..\public\ToolApp.h">
       <Filter>02.MainApp</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Tool_Defines.h">
       <Filter>01.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\AssimpTool.h">
-      <Filter>05.Assimp</Filter>
+      <Filter>05.Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ModelScene.h">
+      <Filter>03.Scene\ModelScene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MapScene.h">
+      <Filter>03.Scene\MapScene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ModelPanel.h">
+      <Filter>05.Panel\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\MapPanel.h">
+      <Filter>05.Panel\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ImportHelper.h">
+      <Filter>ImportHelper</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -61,11 +94,47 @@
     <ClCompile Include="Tool.cpp">
       <Filter>00.Default</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\MainApp.cpp">
+    <ClCompile Include="..\private\ToolApp.cpp">
       <Filter>02.MainApp</Filter>
     </ClCompile>
     <ClCompile Include="..\private\AssimpTool.cpp">
-      <Filter>05.Assimp</Filter>
+      <Filter>05.Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ModelScene.cpp">
+      <Filter>03.Scene\ModelScene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MapScene.cpp">
+      <Filter>03.Scene\MapScene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ModelPanel.cpp">
+      <Filter>05.Panel\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\MapPanel.cpp">
+      <Filter>05.Panel\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_demo.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_draw.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_tables.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_widgets.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\backends\imgui_impl_dx11.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\backends\imgui_impl_win32.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ImportHelper.cpp">
+      <Filter>ImportHelper</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

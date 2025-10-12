@@ -47,6 +47,7 @@
     <ClInclude Include="..\public\NoAssimpModelStruct.h" />
     <ClInclude Include="..\public\Object.h" />
     <ClInclude Include="..\public\ObjectManager.h" />
+    <ClInclude Include="..\public\Panel.h" />
     <ClInclude Include="..\public\Part.h" />
     <ClInclude Include="..\public\Pipeline.h" />
     <ClInclude Include="..\public\PrototypeManager.h" />
@@ -86,6 +87,7 @@
     <ClCompile Include="..\private\Model.cpp" />
     <ClCompile Include="..\private\Object.cpp" />
     <ClCompile Include="..\private\ObjectManager.cpp" />
+    <ClCompile Include="..\private\Panel.cpp" />
     <ClCompile Include="..\private\Part.cpp" />
     <ClCompile Include="..\private\Pipeline.cpp" />
     <ClCompile Include="..\private\PrototypeManager.cpp" />
@@ -102,6 +104,13 @@
     <ClCompile Include="..\private\VIBufferCube.cpp" />
     <ClCompile Include="..\private\VIBufferRect.cpp" />
     <ClCompile Include="..\private\VIBufferTerrain.cpp" />
+    <ClCompile Include="..\public\IMGUI\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="..\public\IMGUI\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\public\IMGUI\imgui.cpp" />
+    <ClCompile Include="..\public\IMGUI\imgui_demo.cpp" />
+    <ClCompile Include="..\public\IMGUI\imgui_draw.cpp" />
+    <ClCompile Include="..\public\IMGUI\imgui_tables.cpp" />
+    <ClCompile Include="..\public\IMGUI\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli">
@@ -242,14 +251,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../public/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../ThirdPartyLib/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI</AdditionalLibraryDirectories>
       <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11d.lib;DirectXTKd.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -261,16 +271,17 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../public/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../ThirdPartyLib/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI</AdditionalLibraryDirectories>
       <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11.lib;DirectXTK.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

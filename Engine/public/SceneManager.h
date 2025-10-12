@@ -17,6 +17,7 @@ public:
 	HRESULT ChangeScene(_uint iSceneId, class Scene* pScene);
 	void Update(_float fTimeDelta);
 	HRESULT Render();
+	
 
 	static SceneManager* Create();
 	virtual void Free() override;

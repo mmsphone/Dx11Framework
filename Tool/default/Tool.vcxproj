@@ -109,13 +109,15 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>../public/;../../EngineSDK/Inc/</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <AdditionalIncludeDirectories>../public/;../../EngineSDK/Inc/;../../EngineSDK/Inc/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../../EngineSDK/Lib/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../EngineSDK/Lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Engine.Lib;d3d11.lib;dxguid.lib;dinput8.lib;Effects11d.lib;DirectXTKd.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,18 +129,25 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>../public/;../../EngineSDK/Inc/</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
+      <AdditionalIncludeDirectories>../public/;../../EngineSDK/Inc/;../../EngineSDK/Inc/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../../EngineSDK/Lib/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../EngineSDK/Lib/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Engine.Lib;d3d11.lib;dxguid.lib;dinput8.lib;Effects11.lib;DirectXTK.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\public\AssimpTool.h" />
-    <ClInclude Include="..\public\MainApp.h" />
+    <ClInclude Include="..\public\ImportHelper.h" />
+    <ClInclude Include="..\public\MapPanel.h" />
+    <ClInclude Include="..\public\MapScene.h" />
+    <ClInclude Include="..\public\ModelPanel.h" />
+    <ClInclude Include="..\public\ModelScene.h" />
+    <ClInclude Include="..\public\ToolApp.h" />
     <ClInclude Include="..\public\Tool_Defines.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
@@ -146,8 +155,20 @@
     <ClInclude Include="Tool.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\backends\imgui_impl_dx11.cpp" />
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui.cpp" />
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_demo.cpp" />
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_draw.cpp" />
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_tables.cpp" />
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_widgets.cpp" />
     <ClCompile Include="..\private\AssimpTool.cpp" />
-    <ClCompile Include="..\private\MainApp.cpp" />
+    <ClCompile Include="..\private\ImportHelper.cpp" />
+    <ClCompile Include="..\private\MapPanel.cpp" />
+    <ClCompile Include="..\private\MapScene.cpp" />
+    <ClCompile Include="..\private\ModelPanel.cpp" />
+    <ClCompile Include="..\private\ModelScene.cpp" />
+    <ClCompile Include="..\private\ToolApp.cpp" />
     <ClCompile Include="Tool.cpp" />
   </ItemGroup>
   <ItemGroup>

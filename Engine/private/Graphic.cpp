@@ -74,7 +74,7 @@ HRESULT Graphic::Present()
     CHECKNULLPTR(m_pSwapChain)
         return E_FAIL;
 
-    return E_NOTIMPL;
+    return m_pSwapChain->Present(0,0);
 }
 
 ID3D11Device* Graphic::GetDevice() const

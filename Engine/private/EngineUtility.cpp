@@ -10,6 +10,7 @@
 #include "Pipeline.h"
 #include "LightManager.h"
 #include "FontManager.h"
+#include "IMGUIManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -48,6 +49,12 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 
 	m_pFontManager = FontManager::Create();
 	CHECKNULLPTR(m_pFontManager) return E_FAIL;
+
+	m_pIMGUIManager = IMGUIManager::Create();
+	CHECKNULLPTR(m_pIMGUIManager) return E_FAIL;
+
+	if (FAILED(m_pIMGUIManager->Initialize(EngineDesc.hWnd)))
+		return E_FAIL;
 
 	return S_OK;
 }
@@ -99,6 +106,7 @@ void EngineUtility::ReleaseEngine()
 	SafeRelease(m_pInput);
 	SafeRelease(m_pGraphic);
 	SafeRelease(m_pTimeManager);
+	SafeRelease(m_pIMGUIManager);
 
 	DestroyInstance();
 }
@@ -233,4 +241,48 @@ HRESULT EngineUtility::AddFont(const _wstring& strFontTag, const _tchar* pFontFi
 HRESULT EngineUtility::DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor)
 {
 	return m_pFontManager->DrawFont(strFontTag, strText, vPosition, vColor);
+}
+
+HRESULT EngineUtility::BeginIMGUI()
+{
+	if (!m_pIMGUIManager)
+		return E_FAIL;
+	return m_pIMGUIManager->Begin();
+}
+
+HRESULT EngineUtility::RenderIMGUI()
+{
+	return m_pIMGUIManager->Render();
+}
+
+HRESULT EngineUtility::ShutdownIMGUI()
+{
+	return m_pIMGUIManager->Shutdown();
+}
+HRESULT EngineUtility::AddPanel(const string& PanelName, class Panel* pPanel) 
+{
+	return m_pIMGUIManager->AddPanel(PanelName, pPanel);
+}
+HRESULT EngineUtility::RemovePanel(const string& PanelName)
+{
+	return m_pIMGUIManager->RemovePanel(PanelName);
+}
+
+HRESULT EngineUtility::ClearPanels()
+{
+	return m_pIMGUIManager->ClearPanels();
+}
+HRESULT EngineUtility::SetPanelOpen(const string& PanelName, bool open)
+{
+	return m_pIMGUIManager->SetPanelOpen(PanelName, open);
+}
+
+ImGuiContext* EngineUtility::GetIMGUIContext()
+{
+	return m_pIMGUIManager->GetIMGUIContext();
+}
+
+void EngineUtility::DrawPanels()
+{
+	m_pIMGUIManager->DrawPanels();
 }

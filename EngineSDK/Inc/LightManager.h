@@ -12,6 +12,8 @@ private:
 public:
 	const LIGHT_DESC* GetLight(_uint iIndex);
 	HRESULT AddLight(const LIGHT_DESC& lightDesc);
+	HRESULT RemoveLight(_uint iIndex);
+	void ClearLights();
 
 	static LightManager* Create();
 	virtual void Free() override;

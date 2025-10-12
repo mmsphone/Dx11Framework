@@ -11,22 +11,6 @@ MainApp::MainApp()
 
 HRESULT MainApp::Initialize()
 {
-	/*m_pContext->OMSetBlendState()*/
-	/*D3D11_BLEND_DESC*/
-	//D3D11_DEPTH_STENCIL_DESC
-	// m_pContext->OMSetDepthStencilState()
-	//ID3D11RasterizerState* pRSState;
-	//D3D11_RASTERIZER_DESC	RSDesc{};
-
-	//m_pDevice->CreateRasterizerState(&RSDesc, &pRSState);
-
-	//m_pContext->RSSetState(pRSState);
-
-	//m_pContext->OMSetDepthStencilState();	
-
-	//m_pContext->OMSetBlendState();
-
-	/* 초기화ㅏ */
 	ENGINE_DESC			EngineDesc{};
 	EngineDesc.hInstance = g_hInstance;
 	EngineDesc.hWnd = g_hWnd;
@@ -35,8 +19,6 @@ HRESULT MainApp::Initialize()
 	EngineDesc.iWinSizeY = g_iWinSizeY;
 	EngineDesc.iNumLevels = SCENE::SCENE_END;
 
-	/* 엔진의 기능을 이용하기위해 필요한 준비과정을 수행한다. */
-	/* 그래픽 디바이스 초기화, 타이머매니져 준비. + etc */
 	if (FAILED(m_pEngineUtility->InitializeEngine(EngineDesc)))
 		return E_FAIL;
 	/*MakeSpriteFont "넥슨Lv1고딕 Bold" /FontSize:20 /FastPack /CharacterRegion:0x0020-0x00FF /CharacterRegion:0x3131-0x3163 /CharacterRegion:0xAC00-0xD800 /DefaultCharacter:0xAC00 155ex.spritefont */

@@ -16,6 +16,14 @@ HRESULT Layer::AddObject(Object* pObject)
 	return S_OK;
 }
 
+Object* Layer::FindObject(_uint iIndex)
+{
+	if (iIndex >= m_Objects.size()) return nullptr;
+	auto iter = m_Objects.begin();
+	advance(iter, iIndex);
+	return *iter;
+}
+
 void Layer::PriorityUpdate(_float fTimeDelta)
 {
 	for (auto& pGameObject : m_Objects)

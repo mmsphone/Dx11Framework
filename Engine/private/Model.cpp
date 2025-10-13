@@ -53,8 +53,6 @@ HRESULT Model::InitializePrototype(MODELTYPE eType, const _char* pModelFilePath,
 {
     m_eType = eType;
 
-    // 여기서는 Assimp을 쓰지 않고, 외부에서 준비된 NAS_Model 데이터를 받는다고 가정
-    // (예: 로더가 json/이진파일 → NAS_Model로 변환한 뒤 전달)
     m_pModelData = LoadNoAssimpModel(pModelFilePath);
     if (m_pModelData == nullptr)
         return E_FAIL;
@@ -67,7 +65,7 @@ HRESULT Model::InitializePrototype(MODELTYPE eType, const _char* pModelFilePath,
     if (FAILED(ReadyMeshes()))
         return E_FAIL;
 
-    if (FAILED(ReadyMaterials(pModelFilePath)))
+    if (FAILED(ReadyMaterials()))
         return E_FAIL;
 
     if (FAILED(ReadyAnimations()))
@@ -108,6 +106,8 @@ HRESULT Model::BindBoneMatrices(_uint iMeshIndex, Shader* pShader, const _char* 
 
 void Model::PlayAnimation(_float fTimeDelta)
 {
+    if (m_iCurrentAnimIndex >= m_Animations.size())
+        return;
     m_Animations[m_iCurrentAnimIndex]->UpdateTransformationMatrix(fTimeDelta, m_Bones, m_isAnimLoop, &m_isAnimFinished);
 
     for (auto& pBone : m_Bones)
@@ -118,6 +118,9 @@ void Model::PlayAnimation(_float fTimeDelta)
 
 void Model::SetAnimation(_uint iIndex, _bool isLoop)
 {
+    if (iIndex >= m_Animations.size()) 
+        return;
+    
     if (m_iCurrentAnimIndex == iIndex && m_isAnimLoop == isLoop)
         return;
 
@@ -132,6 +135,24 @@ _bool Model::isAnimFinished() const
     return m_isAnimFinished;
 }
 
+ModelData* Model::GetModelData() const
+{
+    return m_pModelData;
+}
+
+void Model::SetModelData(ModelData* pModelData)
+
+{
+    if (m_pModelData)
+        SafeDelete(m_pModelData);
+
+    m_pModelData = pModelData;
+    ReadyMeshes();
+    ReadyMaterials();
+    ReadyBones(m_pModelData->rootNode, -1);
+    ReadyAnimations();
+}
+
 Model* Model::Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix)
 {
     Model* pInstance = new Model();
@@ -143,6 +164,20 @@ Model* Model::Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreT
     }
 
     return pInstance;
+}
+
+Model* Model::Create(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix)
+{
+    Model* pInstance = new Model();
+
+    if (FAILED(pInstance->InitializePrototype(eType, pModelData, PreTransformMatrix)))
+    {
+        MSG_BOX("Failed to Created : Model (ModelData)");
+        SafeRelease(pInstance);
+    }
+
+    return pInstance;
+
 }
 
 Component* Model::Clone(void* pArg)
@@ -203,7 +238,7 @@ HRESULT Model::ReadyMeshes()
     return S_OK;
 }
 
-HRESULT Model::ReadyMaterials(const _char* pModelFilePath)
+HRESULT Model::ReadyMaterials()
 {
     m_iNumMaterials = (_uint)m_pModelData->materials.size();
 
@@ -274,7 +309,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
     {
         MeshData& mesh = pModelData->meshes[i];
 
-        // 이름 길이 + 문자열
+        // 이름
         _uint nameLen = 0;
         file.read(reinterpret_cast<char*>(&nameLen), sizeof(_uint));
         mesh.name.resize(nameLen);
@@ -320,7 +355,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
         {
             MeshBone& bone = mesh.bones[b];
 
-            // name
+            // bone name
             _uint len = 0;
             file.read(reinterpret_cast<char*>(&len), sizeof(_uint));
             bone.name.resize(len);
@@ -332,7 +367,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
             bone.weights.resize(numWeights);
             file.read(reinterpret_cast<char*>(bone.weights.data()), sizeof(VertexWeight) * numWeights);
 
-            // offsetMatrix
+            // offset matrix
             file.read(reinterpret_cast<char*>(&bone.offsetMatrix), sizeof(_float4x4));
         }
     }
@@ -342,17 +377,18 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
     _uint numMaterials = 0;
     file.read(reinterpret_cast<char*>(&numMaterials), sizeof(_uint));
     pModelData->materials.resize(numMaterials);
+
     for (_uint i = 0; i < numMaterials; i++)
     {
         MaterialData& mat = pModelData->materials[i];
 
         // name
-        _uint len = 0;
-        file.read(reinterpret_cast<char*>(&len), sizeof(_uint));
-        mat.name.resize(len);
-        file.read(mat.name.data(), len);
+        _uint nameLen = 0;
+        file.read(reinterpret_cast<char*>(&nameLen), sizeof(_uint));
+        mat.name.resize(nameLen);
+        file.read(mat.name.data(), nameLen);
 
-        // textures
+        // textures (전체 경로 포함)
         for (int t = 0; t < (int)TextureType::End; t++)
         {
             _uint numTex = 0;
@@ -372,46 +408,106 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
     // 3. root node
     std::function<void(NodeData&)> readNode;
     readNode = [&](NodeData& node)
+    {
+        _uint len = 0;
+        file.read(reinterpret_cast<char*>(&len), sizeof(_uint));
+        node.name.resize(len);
+        file.read(node.name.data(), len);
+
+        file.read(reinterpret_cast<char*>(&node.parentIndex), sizeof(_int));
+        file.read(reinterpret_cast<char*>(&node.transform), sizeof(_float4x4));
+
+        _uint numChildren = 0;
+        file.read(reinterpret_cast<char*>(&numChildren), sizeof(_uint));
+        node.children.resize(numChildren);
+        for (_uint c = 0; c < numChildren; c++)
         {
-            _uint len = 0;
-            file.read(reinterpret_cast<char*>(&len), sizeof(_uint));
-            node.name.resize(len);
-            file.read(node.name.data(), len);
-
-            file.read(reinterpret_cast<char*>(&node.parentIndex), sizeof(_int));
-            file.read(reinterpret_cast<char*>(&node.transform), sizeof(_float4x4));
-
-            _uint numChildren = 0;
-            file.read(reinterpret_cast<char*>(&numChildren), sizeof(_uint));
-            node.children.resize(numChildren);
-            for (_uint c = 0; c < numChildren; c++)
-            {
-                NodeData child;
-                readNode(child);
-                node.children[c] = child;
-            }
-        };
+            NodeData child;
+            readNode(child);
+            node.children[c] = child;
+        }
+    };
 
     readNode(pModelData->rootNode);
 
     // ---------------------
-    // 4. animations
+    // 4. animations + channels
     _uint numAnims = 0;
     file.read(reinterpret_cast<char*>(&numAnims), sizeof(_uint));
     pModelData->animations.resize(numAnims);
+
     for (_uint i = 0; i < numAnims; i++)
     {
         AnimationData& anim = pModelData->animations[i];
 
-        _uint len = 0;
-        file.read(reinterpret_cast<char*>(&len), sizeof(_uint));
-        anim.name.resize(len);
-        file.read(anim.name.data(), len);
+        _uint nameLen = 0;
+        file.read(reinterpret_cast<char*>(&nameLen), sizeof(_uint));
+        anim.name.resize(nameLen);
+        file.read(anim.name.data(), nameLen);
 
         file.read(reinterpret_cast<char*>(&anim.duration), sizeof(float));
         file.read(reinterpret_cast<char*>(&anim.ticksPerSecond), sizeof(float));
+
+        // channels
+        _uint numChannels = 0;
+        file.read(reinterpret_cast<char*>(&numChannels), sizeof(_uint));
+        anim.channels.resize(numChannels);
+
+        for (_uint c = 0; c < numChannels; c++)
+        {
+            ChannelData& ch = anim.channels[c];
+
+            _uint nodeNameLen = 0;
+            file.read(reinterpret_cast<char*>(&nodeNameLen), sizeof(_uint));
+            ch.nodeName.resize(nodeNameLen);
+            file.read(ch.nodeName.data(), nodeNameLen);
+
+            // position keys
+            _uint numPosKeys = 0;
+            file.read(reinterpret_cast<char*>(&numPosKeys), sizeof(_uint));
+            ch.positionKeys.resize(numPosKeys);
+            file.read(reinterpret_cast<char*>(ch.positionKeys.data()), sizeof(KeyVector) * numPosKeys);
+
+            // rotation keys
+            _uint numRotKeys = 0;
+            file.read(reinterpret_cast<char*>(&numRotKeys), sizeof(_uint));
+            ch.rotationKeys.resize(numRotKeys);
+            file.read(reinterpret_cast<char*>(ch.rotationKeys.data()), sizeof(KeyQuat) * numRotKeys);
+
+            // scaling keys
+            _uint numScaleKeys = 0;
+            file.read(reinterpret_cast<char*>(&numScaleKeys), sizeof(_uint));
+            ch.scalingKeys.resize(numScaleKeys);
+            file.read(reinterpret_cast<char*>(ch.scalingKeys.data()), sizeof(KeyVector) * numScaleKeys);
+        }
     }
 
     file.close();
     return pModelData;
+}
+
+HRESULT Model::InitializePrototype(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix)
+{
+    m_eType = eType;
+
+    m_pModelData = pModelData;
+
+    if (m_pModelData == nullptr)
+        return E_FAIL;
+
+    XMStoreFloat4x4(&m_PreTransformMatrix, PreTransformMatrix);
+
+    if (FAILED(ReadyBones(m_pModelData->rootNode, -1)))
+        return E_FAIL;
+
+    if (FAILED(ReadyMeshes()))
+        return E_FAIL;
+
+    if (FAILED(ReadyMaterials()))
+        return E_FAIL;
+
+    if (FAILED(ReadyAnimations()))
+        return E_FAIL;
+
+    return S_OK;
 }

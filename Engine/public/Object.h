@@ -30,10 +30,8 @@ public:
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free();
 
-protected:
-	HRESULT AddComponent(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, const _wstring& strComponentTag, Component** ppOut, void* pArg = nullptr);
-
-	class Component* FindComponent(const _wstring& strComponentTag);
+	virtual HRESULT AddComponent(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, const _wstring& strComponentTag, Component** ppOut, void* pArg = nullptr);
+	virtual class Component* FindComponent(const _wstring& strComponentTag);
 
 protected:
 	class EngineUtility* m_pEngineUtility = { nullptr };

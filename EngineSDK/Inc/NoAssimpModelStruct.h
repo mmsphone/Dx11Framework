@@ -60,11 +60,28 @@ struct NodeData {
 };
 
 // 🔹 애니메이션 데이터
+struct KeyVector {
+    float time;
+    _float3 value;
+};
+
+struct KeyQuat {
+    float time;
+    _float4 value;
+};
+
+struct ChannelData {
+    std::string nodeName;
+    std::vector<KeyVector> positionKeys;
+    std::vector<KeyQuat> rotationKeys;
+    std::vector<KeyVector> scalingKeys;
+};
+
 struct AnimationData {
     std::string name;
-    float       duration = 0.f;
-    float       ticksPerSecond = 0.f;
-    // 추후 키프레임 구조체 추가 가능
+    float duration = 0.f;
+    float ticksPerSecond = 0.f;
+    std::vector<ChannelData> channels;
 };
 
 // 🔹 모델 전체 데이터

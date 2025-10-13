@@ -43,6 +43,17 @@ HRESULT ObjectManager::AddObject(_uint iPrototypeSceneId, const _wstring& strPro
 	return S_OK;
 }
 
+Object* ObjectManager::FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex)
+{
+	Layer* pLayer = FindLayer(iLayerSceneId, strLayerTag);
+	if (pLayer != nullptr)
+	{
+		m_pLayers[iLayerSceneId].at(strLayerTag)->FindObject(iIndex);
+	}
+	else
+		return nullptr;
+}
+
 void ObjectManager::Clear(_uint iSceneId)
 {
 	for (auto& Pair : m_pLayers[iSceneId])

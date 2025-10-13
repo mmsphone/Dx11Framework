@@ -49,7 +49,8 @@ public:
 
 	//ObjectManager
 	HRESULT AddObject(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, _uint iLayerSceneId, const _wstring& strLayerTag, void* pArg = nullptr);
-	
+	class Object* FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex);
+
 	//RenderManager
 	HRESULT JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObject);
 

@@ -32,6 +32,8 @@ public:
 	void GoLeft(_float fTimeDelta);
 	void GoRight(_float fTimeDelta);
 	void GoBackward(_float fTimeDelta);
+	void GoUp(_float fTimeDelta);
+	void GoDown(_float fTimeDelta);
 
 	void RotateRadian(_fvector vAxis, _float fRadian);
 	void RotateTimeDelta(_fvector vAxis, _float fTimeDelta);

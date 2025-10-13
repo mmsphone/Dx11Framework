@@ -14,6 +14,7 @@ private:
 public:
 	HRESULT Initialize(_uint iNumScenes);
 	HRESULT AddObject(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, _uint iLayerSceneId, const _wstring& strLayerTag, void* pArg);
+	class Object* FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex);
 	void Clear(_uint iSceneId);
 	void PriorityUpdate(_float fTimeDelta);
 	void Update(_float fTimeDelta);

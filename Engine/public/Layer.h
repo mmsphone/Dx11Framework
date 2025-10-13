@@ -12,6 +12,7 @@ private:
 
 public:
 	HRESULT AddObject(class Object* pObject);
+	class Object* FindObject(_uint iIndex);
 	void PriorityUpdate(_float fTimeDelta);
 	void Update(_float fTimeDelta);
 	void LateUpdate(_float fTimeDelta);

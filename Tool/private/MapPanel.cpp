@@ -13,13 +13,13 @@ MapPanel::MapPanel(const string& PanelName, bool open)
 
 void MapPanel::OnRender()
 {
-    if (ImGui::Button("Move To ModelScene"))
+    if (ImGui::Button("ModelScene"))
     {
         m_pEngineUtility->ChangeScene(SCENE::MODEL, ModelScene::Create(SCENE::MODEL));
         m_pEngineUtility->SetPanelOpen(GetPanelName(), false);
     }
 
-    ImGui::Text("Click on terrain to place marker");
+    ImGui::Text("Click terrain to set marker");
 }
 
 

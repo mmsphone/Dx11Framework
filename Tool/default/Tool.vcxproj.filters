@@ -35,8 +35,14 @@
     <Filter Include="IMGUI">
       <UniqueIdentifier>{5679d548-5601-4123-bf66-15d0d1ebdad2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImportHelper">
+    <Filter Include="04.Object\TestObejct">
+      <UniqueIdentifier>{63791c36-9cf6-4ad9-b378-b7e6c3109fc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IEHelper">
       <UniqueIdentifier>{2e6360ce-82b9-43b3-a240-2bb54f0fbd90}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Object\FreeCam">
+      <UniqueIdentifier>{ccd7546d-49db-4a62-a89f-fcb78fe01c95}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -58,9 +64,6 @@
     <ClInclude Include="..\public\Tool_Defines.h">
       <Filter>01.Define</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\AssimpTool.h">
-      <Filter>05.Panel</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\ModelScene.h">
       <Filter>03.Scene\ModelScene</Filter>
     </ClInclude>
@@ -73,8 +76,14 @@
     <ClInclude Include="..\public\MapPanel.h">
       <Filter>05.Panel\Map</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\ImportHelper.h">
-      <Filter>ImportHelper</Filter>
+    <ClInclude Include="..\public\IEHelper.h">
+      <Filter>IEHelper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TestObject.h">
+      <Filter>04.Object\TestObejct</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FreeCam.h">
+      <Filter>04.Object\FreeCam</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -96,9 +105,6 @@
     </ClCompile>
     <ClCompile Include="..\private\ToolApp.cpp">
       <Filter>02.MainApp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\AssimpTool.cpp">
-      <Filter>05.Panel</Filter>
     </ClCompile>
     <ClCompile Include="..\private\ModelScene.cpp">
       <Filter>03.Scene\ModelScene</Filter>
@@ -133,8 +139,14 @@
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\backends\imgui_impl_win32.cpp">
       <Filter>IMGUI</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\ImportHelper.cpp">
-      <Filter>ImportHelper</Filter>
+    <ClCompile Include="..\private\IEHelper.cpp">
+      <Filter>IEHelper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TestObject.cpp">
+      <Filter>04.Object\TestObejct</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FreeCam.cpp">
+      <Filter>04.Object\FreeCam</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

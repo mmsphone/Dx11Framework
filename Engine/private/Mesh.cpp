@@ -148,8 +148,10 @@ HRESULT Mesh::ReadyVertexBufferForAnim(const MeshData& mesh, const vector<class 
             });
 
         if (iter == Bones.end())
-            return E_FAIL;
-
+        {
+            m_BoneIndices.push_back(0);
+            continue;
+        }
         m_BoneIndices.push_back(boneIndex);
 
         // 가중치 적용

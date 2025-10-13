@@ -10,6 +10,9 @@
 #include <filesystem>
 #include <commdlg.h>  
 
+#ifdef new
+#undef new
+#endif
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

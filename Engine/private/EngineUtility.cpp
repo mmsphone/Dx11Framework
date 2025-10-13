@@ -188,6 +188,11 @@ HRESULT EngineUtility::AddObject(_uint iPrototypeSceneId, const _wstring& strPro
 	return m_pObjectManager->AddObject(iPrototypeSceneId, strPrototypeTag, iLayerSceneId, strLayerTag, pArg);
 }
 
+Object* EngineUtility::FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex)
+{
+	return m_pObjectManager->FindObject(iLayerSceneId, strLayerTag, iIndex);
+}
+
 HRESULT EngineUtility::JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObject)
 {
 	return m_pRenderManager->JoinRenderGroup(eGroupID, pObject);

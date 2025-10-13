@@ -174,9 +174,6 @@
     <ClInclude Include="..\public\LightManager.h">
       <Filter>03.Utility\LightManager</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\Model.h">
-      <Filter>05.Component\Model</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\Object.h">
       <Filter>04.ForUtility\Object</Filter>
     </ClInclude>
@@ -272,6 +269,9 @@
     </ClInclude>
     <ClInclude Include="..\public\Panel.h">
       <Filter>04.ForUtility\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Model.h">
+      <Filter>05.Component\Model</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

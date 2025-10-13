@@ -116,6 +116,26 @@ void Transform::GoBackward(_float fTimeDelta)
 	SetState(STATE::POSITION, vPosition);
 }
 
+void Transform::GoUp(_float fTimeDelta)
+{
+	_vector vPos = GetState(STATE::POSITION);
+	_vector vUp = GetState(STATE::UP);
+
+	vPos += XMVector3Normalize(vUp) * m_fSpeedPerSec * fTimeDelta;
+
+	SetState(STATE::POSITION, vPos);
+}
+
+void Transform::GoDown(_float fTimeDelta)
+{
+	_vector vPos = GetState(STATE::POSITION);
+	_vector vUp = GetState(STATE::UP);
+
+	vPos -= XMVector3Normalize(vUp) * m_fSpeedPerSec * fTimeDelta;
+
+	SetState(STATE::POSITION, vPos);
+}
+
 void Transform::RotateRadian(_fvector vAxis, _float fRadian)
 {
 	//현재 크기 

@@ -17,6 +17,7 @@ public:
 	const _float4x4* GetSocketBoneMatrixPtr(const _char* pBoneName) const;
 
 	virtual HRESULT InitializePrototype(MODELTYPE eType, const _char* pFilePath, _fmatrix PreTransformMatrix);
+
 	virtual HRESULT Initialize(void* pArg);
 	virtual HRESULT Render(_uint iMeshIndex);
 
@@ -27,16 +28,21 @@ public:
 	void SetAnimation(_uint iIndex, _bool isLoop = false);
 	_bool isAnimFinished() const;
 
+	ModelData* GetModelData() const;
+	void SetModelData(ModelData* pModelData);
+
 	static Model* Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix = XMMatrixIdentity());
+	static Model* Create(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix);
 	virtual Component* Clone(void* pArg) override;
 	virtual void Free() override;
 private:
 	HRESULT ReadyMeshes();
-	HRESULT ReadyMaterials(const _char* pModelFilePath);
+	HRESULT ReadyMaterials();
 	HRESULT ReadyBones(const NodeData& nodeData, _int iParentIndex);
 	HRESULT ReadyAnimations();
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 
+	HRESULT InitializePrototype(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix);
 private:
 	ModelData*				m_pModelData = { nullptr };
 	MODELTYPE				m_eType = { };

@@ -109,24 +109,6 @@
     <Filter Include="05.Component\VertexIndexBuffer\VIBufferTerrrain">
       <UniqueIdentifier>{4040b34a-4716-4df5-a18d-1a0be4a764f9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="06.ForModel">
-      <UniqueIdentifier>{114861af-39a7-4fe7-b98d-83487646cb85}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.ForModel\Bone">
-      <UniqueIdentifier>{8eaafdc8-3974-4e9b-ba3b-1519c9a32c3f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.ForModel\Mesh">
-      <UniqueIdentifier>{def4d477-554c-4591-913e-0c2e44ced329}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.ForModel\Material">
-      <UniqueIdentifier>{708465ff-b17d-4cd2-b2dc-c5e10923fb98}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.ForModel\Animation">
-      <UniqueIdentifier>{8948822b-e33c-48d4-be18-bf6a83016200}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.ForModel\Channel">
-      <UniqueIdentifier>{783c88f2-22e3-489f-afbd-036522cca6e6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="03.Utility\GUIManager">
       <UniqueIdentifier>{5af64c5d-1a87-4276-9443-29556018c079}</UniqueIdentifier>
     </Filter>
@@ -135,6 +117,54 @@
     </Filter>
     <Filter Include="04.ForUtility\IMGUI">
       <UniqueIdentifier>{b458aea9-18d7-40d0-baf6-ce98747420a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\PickingManager">
+      <UniqueIdentifier>{1e77bc89-8c56-471d-9dea-0346ffa67e07}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Terrain">
+      <UniqueIdentifier>{37cb2f5e-47a1-4ccc-956d-2d81fffe3eb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\Collision">
+      <UniqueIdentifier>{e0856b6e-2c5a-422e-8741-97273a4c9bee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent">
+      <UniqueIdentifier>{114861af-39a7-4fe7-b98d-83487646cb85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\Bone">
+      <UniqueIdentifier>{8eaafdc8-3974-4e9b-ba3b-1519c9a32c3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\Mesh">
+      <UniqueIdentifier>{def4d477-554c-4591-913e-0c2e44ced329}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\Material">
+      <UniqueIdentifier>{708465ff-b17d-4cd2-b2dc-c5e10923fb98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\Animation">
+      <UniqueIdentifier>{8948822b-e33c-48d4-be18-bf6a83016200}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\Channel">
+      <UniqueIdentifier>{783c88f2-22e3-489f-afbd-036522cca6e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\CollisionBox">
+      <UniqueIdentifier>{aca2719c-bc33-4e4d-9aad-f617429de0d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\CollisionBox\AABB">
+      <UniqueIdentifier>{73f43f5f-b931-497a-a991-1f3a03d76916}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\CollisionBox\OBB">
+      <UniqueIdentifier>{838cfaf9-0495-4768-941a-99e2b0e10f39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\CollisionBox\Sphere">
+      <UniqueIdentifier>{70197429-c96f-4d65-bc71-fdee2640b749}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\Navigation">
+      <UniqueIdentifier>{7e464491-36a4-40dc-b6fc-ceace3908b9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\Cell">
+      <UniqueIdentifier>{826b3ab4-0208-421c-826b-2f72a9ced786}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\VertexIndexBuffer\VIBufferCell">
+      <UniqueIdentifier>{f4aee4fd-b7b6-4476-b92a-e32f55bfd170}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -250,19 +280,19 @@
       <Filter>05.Component\VertexIndexBuffer</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Bone.h">
-      <Filter>06.ForModel\Bone</Filter>
+      <Filter>06.ForComponent\Bone</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Mesh.h">
-      <Filter>06.ForModel\Mesh</Filter>
+      <Filter>06.ForComponent\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Material.h">
-      <Filter>06.ForModel\Material</Filter>
+      <Filter>06.ForComponent\Material</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Animation.h">
-      <Filter>06.ForModel\Animation</Filter>
+      <Filter>06.ForComponent\Animation</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Channel.h">
-      <Filter>06.ForModel\Channel</Filter>
+      <Filter>06.ForComponent\Channel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\IMGUIManager.h">
       <Filter>03.Utility\GUIManager</Filter>
@@ -272,6 +302,36 @@
     </ClInclude>
     <ClInclude Include="..\public\Model.h">
       <Filter>05.Component\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\PickingManager.h">
+      <Filter>03.Utility\PickingManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Terrain.h">
+      <Filter>04.ForUtility\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Collision.h">
+      <Filter>05.Component\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CollisionBox.h">
+      <Filter>06.ForComponent\CollisionBox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CollisionBoxAABB.h">
+      <Filter>06.ForComponent\CollisionBox\AABB</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CollisionBoxSphere.h">
+      <Filter>06.ForComponent\CollisionBox\Sphere</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CollisionBoxOBB.h">
+      <Filter>06.ForComponent\CollisionBox\OBB</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Cell.h">
+      <Filter>06.ForComponent\Cell</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Navigation.h">
+      <Filter>05.Component\Navigation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\VIBufferCell.h">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferCell</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -369,19 +429,19 @@
       <Filter>05.Component\VertexIndexBuffer</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Bone.cpp">
-      <Filter>06.ForModel\Bone</Filter>
+      <Filter>06.ForComponent\Bone</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Mesh.cpp">
-      <Filter>06.ForModel\Mesh</Filter>
+      <Filter>06.ForComponent\Mesh</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Material.cpp">
-      <Filter>06.ForModel\Material</Filter>
+      <Filter>06.ForComponent\Material</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Animation.cpp">
-      <Filter>06.ForModel\Animation</Filter>
+      <Filter>06.ForComponent\Animation</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Channel.cpp">
-      <Filter>06.ForModel\Channel</Filter>
+      <Filter>06.ForComponent\Channel</Filter>
     </ClCompile>
     <ClCompile Include="..\private\IMGUIManager.cpp">
       <Filter>03.Utility\GUIManager</Filter>
@@ -410,25 +470,60 @@
     <ClCompile Include="..\public\IMGUI\backends\imgui_impl_win32.cpp">
       <Filter>04.ForUtility\IMGUI</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\PickingManager.cpp">
+      <Filter>03.Utility\PickingManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Terrain.cpp">
+      <Filter>04.ForUtility\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Collision.cpp">
+      <Filter>05.Component\Collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CollisionBox.cpp">
+      <Filter>06.ForComponent\CollisionBox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CollisionBoxAABB.cpp">
+      <Filter>06.ForComponent\CollisionBox\AABB</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CollisionBoxOBB.cpp">
+      <Filter>06.ForComponent\CollisionBox\OBB</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CollisionBoxSphere.cpp">
+      <Filter>06.ForComponent\CollisionBox\Sphere</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Cell.cpp">
+      <Filter>06.ForComponent\Cell</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Navigation.cpp">
+      <Filter>05.Component\Navigation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\VIBufferCell.cpp">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferCell</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli">
       <Filter>07.Shaders</Filter>
     </None>
-    <None Include="..\bin\Shader\Shader_VtxAnimMesh.hlsl">
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\bin\Shader\Shader_Cell.hlsl">
       <Filter>07.Shaders</Filter>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxCube.hlsl">
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_VtxAnimMesh.hlsl">
       <Filter>07.Shaders</Filter>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxMesh.hlsl">
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_VtxCube.hlsl">
       <Filter>07.Shaders</Filter>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxNorTex.hlsl">
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_VtxMesh.hlsl">
       <Filter>07.Shaders</Filter>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxPosTex.hlsl">
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_VtxNorTex.hlsl">
       <Filter>07.Shaders</Filter>
-    </None>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_VtxPosTex.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

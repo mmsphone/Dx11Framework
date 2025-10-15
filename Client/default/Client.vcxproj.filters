@@ -169,7 +169,4 @@
       <Filter>05.Object\Player\PlayerWeapon</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="ShaderOp.hlsl" />
-  </ItemGroup>
 </Project>

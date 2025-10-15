@@ -28,11 +28,16 @@ public:
 	//Graphic
 	ID3D11Device* GetDevice();
 	ID3D11DeviceContext* GetContext();
+	HWND GetWindowHandle();
+	_float2 GetWindowSize();
 
 	//Input
 	_byte	GetKeyState(_ubyte byKeyID);
 	_byte	GetMouseState(MOUSEKEYSTATE eMouse);
 	_long	GetMouseMove(MOUSEMOVESTATE eMouseState);
+	_float2 GetMousePos();
+	void SetMousePos(_float2 mousePos);
+	void SetMouseVisible(_bool bVisible);
 
 	//TimeManager
 	_float GetTimeDelta(const _wstring& pTimerTag);
@@ -81,6 +86,12 @@ public:
 	ImGuiContext* GetIMGUIContext();
 	void DrawPanels();
 
+	//PickingManager
+	RAY GetRay();
+	_float3 GetRayHitPosition(const RAY& ray, class Object* pObject);
+	_bool RayIntersectObject(const RAY& ray, class Object* pObject);
+	_bool RayIntersectTerrain(const RAY& ray, class Terrain* pTerrain);
+
 private:
 	class Graphic* m_pGraphic = { nullptr };
 	class Input* m_pInput = { nullptr };
@@ -93,6 +104,7 @@ private:
 	class LightManager* m_pLightManager = { nullptr };
 	class FontManager* m_pFontManager = { nullptr };
 	class IMGUIManager* m_pIMGUIManager = { nullptr };
+	class PickingManager* m_pPickingManager = { nullptr };
 };
 
 NS_END

@@ -16,54 +16,34 @@ ModelScene::ModelScene()
 HRESULT ModelScene::Initialize()
 {
 	// Buffer
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_VIBuffer_Rect"),
-		VIBufferRect::Create());
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_VIBuffer_Cube"),
-		VIBufferCube::Create());
-	//m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_VIBuffer_Terrain"),
-	//	VIBufferTerrain::Create());
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_VIBuffer_Rect"),	VIBufferRect::Create());
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_VIBuffer_Cube"),	VIBufferCube::Create());
 	
 	//Shader
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxPosTex"),
-		Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"),
-			VTXPOSTEX::Elements, VTXPOSTEX::iNumElements));
-
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxPosTex"), 
+		Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"),	VTXPOSTEX::Elements, VTXPOSTEX::iNumElements));
 	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxNorTex"),
-		Shader::Create(TEXT("../bin/Shader/Shader_VtxNorTex.hlsl"),
-			VTXNORTEX::Elements, VTXNORTEX::iNumElements));
-
+		Shader::Create(TEXT("../bin/Shader/Shader_VtxNorTex.hlsl"),	VTXNORTEX::Elements, VTXNORTEX::iNumElements));
 	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxMesh"),
-		Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"),
-			VTXMESH::Elements, VTXMESH::iNumElements));
-
+		Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"),	VTXMESH::Elements, VTXMESH::iNumElements));
 	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxAnimMesh"),
-		Shader::Create(TEXT("../bin/Shader/Shader_VtxAnimMesh.hlsl"),
-			VTXSKINMESH::Elements, VTXSKINMESH::iNumElements));
-
+		Shader::Create(TEXT("../bin/Shader/Shader_VtxAnimMesh.hlsl"),	VTXSKINMESH::Elements, VTXSKINMESH::iNumElements));
 	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxCube"),
-		Shader::Create(TEXT("../bin/Shader/Shader_VtxCube.hlsl"),
-			VTXCUBE::Elements, VTXCUBE::iNumElements));
-
-	//Texture
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Texture_Default"),
-		Texture::Create(TEXT("../bin/Resources/Textures/Default%d.jpg"), 2));
+		Shader::Create(TEXT("../bin/Shader/Shader_VtxCube.hlsl"),	VTXCUBE::Elements, VTXCUBE::iNumElements));
 	
 	//Model
-	ModelData model;
-	IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", model);
+	ModelData* model = new ModelData();
+	IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", *model);
 	_matrix		PreTransformMatrix = XMMatrixIdentity();
-	PreTransformMatrix = XMMatrixRotationY(XMConvertToRadians(180.0f));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Model_Fiona"), Model::Create(MODELTYPE::ANIM, &model, PreTransformMatrix))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Model_Fiona"), Model::Create(MODELTYPE::ANIM, model, PreTransformMatrix))))
 		return E_FAIL;
-
 	//Object
 	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_GameObject_TestObject"), TestObject::Create());
 	m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("Prototype_GameObject_TestObject"), SCENE::MODEL, TEXT("Test"));
 
 	//IMGUI Panel
-	Object* pObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Test"), 0);
 	string str = "ModelPanel";
-	ModelPanel* pPanel = ModelPanel::Create(str, pObject);
+	ModelPanel* pPanel = ModelPanel::Create(str);
 	m_pEngineUtility->AddPanel(pPanel->GetPanelName(), pPanel);
 
 	//Light

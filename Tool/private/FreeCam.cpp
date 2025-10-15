@@ -34,47 +34,46 @@ void FreeCam::PriorityUpdate(_float fTimeDelta)
     if (pTransform == nullptr)
         return;
 
-    if (m_pEngineUtility->GetKeyState(DIK_W) & 0x80)
-    {
-        pTransform->GoForward(fTimeDelta);
-    }
+    if (m_pEngineUtility->GetKeyState(DIK_W) & 0x80) pTransform->GoForward(fTimeDelta);
+    if (m_pEngineUtility->GetKeyState(DIK_S) & 0x80) pTransform->GoBackward(fTimeDelta);
+    if (m_pEngineUtility->GetKeyState(DIK_A) & 0x80) pTransform->GoLeft(fTimeDelta);
+    if (m_pEngineUtility->GetKeyState(DIK_D) & 0x80) pTransform->GoRight(fTimeDelta);
+    if (m_pEngineUtility->GetKeyState(DIK_SPACE) & 0x80) pTransform->GoUp(fTimeDelta);    
+    if (m_pEngineUtility->GetKeyState(DIK_LCONTROL) & 0x80) pTransform->GoDown(fTimeDelta);
 
-    if (m_pEngineUtility->GetKeyState(DIK_S) & 0x80)
-    {
-        pTransform->GoBackward(fTimeDelta);
-    }
+    static bool altPressedLastFrame = false;
+    bool altPressed = m_pEngineUtility->GetKeyState(DIK_LALT) & 0x8000;
 
-    if (m_pEngineUtility->GetKeyState(DIK_A) & 0x80)
-    {
-        pTransform->GoLeft(fTimeDelta);
-    }
+    _float2 winSize = m_pEngineUtility->GetWindowSize();
+    _float2 center = { winSize.x / 2.f, winSize.y / 2.f };
 
-    if (m_pEngineUtility->GetKeyState(DIK_D) & 0x80)
+    if (altPressed == false)
     {
-        pTransform->GoRight(fTimeDelta);
+        m_pEngineUtility->SetMousePos(center);
+        m_pEngineUtility->SetMouseVisible(false);
     }
+    else
+        m_pEngineUtility->SetMouseVisible(true);
 
-    if (m_pEngineUtility->GetKeyState(DIK_SPACE) & 0x80)
+    if (altPressedLastFrame == false)
     {
-        pTransform->GoUp(fTimeDelta);
-    }
-    
-    if (m_pEngineUtility->GetKeyState(DIK_LCONTROL) & 0x80)
-    {
-        pTransform->GoDown(fTimeDelta);
-    }
+        _long MouseMoveX = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::X);
+        if (MouseMoveX != 0)
+            pTransform->RotateTimeDelta(XMVectorSet(0.f, 1.f, 0.f, 0.f), MouseMoveX * m_fSensor * fTimeDelta);
 
-    _long         MouseMove = {};
+        _vector vLook = XMVector4Normalize(pTransform->GetState(LOOK));
+        _vector vHorizon = XMVector4Normalize(XMVectorSet(XMVectorGetX(vLook), 0.f, XMVectorGetZ(vLook), 0.f));
+        _float fDot = XMVectorGetX(XMVector4Dot(vLook,vHorizon));
 
-    if (MouseMove = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::X))
-    {
-        pTransform->RotateTimeDelta(XMVectorSet(0.f, 1.f, 0.f, 0.f), MouseMove * m_fSensor * fTimeDelta);
+        if (fDot >= 0.1f)
+        {
+            _long MouseMoveY = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::Y);
+            if (MouseMoveY != 0)
+                pTransform->RotateTimeDelta(pTransform->GetState(RIGHT), MouseMoveY * m_fSensor * fTimeDelta);
+        }
     }
+    altPressedLastFrame = altPressed;
 
-    if (MouseMove = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::Y))
-    {
-        pTransform->RotateTimeDelta(pTransform->GetState(STATE::RIGHT), MouseMove * m_fSensor * fTimeDelta);
-    }
 
     UpdatePipeLine();
 }

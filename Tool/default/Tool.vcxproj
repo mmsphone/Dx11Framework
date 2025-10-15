@@ -141,12 +141,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\public\FieldObject.h" />
     <ClInclude Include="..\public\FreeCam.h" />
     <ClInclude Include="..\public\IEHelper.h" />
     <ClInclude Include="..\public\MapPanel.h" />
     <ClInclude Include="..\public\MapScene.h" />
     <ClInclude Include="..\public\ModelPanel.h" />
     <ClInclude Include="..\public\ModelScene.h" />
+    <ClInclude Include="..\public\TestTerrain.h" />
     <ClInclude Include="..\public\TestObject.h" />
     <ClInclude Include="..\public\ToolApp.h" />
     <ClInclude Include="..\public\Tool_Defines.h" />
@@ -163,12 +165,14 @@
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_draw.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_tables.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_widgets.cpp" />
+    <ClCompile Include="..\private\FieldObject.cpp" />
     <ClCompile Include="..\private\FreeCam.cpp" />
     <ClCompile Include="..\private\IEHelper.cpp" />
     <ClCompile Include="..\private\MapPanel.cpp" />
     <ClCompile Include="..\private\MapScene.cpp" />
     <ClCompile Include="..\private\ModelPanel.cpp" />
     <ClCompile Include="..\private\ModelScene.cpp" />
+    <ClCompile Include="..\private\TestTerrain.cpp" />
     <ClCompile Include="..\private\TestObject.cpp" />
     <ClCompile Include="..\private\ToolApp.cpp" />
     <ClCompile Include="Tool.cpp" />

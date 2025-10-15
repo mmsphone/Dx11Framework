@@ -30,12 +30,12 @@ HRESULT Transform::Initialize(void* pArg)
 
 _vector Transform::GetState(STATE eState) const
 {
-	return XMLoadFloat4x4(&m_WorldMatrix).r[ENUM_CLASS(eState)];
+	return XMLoadFloat4x4(&m_WorldMatrix).r[eState];
 }
 
 void Transform::SetState(STATE eState, _fvector vState)
 {
-	XMStoreFloat4(reinterpret_cast<_float4*>(&m_WorldMatrix.m[ENUM_CLASS(eState)]), vState);
+	XMStoreFloat4(reinterpret_cast<_float4*>(&m_WorldMatrix.m[eState]), vState);
 }
 
 _float3 Transform::GetScale() const

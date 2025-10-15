@@ -47,6 +47,10 @@ HRESULT Graphic::Initialize(HWND windowHandle, WINMODE isWindowMode, _uint iWind
 
     m_pContext->RSSetViewports(ViewPortCount, &ViewPortDescriptor);
 
+    m_WindowHandle = windowHandle;
+    m_WindowSize.x = iWindowSizeX;
+    m_WindowSize.y = iWindowSizeY;
+
     return S_OK;
 }
 
@@ -85,6 +89,16 @@ ID3D11Device* Graphic::GetDevice() const
 ID3D11DeviceContext* Graphic::GetContext() const
 {
     return m_pContext;
+}
+
+HWND Graphic::GetWindowHandle() const
+{
+    return m_WindowHandle;
+}
+
+_float2 Graphic::GetWindowSize() const
+{
+    return m_WindowSize;
 }
 
 Graphic* Graphic::Create(HWND windowHandle, WINMODE isWindowMode, _uint iWindowSizeX, _uint iWindowSizeY)

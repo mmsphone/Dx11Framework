@@ -8,9 +8,10 @@
 #include "Object.h"
 #include "Model.h"
 
-ModelPanel::ModelPanel(const string& PanelName, Object* pObject, bool open)
-	:Panel{PanelName, open}, m_pModelObject(pObject)
+ModelPanel::ModelPanel(const string& PanelName, bool open)
+	:Panel{PanelName, open}
 {
+    m_pModelObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Test"), 0);
     SafeAddRef(m_pModelObject);
 }
 
@@ -21,9 +22,9 @@ void ModelPanel::OnRender()
         m_pEngineUtility->ChangeScene(SCENE::MAP, MapScene::Create(SCENE::MAP));
         m_pEngineUtility->SetPanelOpen(GetPanelName(), false);
     }
-
+    ImGui::Text("\n");
     static string ImportPath = "None";
-    if (ImGui::Button("Import"))
+    if (ImGui::Button("ImportFBX"))
     {
         OPENFILENAME FileName = {};
         _tchar filePath[MAX_PATH] = {};
@@ -32,7 +33,7 @@ void ModelPanel::OnRender()
         FileName.hwndOwner = GetActiveWindow();
         FileName.lpstrFile = filePath;
         FileName.nMaxFile = sizeof(filePath);
-        FileName.lpstrFilter = L"FBX Files\0*.fbx\0All Files\0*.*\0";
+        FileName.lpstrFilter = L"All Files\0*.*\0";
         FileName.nFilterIndex = 1;
         FileName.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
         
@@ -44,12 +45,12 @@ void ModelPanel::OnRender()
 
             if (filesystem::exists(fbxPath))
             {
-                ModelData model;
-                if (IEHelper::ImportFBX(fbxPath, model))
+                ModelData* model = new ModelData();
+                if (IEHelper::ImportFBX(fbxPath, *model))
                 {
                     Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
                     if(pModel != nullptr)
-                        pModel->SetModelData(&model);
+                        pModel->SetModelData(model);
                     ImportPath = fbxPath;
                 }
                 else
@@ -59,10 +60,52 @@ void ModelPanel::OnRender()
             }
         }
     }
-    ImGui::Text("CurrentModelFilePath : %s", ImportPath.c_str());
+    ImGui::SameLine();
+    if (ImGui::Button("ImportBin"))
+    {
+        OPENFILENAME FileName = {};
+        _tchar filePath[MAX_PATH] = {};
 
+        FileName.lStructSize = sizeof(FileName);
+        FileName.hwndOwner = GetActiveWindow();
+        FileName.lpstrFile = filePath;
+        FileName.nMaxFile = sizeof(filePath);
+        FileName.lpstrFilter = L"All Files\0*.*\0";
+        FileName.nFilterIndex = 1;
+        FileName.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+        if (GetOpenFileName(&FileName))
+        {
+            int size_needed = WideCharToMultiByte(CP_UTF8, 0, filePath, -1, nullptr, 0, nullptr, nullptr);
+            string binPath(size_needed - 1, 0);
+            WideCharToMultiByte(CP_UTF8, 0, filePath, -1, &binPath[0], size_needed, nullptr, nullptr);
+
+            if (filesystem::exists(binPath))
+            {
+                ModelData* model = new ModelData();
+
+                Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
+                if (pModel != nullptr)
+                {
+                    ModelData* loadedModel = pModel->LoadNoAssimpModel(binPath.c_str());
+                    if (loadedModel != nullptr)
+                    {
+                        pModel->SetModelData(loadedModel);
+                        ImportPath = binPath;
+                    }
+                    else
+                    {
+                        MessageBoxA(nullptr, "Failed to import Bin", "Import Error", MB_OK | MB_ICONERROR);
+                    }
+                }
+            }
+        }
+    }
+    ImGui::Text("--Ixported ModelFilePath--");
+    ImGui::Text("%s", ImportPath.c_str());
+    ImGui::Text("\n");
     static string ExportPath = "None";
-    if (ImGui::Button("Export"))
+    if (ImGui::Button("ExportBin"))
     {
         ModelData* currentModel = nullptr;
         Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
@@ -88,16 +131,37 @@ void ModelPanel::OnRender()
                 WideCharToMultiByte(CP_UTF8, 0, filePath, -1, &savePath[0], size_needed, nullptr, nullptr);
 
                 IEHelper::ExportModel(savePath, *currentModel);
+                ExportPath = savePath;
             }
         }
     }
-    ImGui::Text("BinaryFilePath : %s", ExportPath.c_str());
+    ImGui::Text("--Exported BinaryFilePath--");
+    ImGui::Text("%s", ExportPath.c_str());
+    ImGui::Text("\n");
+
+    ModelData* currentModel = nullptr;
+    Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
+    if (pModel != nullptr)
+        currentModel = pModel->GetModelData();
+    if (currentModel == nullptr) return;
+    ImGui::Text("--CurrentModel Data--");
+    ImGui::Text("iNumBones : %d", currentModel->bones.size());
+    ImGui::Text("iNumMeshes : %d", currentModel->meshes.size());
+    ImGui::Text("iNumMaterials : %d", currentModel->materials.size());
+    ImGui::Text("iNumAnimations : %d", currentModel->animations.size());
+
+    static _int iTargetMeshIndex = -1;
+    ImGui::Text("--TargetMeshIndex(Default : -1)--");
+    if(ImGui::InputInt("##TargetMeshIndex", &iTargetMeshIndex))
+    {
+        pModel->SetTargetMesh(iTargetMeshIndex);
+    }
 }
 
 
-ModelPanel* ModelPanel::Create(const string& PanelName, Object* pObject, bool open)
+ModelPanel* ModelPanel::Create(const string& PanelName, bool open)
 {
-    return new ModelPanel(PanelName, pObject, open);
+    return new ModelPanel(PanelName, open);
 }
 
 void ModelPanel::Free()

@@ -30,9 +30,12 @@ public:
 
 	ModelData* GetModelData() const;
 	void SetModelData(ModelData* pModelData);
+	void SetTargetMesh(_int iMeshIndex);
+	
+	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 
 	static Model* Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix = XMMatrixIdentity());
-	static Model* Create(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix);
+	static Model* Create(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix = XMMatrixIdentity());
 	virtual Component* Clone(void* pArg) override;
 	virtual void Free() override;
 private:
@@ -40,7 +43,7 @@ private:
 	HRESULT ReadyMaterials();
 	HRESULT ReadyBones(const NodeData& nodeData, _int iParentIndex);
 	HRESULT ReadyAnimations();
-	ModelData* LoadNoAssimpModel(const _char* pFilePath);
+	void ClearModelData();
 
 	HRESULT InitializePrototype(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix);
 private:
@@ -61,6 +64,8 @@ private:
 	_uint						m_iCurrentAnimIndex = {};
 	_uint						m_iNumAnimations = {};
 	vector<class Animation*>	m_Animations;
+
+	_int m_iTargetMeshIndex = -1;
 };
 
 NS_END

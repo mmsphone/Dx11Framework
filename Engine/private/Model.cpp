@@ -18,6 +18,7 @@ Model::Model(const Model& Prototype)
     , m_Materials{ Prototype.m_Materials }
     , m_PreTransformMatrix{ Prototype.m_PreTransformMatrix }
     , m_iNumAnimations{ Prototype.m_iNumAnimations }
+    , m_pModelData{ Prototype.m_pModelData }
 {
     for (auto& pPrototypeAnim : Prototype.m_Animations)
         m_Animations.push_back(pPrototypeAnim->Clone());
@@ -30,6 +31,7 @@ Model::Model(const Model& Prototype)
 
     for (auto& pMaterial : m_Materials)
         SafeAddRef(pMaterial);
+
 }
 
 _uint Model::GetNumMeshes() const
@@ -81,6 +83,8 @@ HRESULT Model::Initialize(void* pArg)
 
 HRESULT Model::Render(_uint iMeshIndex)
 {
+    if (m_iTargetMeshIndex != -1 && m_iTargetMeshIndex != iMeshIndex) return S_OK;
+
     m_Meshes[iMeshIndex]->BindBuffers();
     m_Meshes[iMeshIndex]->Render();
 
@@ -143,14 +147,19 @@ ModelData* Model::GetModelData() const
 void Model::SetModelData(ModelData* pModelData)
 
 {
-    if (m_pModelData)
-        SafeDelete(m_pModelData);
+    ClearModelData();
 
     m_pModelData = pModelData;
+    
     ReadyMeshes();
     ReadyMaterials();
     ReadyBones(m_pModelData->rootNode, -1);
     ReadyAnimations();
+}
+
+void Model::SetTargetMesh(_int iMeshIndex)
+{
+    m_iTargetMeshIndex = iMeshIndex;
 }
 
 Model* Model::Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix)
@@ -213,7 +222,6 @@ void Model::Free()
         SafeRelease(pMesh);
     m_Meshes.clear();
 
-    SafeDelete(m_pModelData);
 }
 
 HRESULT Model::ReadyMeshes()
@@ -289,6 +297,38 @@ HRESULT Model::ReadyAnimations()
     }
 
     return S_OK;
+}
+
+void Model::ClearModelData()
+{
+    for (auto& pMesh : m_Meshes)
+        SafeRelease(pMesh);
+    m_Meshes.clear();
+    m_iNumMeshes = 0;
+
+    for (auto& pMaterial : m_Materials)
+        SafeRelease(pMaterial);
+    m_Materials.clear();
+    m_iNumMaterials = 0;
+
+    for (auto& pBone : m_Bones)
+        SafeRelease(pBone);
+    m_Bones.clear();
+
+    for (auto& pAnimation : m_Animations)
+        SafeRelease(pAnimation);
+    m_Animations.clear();
+    m_iNumAnimations = 0;
+     
+    if (m_pModelData)
+    {
+        SafeDelete(m_pModelData);
+        m_pModelData = nullptr;
+    }
+
+    m_iCurrentAnimIndex = 0;
+    m_isAnimLoop = false;
+    m_isAnimFinished = false;
 }
 
 ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)

@@ -26,7 +26,8 @@ private:
 	_float					m_fTicksPerSecond = 0.f;
 
 	_uint					m_iNumChannels = 0;
-	vector<_uint>			m_CurrentKeyFrameIndex;
+	vector<class Channel*>	m_Channels;
+	vector<_uint>			m_CurrentChannelIndex;
 };
 
 NS_END

@@ -9,10 +9,17 @@ IMGUIManager::IMGUIManager()
     SafeAddRef(m_pEngineUtility);
 }
 
-IMGUIManager* IMGUIManager::Create()
+IMGUIManager* IMGUIManager::Create(HWND hWnd)
 {
-    IMGUIManager* pInstance = new IMGUIManager;
-    return pInstance;
+    IMGUIManager* pInstance = new IMGUIManager();
+
+    if (FAILED(pInstance->Initialize(hWnd)))
+    {
+        MSG_BOX("Failed to Created : IMGUIManager");
+        SafeRelease(pInstance);
+    }
+
+    return pInstance;;
 }
 
 HRESULT IMGUIManager::Initialize(HWND hWnd)

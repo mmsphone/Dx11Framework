@@ -6,6 +6,8 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "Transform.h"
+#include "Navigation.h"
+#include "Collision.h"
 
 #include "VIBufferRect.h"
 #include "VIBufferCube.h"

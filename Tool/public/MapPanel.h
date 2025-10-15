@@ -3,6 +3,11 @@
 #include "Tool_Defines.h"
 #include "Panel.h"
 
+namespace Engine
+{
+    class Object;
+}
+
 NS_BEGIN(Tool)
 
 class MapPanel : public Panel
@@ -15,6 +20,9 @@ public:
 
     static MapPanel* Create(const string& PanelName, bool open = true);
     virtual void		Free() override;
+
+private:
+    Object* m_pTerrain = nullptr;
 };
 
 NS_END

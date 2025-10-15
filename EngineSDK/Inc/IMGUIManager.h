@@ -24,7 +24,7 @@ public:
 
 	void DrawPanels();
 
-	static IMGUIManager* Create();
+	static IMGUIManager* Create(HWND hWnd);
 	virtual void		Free() override;
 
 private:

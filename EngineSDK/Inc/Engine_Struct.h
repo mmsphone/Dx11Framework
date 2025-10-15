@@ -13,17 +13,13 @@ namespace Engine
 		unsigned int	iNumLevels;
 	}ENGINE_DESC;
 
-	typedef struct tagKeyFrame
-	{
-		XMFLOAT3			vScale;
-		XMFLOAT4			vRotation;
-		XMFLOAT3			vTranslation;
-		float				fTrackPosition; /* 전체 재생 거리 중, 어떤 위치에서 이 상태? */
-	}KEYFRAME;
-
 	typedef struct tagVertexPostion
 	{
 		XMFLOAT3		vPosition;
+		static const unsigned int					iNumElements = { 1 };
+		static constexpr D3D11_INPUT_ELEMENT_DESC		Elements[iNumElements] = {
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
 	}VTXPOS;
 
 	typedef struct tagVertexPostionTexcoord
@@ -115,10 +111,11 @@ namespace Engine
 
 	}LIGHT_DESC;
 
-
-
-
-
+	typedef struct tagRay
+	{
+		XMFLOAT3 origin;
+		XMFLOAT3 direction;
+	}RAY;
 }
 
 

@@ -21,6 +21,9 @@ public:
 	_byte	GetKeyState(_ubyte byKeyID);
 	_byte	GetMouseState(MOUSEKEYSTATE eMouse);
 	_long	GetMouseMove(MOUSEMOVESTATE eMouseState);
+	_float2 GetMousePos();
+	void SetMousePos(_float2 mousePos);
+	void SetMouseVisible(_bool bVisible);
 
 	static Input* Create(HINSTANCE InstanceHandle, HWND WindowHandle);
 	virtual void	Free() override;
@@ -32,6 +35,8 @@ private:
 
 	_byte					m_byKeyState[256] = {};
 	DIMOUSESTATE			m_tMouseState = {};
+
+	class EngineUtility* m_pEngineUtility = nullptr;
 };
 
 NS_END

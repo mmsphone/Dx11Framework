@@ -1,6 +1,6 @@
 ﻿#include "Animation.h"
 
-#include "Bone.h"
+#include "Channel.h"
 
 Animation::Animation()
 {
@@ -11,19 +11,24 @@ Animation::Animation(const Animation& Prototype)
     , m_fCurrentTrackPosition{ Prototype.m_fCurrentTrackPosition }
     , m_fTicksPerSecond{ Prototype.m_fTicksPerSecond }
     , m_iNumChannels{ Prototype.m_iNumChannels }
-    , m_CurrentKeyFrameIndex{ Prototype.m_CurrentKeyFrameIndex }
+    , m_CurrentChannelIndex{ Prototype.m_CurrentChannelIndex }
 {
 }
 
 HRESULT Animation::Initialize(const AnimationData& animationData, const vector<Bone*> bones)
 {
-    m_iNumChannels = static_cast<_uint>(bones.size()); // 각 본마다 채널이 있다고 가정
+    m_iNumChannels = static_cast<_uint>(animationData.channels.size());
     m_fDuration = animationData.duration;
     m_fTicksPerSecond = animationData.ticksPerSecond;
+    m_CurrentChannelIndex.resize(m_iNumChannels, 0);
 
-    m_CurrentKeyFrameIndex.resize(m_iNumChannels, 0);
+    for (auto& chData : animationData.channels)
+    {
+        Channel* pChannel = Channel::Create(chData.nodeName, animationData.channels, bones);
+        if (pChannel)
+            m_Channels.push_back(pChannel);
+    }
 
-    // 현재 구조체 기반에서는 실제 키프레임 채널 로딩은 생략
     return S_OK;
 }
 
@@ -41,14 +46,17 @@ void Animation::UpdateTransformationMatrix(_float fTimeDelta, const vector<Bone*
         m_fCurrentTrackPosition = 0.f;
     }
 
-    // 실제 키프레임 기반 본 변환 계산은 구조체 기반에서는 생략 가능
-    // 필요시 boneMatrices와 AnimationData를 이용하여 업데이트 로직 구현
+    _uint       iIndex = {};
+    for (auto& pChannel : m_Channels)
+    {
+        pChannel->UpdateTransformationMatrix(m_fCurrentTrackPosition, bones, &m_CurrentChannelIndex[iIndex++]);
+    }
 }
 
 void Animation::Reset()
 {
     m_fCurrentTrackPosition = 0.f;
-    for (auto& idx : m_CurrentKeyFrameIndex)
+    for (auto& idx : m_CurrentChannelIndex)
         idx = 0;
 }
 
@@ -71,5 +79,8 @@ Animation* Animation::Clone()
 void Animation::Free()
 {
     __super::Free();
-    m_CurrentKeyFrameIndex.clear();
+
+    for (auto& pChannel : m_Channels)
+        SafeRelease(pChannel);
+    m_Channels.clear();
 }

@@ -23,7 +23,13 @@
     <ClInclude Include="..\public\Base.h" />
     <ClInclude Include="..\public\Bone.h" />
     <ClInclude Include="..\public\Camera.h" />
+    <ClInclude Include="..\public\Cell.h" />
     <ClInclude Include="..\public\Channel.h" />
+    <ClInclude Include="..\public\Collision.h" />
+    <ClInclude Include="..\public\CollisionBox.h" />
+    <ClInclude Include="..\public\CollisionBoxAABB.h" />
+    <ClInclude Include="..\public\CollisionBoxOBB.h" />
+    <ClInclude Include="..\public\CollisionBoxSphere.h" />
     <ClInclude Include="..\public\Component.h" />
     <ClInclude Include="..\public\Container.h" />
     <ClInclude Include="..\public\CustomFont.h" />
@@ -44,23 +50,27 @@
     <ClInclude Include="..\public\Material.h" />
     <ClInclude Include="..\public\Mesh.h" />
     <ClInclude Include="..\public\Model.h" />
+    <ClInclude Include="..\public\Navigation.h" />
     <ClInclude Include="..\public\NoAssimpModelStruct.h" />
     <ClInclude Include="..\public\Object.h" />
     <ClInclude Include="..\public\ObjectManager.h" />
     <ClInclude Include="..\public\Panel.h" />
     <ClInclude Include="..\public\Part.h" />
+    <ClInclude Include="..\public\PickingManager.h" />
     <ClInclude Include="..\public\Pipeline.h" />
     <ClInclude Include="..\public\PrototypeManager.h" />
     <ClInclude Include="..\public\RenderManager.h" />
     <ClInclude Include="..\public\Scene.h" />
     <ClInclude Include="..\public\SceneManager.h" />
     <ClInclude Include="..\public\Shader.h" />
+    <ClInclude Include="..\public\Terrain.h" />
     <ClInclude Include="..\public\Texture.h" />
     <ClInclude Include="..\public\TimeManager.h" />
     <ClInclude Include="..\public\Timer.h" />
     <ClInclude Include="..\public\Transform.h" />
     <ClInclude Include="..\public\UI.h" />
     <ClInclude Include="..\public\VertexIndexBuffer.h" />
+    <ClInclude Include="..\public\VIBufferCell.h" />
     <ClInclude Include="..\public\VIBufferCube.h" />
     <ClInclude Include="..\public\VIBufferRect.h" />
     <ClInclude Include="..\public\VIBufferTerrain.h" />
@@ -70,7 +80,13 @@
     <ClCompile Include="..\private\Base.cpp" />
     <ClCompile Include="..\private\Bone.cpp" />
     <ClCompile Include="..\private\Camera.cpp" />
+    <ClCompile Include="..\private\Cell.cpp" />
     <ClCompile Include="..\private\Channel.cpp" />
+    <ClCompile Include="..\private\Collision.cpp" />
+    <ClCompile Include="..\private\CollisionBox.cpp" />
+    <ClCompile Include="..\private\CollisionBoxAABB.cpp" />
+    <ClCompile Include="..\private\CollisionBoxOBB.cpp" />
+    <ClCompile Include="..\private\CollisionBoxSphere.cpp" />
     <ClCompile Include="..\private\Component.cpp" />
     <ClCompile Include="..\private\Container.cpp" />
     <ClCompile Include="..\private\CustomFont.cpp" />
@@ -85,22 +101,26 @@
     <ClCompile Include="..\private\Material.cpp" />
     <ClCompile Include="..\private\Mesh.cpp" />
     <ClCompile Include="..\private\Model.cpp" />
+    <ClCompile Include="..\private\Navigation.cpp" />
     <ClCompile Include="..\private\Object.cpp" />
     <ClCompile Include="..\private\ObjectManager.cpp" />
     <ClCompile Include="..\private\Panel.cpp" />
     <ClCompile Include="..\private\Part.cpp" />
+    <ClCompile Include="..\private\PickingManager.cpp" />
     <ClCompile Include="..\private\Pipeline.cpp" />
     <ClCompile Include="..\private\PrototypeManager.cpp" />
     <ClCompile Include="..\private\RenderManager.cpp" />
     <ClCompile Include="..\private\Scene.cpp" />
     <ClCompile Include="..\private\SceneManager.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
+    <ClCompile Include="..\private\Terrain.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
     <ClCompile Include="..\private\TimeManager.cpp" />
     <ClCompile Include="..\private\Timer.cpp" />
     <ClCompile Include="..\private\Transform.cpp" />
     <ClCompile Include="..\private\UI.cpp" />
     <ClCompile Include="..\private\VertexIndexBuffer.cpp" />
+    <ClCompile Include="..\private\VIBufferCell.cpp" />
     <ClCompile Include="..\private\VIBufferCube.cpp" />
     <ClCompile Include="..\private\VIBufferRect.cpp" />
     <ClCompile Include="..\private\VIBufferTerrain.cpp" />
@@ -113,49 +133,15 @@
     <ClCompile Include="..\public\IMGUI\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-    </None>
+    <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\Shader\Shader_VtxAnimMesh.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxCube.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxMesh.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxNorTex.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="..\bin\Shader\Shader_VtxPosTex.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
+    <FxCompile Include="..\bin\Shader\Shader_Cell.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_VtxAnimMesh.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_VtxCube.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_VtxMesh.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_VtxNorTex.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_VtxPosTex.hlsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -262,6 +248,12 @@
       <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI</AdditionalLibraryDirectories>
       <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11d.lib;DirectXTKd.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

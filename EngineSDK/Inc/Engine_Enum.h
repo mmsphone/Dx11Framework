@@ -11,8 +11,12 @@ namespace Engine
 	enum STATE : int { RIGHT, UP, LOOK, POSITION, STATE_END };
 	enum PROTOTYPE : int { OBJECT, COMPONENT };
 	enum RENDERGROUP : int { PRIORITY, NONBLEND, BLEND, UI, RENDERGROUP_END };
-	enum LIGHT : int { DIRECTIONAL, POINT, LIGHT_END };
+	enum LIGHT : int { DIRECTIONAL, LIGHT_POINT, LIGHT_END };
 	enum D3DTS : int { VIEW, PROJECTION, D3DTS_END };
 	enum MODELTYPE : int { ANIM, NONANIM };
+	enum COLLISIONTYPE : int {AABB, OBB, SPHERE, COLLISION_END};
+
+	enum POINTTYPE : int { A, B, C, POINT_END };
+	enum LINETYPE : int { AB, BC, CA, LINE_END };
 }
 #endif // Engine_Enum_h__

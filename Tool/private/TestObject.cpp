@@ -35,7 +35,7 @@ HRESULT TestObject::Initialize(void* pArg)
     ));
 
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    pModel->SetAnimation(0, false);
+    pModel->SetAnimation(3, true);
 
     return S_OK;
 }
@@ -48,11 +48,7 @@ void TestObject::PriorityUpdate(_float fTimeDelta)
 void TestObject::Update(_float fTimeDelta)
 {
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    pModel->SetAnimation(0, true);
-
-    if (true == pModel->isAnimFinished())
-        int a = 10;
-
+    pModel->SetAnimation(3, true);
 
     pModel->PlayAnimation(fTimeDelta);
 

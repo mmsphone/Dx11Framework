@@ -6,11 +6,7 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
 {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(filePath,
-        aiProcess_Triangulate |
-        aiProcess_FlipUVs |
-        aiProcess_GenNormals |
-        aiProcess_CalcTangentSpace |
-        aiProcess_JoinIdenticalVertices);
+        aiProcess_ConvertToLeftHanded | aiProcessPreset_TargetRealtime_Fast);
 
     if (!scene || !scene->mRootNode)
         return false;
@@ -108,13 +104,13 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
     std::function<void(aiNode*, NodeData&, int)> processNode;
     processNode = [&](aiNode* node, NodeData& outNode, int parentIndex)
     {
-        outNode.name = node->mName.C_Str();
+        outNode.name = (node->mName.length > 0) ? node->mName.C_Str() : "Root";
         outNode.parentIndex = parentIndex;
         outNode.transform = *reinterpret_cast<const _float4x4*>(&node->mTransformation);
 
         outNode.children.resize(node->mNumChildren);
         for (unsigned int c = 0; c < node->mNumChildren; ++c)
-            processNode(node->mChildren[c], outNode.children[c], -1);
+            processNode(node->mChildren[c], outNode.children[c], (int)c);
     };
 
     outModel.rootNode = {};
@@ -278,9 +274,10 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
     std::function<void(const NodeData&)> writeNode;
     writeNode = [&](const NodeData& node)
     {
-        _uint nameLen = static_cast<_uint>(node.name.size());
+        std::string safeName = node.name.empty() ? "Unnamed" : node.name;
+        _uint nameLen = static_cast<_uint>(safeName.size());
         file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
-        file.write(node.name.data(), nameLen);
+        file.write(safeName.data(), nameLen);
 
         file.write(reinterpret_cast<const char*>(&node.parentIndex), sizeof(_int));
         file.write(reinterpret_cast<const char*>(&node.transform), sizeof(_float4x4));
@@ -290,6 +287,7 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
         for (const auto& child : node.children)
             writeNode(child);
     };
+
 
     writeNode(model.rootNode);
 

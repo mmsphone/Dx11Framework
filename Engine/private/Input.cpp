@@ -2,7 +2,10 @@
 #include "EngineUtility.h"
 
 Input::Input()
+	:Base{}
+	, m_pEngineUtility{EngineUtility::GetInstance() }
 {
+	SafeAddRef(m_pEngineUtility);
 }
 
 HRESULT Input::Initialize(HINSTANCE InstanceHandle, HWND WindowHandle)
@@ -78,6 +81,35 @@ _long Input::GetMouseMove(MOUSEMOVESTATE eMouseState)
 	}
 }
 
+_float2 Input::GetMousePos()
+{
+	POINT mousePos;
+	GetCursorPos(&mousePos);
+	ScreenToClient(m_pEngineUtility->GetWindowHandle(), &mousePos);
+
+	return _float2(mousePos.x, mousePos.y);
+}
+
+void Input::SetMousePos(_float2 mousePos)
+{
+	HWND hWnd = m_pEngineUtility->GetWindowHandle();
+	if (hWnd == nullptr) return;
+
+	POINT pt = { static_cast<LONG>(mousePos.x), static_cast<LONG>(mousePos.y) };
+	ClientToScreen(hWnd, &pt);
+	SetCursorPos(pt.x, pt.y);
+}
+
+void Input::SetMouseVisible(_bool bVisible)
+{
+	static bool cursorVisible = true;
+	if (cursorVisible != bVisible)
+	{
+		ShowCursor(bVisible);
+		cursorVisible = bVisible;
+	}
+}
+
 Input* Input::Create(HINSTANCE InstanceHandle, HWND WindowHandle)
 {
 	Input* pInstance = new Input();
@@ -98,4 +130,5 @@ void Input::Free()
 	SafeRelease(m_pKeyboard);
 	SafeRelease(m_pMouse);
 	SafeRelease(m_pInputSDK);
+	SafeRelease(m_pEngineUtility);
 }

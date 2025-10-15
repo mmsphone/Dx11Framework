@@ -44,6 +44,12 @@
     <Filter Include="04.Object\FreeCam">
       <UniqueIdentifier>{ccd7546d-49db-4a62-a89f-fcb78fe01c95}</UniqueIdentifier>
     </Filter>
+    <Filter Include="04.Object\TestTerrain">
+      <UniqueIdentifier>{f884b8b4-46ab-47a0-a404-f92dc6cd3653}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.Object\FieldObject">
+      <UniqueIdentifier>{3ca63d7f-d8c5-49b5-bb2a-fdc9d0cbb5c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -84,6 +90,12 @@
     </ClInclude>
     <ClInclude Include="..\public\FreeCam.h">
       <Filter>04.Object\FreeCam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TestTerrain.h">
+      <Filter>04.Object\TestTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\FieldObject.h">
+      <Filter>04.Object\FieldObject</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +159,12 @@
     </ClCompile>
     <ClCompile Include="..\private\FreeCam.cpp">
       <Filter>04.Object\FreeCam</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TestTerrain.cpp">
+      <Filter>04.Object\TestTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\FieldObject.cpp">
+      <Filter>04.Object\FieldObject</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

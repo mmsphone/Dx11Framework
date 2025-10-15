@@ -1,77 +1,128 @@
 ﻿#include "Channel.h"
-
 #include "Bone.h"
 
 Channel::Channel()
 {
 }
 
-HRESULT Channel::Initialize(const string& name, const vector<KEYFRAME>& keyframes, const vector<class Bone*>& Bones)
+HRESULT Channel::Initialize(const string& name, const vector<ChannelData>& channelData, const vector<class Bone*>& bones)
 {
     strcpy_s(m_szName, name.c_str());
 
-    auto iter = find_if(Bones.begin(), Bones.end(), [&](Bone* pBone)->_bool {
+    auto iter = find_if(bones.begin(), bones.end(), [&](Bone* pBone)->_bool {
         if (pBone->CompareName(m_szName))
             return true;
         ++m_iBoneIndex;
         return false;
         });
 
-    if (iter == Bones.end())
+    if (iter == bones.end())
         return E_FAIL;
 
-    m_KeyFrames = keyframes;
-    m_iNumKeyFrames = static_cast<_uint>(keyframes.size());
+    // 해당 본 이름과 일치하는 채널을 찾기
+    auto chIter = find_if(channelData.begin(), channelData.end(),
+        [&](const ChannelData& data) { return data.nodeName == m_szName; });
 
+    if (chIter == channelData.end())
+        return E_FAIL;
+
+    m_ChannelData = *chIter;
     return S_OK;
 }
 
 void Channel::UpdateTransformationMatrix(_float fCurrentTrackPosition, const vector<Bone*>& Bones, _uint* pCurrentKeyFrameIndex)
 {
+    if (m_ChannelData.positionKeys.empty() ||
+        m_ChannelData.rotationKeys.empty() ||
+        m_ChannelData.scalingKeys.empty())
+        return;
+
     if (0.0f == fCurrentTrackPosition)
         (*pCurrentKeyFrameIndex) = 0;
 
-    _vector vScale, vRotation, vTranslation;
-
-    KEYFRAME LastKeyFrame = m_KeyFrames.back();
-
-    if (fCurrentTrackPosition >= LastKeyFrame.fTrackPosition)
+    // ======== 스케일 보간 ========
+    XMVECTOR vScale{};
     {
-        vScale = XMLoadFloat3(&LastKeyFrame.vScale);
-        vRotation = XMLoadFloat4(&LastKeyFrame.vRotation);
-        vTranslation = XMVectorSetW(XMLoadFloat3(&LastKeyFrame.vTranslation), 1.f);
-    }
-    else
-    {
-        while (fCurrentTrackPosition >= m_KeyFrames[(*pCurrentKeyFrameIndex) + 1].fTrackPosition)
-            ++(*pCurrentKeyFrameIndex);
-
-        _vector vSrcScale = XMLoadFloat3(&m_KeyFrames[(*pCurrentKeyFrameIndex)].vScale);
-        _vector vSrcRotation = XMLoadFloat4(&m_KeyFrames[(*pCurrentKeyFrameIndex)].vRotation);
-        _vector vSrcTranslation = XMVectorSetW(XMLoadFloat3(&m_KeyFrames[(*pCurrentKeyFrameIndex)].vTranslation), 1.f);
-
-        _vector vDstScale = XMLoadFloat3(&m_KeyFrames[(*pCurrentKeyFrameIndex) + 1].vScale);
-        _vector vDstRotation = XMLoadFloat4(&m_KeyFrames[(*pCurrentKeyFrameIndex) + 1].vRotation);
-        _vector vDstTranslation = XMVectorSetW(XMLoadFloat3(&m_KeyFrames[(*pCurrentKeyFrameIndex) + 1].vTranslation), 1.f);
-
-        _float fRatio = (fCurrentTrackPosition - m_KeyFrames[(*pCurrentKeyFrameIndex)].fTrackPosition) /
-            (m_KeyFrames[(*pCurrentKeyFrameIndex) + 1].fTrackPosition - m_KeyFrames[(*pCurrentKeyFrameIndex)].fTrackPosition);
-
-        vScale = XMVectorLerp(vSrcScale, vDstScale, fRatio);
-        vRotation = XMQuaternionSlerp(vSrcRotation, vDstRotation, fRatio);
-        vTranslation = XMVectorLerp(vSrcTranslation, vDstTranslation, fRatio);
+        const auto& keys = m_ChannelData.scalingKeys;
+        if (fCurrentTrackPosition <= keys.front().time)
+            vScale = XMLoadFloat3(&keys.front().value);
+        else if (fCurrentTrackPosition >= keys.back().time)
+            vScale = XMLoadFloat3(&keys.back().value);
+        else
+        {
+            for (size_t i = 0; i < keys.size() - 1; ++i)
+            {
+                if (fCurrentTrackPosition < keys[i + 1].time)
+                {
+                    float t = (fCurrentTrackPosition - keys[i].time) / (keys[i + 1].time - keys[i].time);
+                    XMVECTOR v1 = XMLoadFloat3(&keys[i].value);
+                    XMVECTOR v2 = XMLoadFloat3(&keys[i + 1].value);
+                    vScale = XMVectorLerp(v1, v2, t);
+                    break;
+                }
+            }
+        }
     }
 
-    _matrix TransformationMatrix = XMMatrixAffineTransformation(vScale, XMVectorSet(0.f, 0.f, 0.f, 1.f), vRotation, vTranslation);
+    // ======== 회전 보간 (Quaternion Slerp) ========
+    XMVECTOR vRotation{};
+    {
+        const auto& keys = m_ChannelData.rotationKeys;
+        if (fCurrentTrackPosition <= keys.front().time)
+            vRotation = XMLoadFloat4(&keys.front().value);
+        else if (fCurrentTrackPosition >= keys.back().time)
+            vRotation = XMLoadFloat4(&keys.back().value);
+        else
+        {
+            for (size_t i = 0; i < keys.size() - 1; ++i)
+            {
+                if (fCurrentTrackPosition < keys[i + 1].time)
+                {
+                    float t = (fCurrentTrackPosition - keys[i].time) / (keys[i + 1].time - keys[i].time);
+                    XMVECTOR q1 = XMLoadFloat4(&keys[i].value);
+                    XMVECTOR q2 = XMLoadFloat4(&keys[i + 1].value);
+                    vRotation = XMQuaternionSlerp(q1, q2, t);
+                    break;
+                }
+            }
+        }
+    }
+
+    // ======== 위치 보간 ========
+    XMVECTOR vTranslation{};
+    {
+        const auto& keys = m_ChannelData.positionKeys;
+        if (fCurrentTrackPosition <= keys.front().time)
+            vTranslation = XMLoadFloat3(&keys.front().value);
+        else if (fCurrentTrackPosition >= keys.back().time)
+            vTranslation = XMLoadFloat3(&keys.back().value);
+        else
+        {
+            for (size_t i = 0; i < keys.size() - 1; ++i)
+            {
+                if (fCurrentTrackPosition < keys[i + 1].time)
+                {
+                    float t = (fCurrentTrackPosition - keys[i].time) / (keys[i + 1].time - keys[i].time);
+                    XMVECTOR v1 = XMLoadFloat3(&keys[i].value);
+                    XMVECTOR v2 = XMLoadFloat3(&keys[i + 1].value);
+                    vTranslation = XMVectorLerp(v1, v2, t);
+                    break;
+                }
+            }
+        }
+    }
+
+    // ======== 최종 변환 행렬 구성 ========
+    _matrix TransformationMatrix = XMMatrixAffineTransformation(vScale, XMVectorZero(), vRotation, vTranslation);
 
     Bones[m_iBoneIndex]->SetTransformationMatrix(TransformationMatrix);
 }
 
-Channel* Channel::Create(const string& name, const vector<KEYFRAME>& keyframes, const vector<class Bone*>& Bones)
+Channel* Channel::Create(const string& name, const vector<ChannelData>& channelData, const vector<class Bone*>& bones)
 {
     Channel* pInstance = new Channel();
 
-    if (FAILED(pInstance->Initialize(name, keyframes, Bones)))
+    if (FAILED(pInstance->Initialize(name, channelData, bones)))
     {
         MSG_BOX("Failed to Created : Channel");
         SafeRelease(pInstance);
@@ -83,5 +134,4 @@ Channel* Channel::Create(const string& name, const vector<KEYFRAME>& keyframes, 
 void Channel::Free()
 {
     __super::Free();
-    m_KeyFrames.clear();
 }

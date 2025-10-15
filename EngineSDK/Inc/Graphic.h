@@ -29,6 +29,8 @@ public:
 	//Device, Context 접근
 	ID3D11Device* GetDevice() const;
 	ID3D11DeviceContext* GetContext() const;
+	HWND GetWindowHandle() const;
+	_float2 GetWindowSize() const;
 
 	static Graphic* Create(HWND windowHandle, WINMODE isWindowMode, _uint iWindowSizeX, _uint iWindowSizeY);
 	virtual void Free() override;
@@ -50,6 +52,9 @@ private:
 	ID3D11RenderTargetView* m_pBackBuffer = nullptr;
 	//Depth Stencil Buffer
 	ID3D11DepthStencilView* m_pDepthStencilView = nullptr;
+
+	HWND m_WindowHandle;
+	_float2 m_WindowSize = {};
 };
 
 NS_END

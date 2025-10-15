@@ -11,6 +11,7 @@
 #include "LightManager.h"
 #include "FontManager.h"
 #include "IMGUIManager.h"
+#include "PickingManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -50,11 +51,11 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 	m_pFontManager = FontManager::Create();
 	CHECKNULLPTR(m_pFontManager) return E_FAIL;
 
-	m_pIMGUIManager = IMGUIManager::Create();
+	m_pIMGUIManager = IMGUIManager::Create(EngineDesc.hWnd);
 	CHECKNULLPTR(m_pIMGUIManager) return E_FAIL;
 
-	if (FAILED(m_pIMGUIManager->Initialize(EngineDesc.hWnd)))
-		return E_FAIL;
+	m_pPickingManager = PickingManager::Create();
+	CHECKNULLPTR(m_pPickingManager) return E_FAIL;
 
 	return S_OK;
 }
@@ -107,6 +108,7 @@ void EngineUtility::ReleaseEngine()
 	SafeRelease(m_pGraphic);
 	SafeRelease(m_pTimeManager);
 	SafeRelease(m_pIMGUIManager);
+	SafeRelease(m_pPickingManager);
 
 	DestroyInstance();
 }
@@ -132,6 +134,16 @@ ID3D11DeviceContext* EngineUtility::GetContext()
 	return m_pGraphic->GetContext();
 }
 
+HWND EngineUtility::GetWindowHandle()
+{
+	return m_pGraphic->GetWindowHandle();
+}
+
+_float2 EngineUtility::GetWindowSize()
+{
+	return m_pGraphic->GetWindowSize();
+}
+
 _byte EngineUtility::GetKeyState(_ubyte byKeyID)
 {
 	return m_pInput->GetKeyState(byKeyID);
@@ -145,6 +157,21 @@ _byte EngineUtility::GetMouseState(MOUSEKEYSTATE eMouse)
 _long EngineUtility::GetMouseMove(MOUSEMOVESTATE eMouseState)
 {
 	return m_pInput->GetMouseMove(eMouseState);
+}
+
+_float2 EngineUtility::GetMousePos()
+{
+	return m_pInput->GetMousePos();
+}
+
+void EngineUtility::SetMousePos(_float2 mousePos)
+{
+	m_pInput->SetMousePos(mousePos);
+}
+
+void EngineUtility::SetMouseVisible(_bool bVisible)
+{
+	m_pInput->SetMouseVisible(bVisible);
 }
 
 _float EngineUtility::GetTimeDelta(const _wstring& pTimerTag)
@@ -290,4 +317,24 @@ ImGuiContext* EngineUtility::GetIMGUIContext()
 void EngineUtility::DrawPanels()
 {
 	m_pIMGUIManager->DrawPanels();
+}
+
+RAY EngineUtility::GetRay()
+{
+	return m_pPickingManager->GetRay();
+}
+
+_float3 EngineUtility::GetRayHitPosition(const RAY& ray, Object* pObject)
+{
+	return m_pPickingManager->GetRayHitPosition(ray, pObject);
+}
+
+_bool EngineUtility::RayIntersectObject(const RAY& ray, Object* pObject)
+{
+	return m_pPickingManager->RayIntersectObject(ray, pObject);
+}
+
+_bool EngineUtility::RayIntersectTerrain(const RAY& ray, Terrain* pTerrain)
+{
+	return m_pPickingManager->RayIntersectTerrain(ray, pTerrain);
 }

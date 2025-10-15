@@ -12,13 +12,13 @@ NS_BEGIN(Tool)
 
 class ModelPanel final : public Panel
 {
-    ModelPanel(const string& PanelName, Object* pObject, bool open = true);
+    ModelPanel(const string& PanelName, bool open = true);
     virtual ~ModelPanel() = default;
 
 public:
     virtual void OnRender() override;
 
-    static ModelPanel* Create(const string& PanelName, Object* pObject, bool open = true);
+    static ModelPanel* Create(const string& PanelName, bool open = true);
     virtual void		Free() override;
 
 private:

@@ -3,9 +3,11 @@
 #include "EngineUtility.h"
 #include "IEHelper.h"
 
-#include "ModelPanel.h"
 #include "TestObject.h"
 #include "FreeCam.h"
+
+#include "ModelPanel.h"
+#include "CamPanel.h"
 
 ModelScene::ModelScene()
 	:Scene{}
@@ -41,24 +43,6 @@ HRESULT ModelScene::Initialize()
 	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_GameObject_TestObject"), TestObject::Create());
 	m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("Prototype_GameObject_TestObject"), SCENE::MODEL, TEXT("Test"));
 
-	//IMGUI Panel
-	string str = "ModelPanel";
-	ModelPanel* pPanel = ModelPanel::Create(str);
-	m_pEngineUtility->AddPanel(pPanel->GetPanelName(), pPanel);
-
-	//Light
-	LIGHT_DESC		LightDesc{};
-
-	LightDesc.eType = LIGHT::DIRECTIONAL;
-	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
-	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
-	LightDesc.vAmbient = _float4(1.f, 1.f, 1.f, 1.f);
-	LightDesc.vSpecular = _float4(1.f, 1.f, 1.f, 1.f);
-
-	if (FAILED(m_pEngineUtility->AddLight(LightDesc)))
-		return E_FAIL;
-
-	//Cam
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_GameObject_FreeCam"), FreeCam::Create())))
 		return E_FAIL;
 
@@ -74,6 +58,28 @@ HRESULT ModelScene::Initialize()
 
 	if (FAILED(m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("Prototype_GameObject_FreeCam"), SCENE::MODEL, TEXT("Cam"), &Desc)))
 		return E_FAIL;
+
+	//Light
+	LIGHT_DESC		LightDesc{};
+
+	LightDesc.eType = LIGHT::DIRECTIONAL;
+	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
+	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
+	LightDesc.vAmbient = _float4(1.f, 1.f, 1.f, 1.f);
+	LightDesc.vSpecular = _float4(1.f, 1.f, 1.f, 1.f);
+
+	if (FAILED(m_pEngineUtility->AddLight(LightDesc)))
+		return E_FAIL;
+
+	//IMGUI Panel
+	string strModelPanel = "ModelPanel";
+	ModelPanel* pModelPanel = ModelPanel::Create(strModelPanel);
+	m_pEngineUtility->AddPanel(pModelPanel->GetPanelName(), pModelPanel);
+
+	string strCamPanel = "CamPanel";
+	CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MODEL);
+	m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);
+
 	return S_OK;
 }
 

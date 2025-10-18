@@ -62,14 +62,18 @@ void FreeCam::PriorityUpdate(_float fTimeDelta)
             pTransform->RotateTimeDelta(XMVectorSet(0.f, 1.f, 0.f, 0.f), MouseMoveX * m_fSensor * fTimeDelta);
 
         _vector vLook = XMVector4Normalize(pTransform->GetState(LOOK));
-        _vector vHorizon = XMVector4Normalize(XMVectorSet(XMVectorGetX(vLook), 0.f, XMVectorGetZ(vLook), 0.f));
-        _float fDot = XMVectorGetX(XMVector4Dot(vLook,vHorizon));
+        
+        _float lookAngle = asinf(XMVectorGetY(vLook));
+        constexpr _float limitAngle = XMConvertToRadians(89.f);
 
-        if (fDot >= 0.1f)
+        _long MouseMoveY = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::Y);
+        if (MouseMoveY != 0)
         {
-            _long MouseMoveY = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::Y);
-            if (MouseMoveY != 0)
-                pTransform->RotateTimeDelta(pTransform->GetState(RIGHT), MouseMoveY * m_fSensor * fTimeDelta);
+            _float moveAngle = MouseMoveY * m_fSensor * fTimeDelta;
+            _float nextAngle = lookAngle - moveAngle;
+
+            if(nextAngle < limitAngle && nextAngle > -limitAngle)
+                pTransform->RotateTimeDelta(pTransform->GetState(RIGHT), moveAngle);
         }
     }
     altPressedLastFrame = altPressed;

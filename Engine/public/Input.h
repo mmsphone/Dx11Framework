@@ -22,6 +22,8 @@ public:
 	_byte	GetMouseState(MOUSEKEYSTATE eMouse);
 	_long	GetMouseMove(MOUSEMOVESTATE eMouseState);
 	_float2 GetMousePos();
+
+	//Cursor 제어
 	void SetMousePos(_float2 mousePos);
 	void SetMouseVisible(_bool bVisible);
 

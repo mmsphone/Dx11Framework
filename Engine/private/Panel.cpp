@@ -15,6 +15,8 @@ void Panel::Draw()
     if (!m_IsOpen)
         return;
 
+    ImGui::SetNextWindowPos(ImVec2(m_PanelPosition.x, m_PanelPosition.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(m_PanelSize.x, m_PanelSize.y), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(m_PanelName.c_str(), &m_IsOpen))
     {
         OnRender();
@@ -25,6 +27,16 @@ void Panel::Draw()
 const string& Panel::GetPanelName() const
 {
     return m_PanelName;
+}
+
+void Panel::SetPanelPos(_float2& vPos)
+{
+    m_PanelPosition = vPos;
+}
+
+void Panel::SetPanelSize(_float2& vSize)
+{
+    m_PanelSize = vSize;
 }
 
 void Panel::SetOpen(bool value)

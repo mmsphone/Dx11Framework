@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\public\CamPanel.h" />
     <ClInclude Include="..\public\FieldObject.h" />
     <ClInclude Include="..\public\FreeCam.h" />
     <ClInclude Include="..\public\IEHelper.h" />
@@ -165,6 +166,7 @@
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_draw.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_tables.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_widgets.cpp" />
+    <ClCompile Include="..\private\CamPanel.cpp" />
     <ClCompile Include="..\private\FieldObject.cpp" />
     <ClCompile Include="..\private\FreeCam.cpp" />
     <ClCompile Include="..\private\IEHelper.cpp" />

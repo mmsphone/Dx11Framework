@@ -50,6 +50,9 @@
     <Filter Include="04.Object\FieldObject">
       <UniqueIdentifier>{3ca63d7f-d8c5-49b5-bb2a-fdc9d0cbb5c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05.Panel\Cam">
+      <UniqueIdentifier>{30ecdcb8-fb1c-4c18-bd36-26717d5eec32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -96,6 +99,9 @@
     </ClInclude>
     <ClInclude Include="..\public\FieldObject.h">
       <Filter>04.Object\FieldObject</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CamPanel.h">
+      <Filter>05.Panel\Cam</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -165,6 +171,9 @@
     </ClCompile>
     <ClCompile Include="..\private\FieldObject.cpp">
       <Filter>04.Object\FieldObject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CamPanel.cpp">
+      <Filter>05.Panel\Cam</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

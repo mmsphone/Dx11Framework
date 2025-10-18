@@ -16,6 +16,7 @@ class MapPanel : public Panel
     virtual ~MapPanel() = default;
 
 public:
+    HRESULT Initialize();
     virtual void OnRender() override;
 
     static MapPanel* Create(const string& PanelName, bool open = true);

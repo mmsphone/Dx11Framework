@@ -11,8 +11,18 @@
 ModelPanel::ModelPanel(const string& PanelName, bool open)
 	:Panel{PanelName, open}
 {
-    m_pModelObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Test"), 0);
+}
+
+HRESULT ModelPanel::Initialize()
+{
+    if (FAILED(m_pModelObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Test"), 0)))
+        return E_FAIL;
     SafeAddRef(m_pModelObject);
+
+    m_PanelPosition = _float2(50.f, 50.f);
+    m_PanelSize = _float2(400.f, 800.f);
+
+    return S_OK;
 }
 
 void ModelPanel::OnRender()
@@ -45,7 +55,7 @@ void ModelPanel::OnRender()
 
             if (filesystem::exists(fbxPath))
             {
-                ModelData* model = new ModelData();
+                ModelData* model = nullptr;
                 if (IEHelper::ImportFBX(fbxPath, *model))
                 {
                     Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
@@ -161,7 +171,15 @@ void ModelPanel::OnRender()
 
 ModelPanel* ModelPanel::Create(const string& PanelName, bool open)
 {
-    return new ModelPanel(PanelName, open);
+    ModelPanel* pInstance = new ModelPanel(PanelName, open);
+
+    if (FAILED(pInstance->Initialize()))
+    {
+        MSG_BOX("Failed to Created : ModelPanel");
+        SafeRelease(pInstance);
+    }
+
+    return pInstance;
 }
 
 void ModelPanel::Free()

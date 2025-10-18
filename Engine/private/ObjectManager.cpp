@@ -111,7 +111,7 @@ void ObjectManager::Free()
 	}
 	SafeDeleteArray(m_pLayers);
 
-	m_pEngineUtility->DestroyInstance();
+	SafeRelease(m_pEngineUtility);
 }
 
 Layer* ObjectManager::FindLayer(_uint iSceneId, const _wstring& strLayerTag)

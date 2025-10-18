@@ -9,8 +9,8 @@ class ENGINE_DLL Camera abstract : public Object
 public:
 	typedef struct tagCameraDesc : public Object::OBJECT_DESC
 	{
-		_float3 vEye;
-		_float3 vAt;
+		_float3 vEye = { 0.f, 0.f, 0.f};
+		_float3 vAt = { 0.f, 0.f, 1.f };
 
 		_float fFovy;
 		_float fNear;

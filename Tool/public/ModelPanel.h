@@ -16,6 +16,7 @@ class ModelPanel final : public Panel
     virtual ~ModelPanel() = default;
 
 public:
+    HRESULT Initialize();
     virtual void OnRender() override;
 
     static ModelPanel* Create(const string& PanelName, bool open = true);

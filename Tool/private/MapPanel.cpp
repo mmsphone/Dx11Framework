@@ -10,8 +10,19 @@
 MapPanel::MapPanel(const string& PanelName, bool open)
     :Panel{ PanelName, open }
 {
+}
+
+HRESULT MapPanel::Initialize()
+{
     m_pTerrain = m_pEngineUtility->FindObject(SCENE::MAP, TEXT("Terrain"), 0);
+    if (m_pTerrain == nullptr) 
+        return E_FAIL;
     SafeAddRef(m_pTerrain);
+
+    m_PanelPosition = _float2(0.f, 0.f);
+    m_PanelSize = _float2(400.f, 600.f);
+
+    return S_OK;
 }
 
 void MapPanel::OnRender()
@@ -41,7 +52,15 @@ void MapPanel::OnRender()
 
 MapPanel* MapPanel::Create(const string& PanelName, bool open)
 {
-    return new MapPanel(PanelName, open);
+    MapPanel* pInstance = new MapPanel(PanelName, open);
+
+    if (FAILED(pInstance->Initialize()))
+    {
+        MSG_BOX("Failed to Created : MapPanel");
+        SafeRelease(pInstance);
+    }
+
+    return pInstance;
 }
 
 void MapPanel::Free()

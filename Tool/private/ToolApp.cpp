@@ -32,7 +32,6 @@ HRESULT ToolApp::Initialize()
 
 void ToolApp::Update(_float fTimeDelta)
 {
-
 	m_pEngineUtility->BeginIMGUI();
 		
 	m_pEngineUtility->UpdateEngine(fTimeDelta);

@@ -83,7 +83,7 @@ HRESULT Model::Initialize(void* pArg)
 
 HRESULT Model::Render(_uint iMeshIndex)
 {
-    if (m_iTargetMeshIndex != -1 && m_iTargetMeshIndex != iMeshIndex) return S_OK;
+    if (iMeshIndex > m_iNumMeshes || m_Meshes.at(iMeshIndex)->IsVisible() == false) return S_OK;
 
     m_Meshes[iMeshIndex]->BindBuffers();
     m_Meshes[iMeshIndex]->Render();
@@ -134,6 +134,11 @@ void Model::SetAnimation(_uint iIndex, _bool isLoop)
     m_Animations[iIndex]->Reset();
 }
 
+_uint Model::GetCurrentAnimIndex()
+{
+    return m_iCurrentAnimIndex;
+}
+
 _bool Model::isAnimFinished() const
 {
     return m_isAnimFinished;
@@ -148,18 +153,35 @@ void Model::SetModelData(ModelData* pModelData)
 
 {
     ClearModelData();
-
-    m_pModelData = pModelData;
     
+    m_pModelData = pModelData;
+    if (m_pModelData == nullptr) 
+        return;
+
+    ReadyBones(m_pModelData->rootNode, -1);
     ReadyMeshes();
     ReadyMaterials();
-    ReadyBones(m_pModelData->rootNode, -1);
     ReadyAnimations();
+
+    m_iCurrentAnimIndex = 0;
+    m_isAnimLoop = true;
+    m_isAnimFinished = false;
 }
 
 void Model::SetTargetMesh(_int iMeshIndex)
 {
-    m_iTargetMeshIndex = iMeshIndex;
+    for (_uint i = 0; i < m_iNumMeshes; i++) {
+        if (iMeshIndex == -1 || i == iMeshIndex)
+            m_Meshes[i]->SetVisible(true);
+        else
+            m_Meshes[i]->SetVisible(false);
+    }
+}
+
+void Model::SetMeshVisible(_uint iMeshIndex, _bool bVisible)
+{
+    if (iMeshIndex > m_iNumMeshes) return;
+    m_Meshes.at(iMeshIndex)->SetVisible(bVisible);
 }
 
 Model* Model::Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix)
@@ -340,7 +362,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
     ModelData* pModelData = new ModelData();
 
     // ---------------------
-    // 1. meshes
+    // 1. Meshes
     _uint numMeshes = 0;
     file.read(reinterpret_cast<char*>(&numMeshes), sizeof(_uint));
     pModelData->meshes.resize(numMeshes);
@@ -413,7 +435,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
     }
 
     // ---------------------
-    // 2. materials
+    // 2. Materials
     _uint numMaterials = 0;
     file.read(reinterpret_cast<char*>(&numMaterials), sizeof(_uint));
     pModelData->materials.resize(numMaterials);
@@ -428,7 +450,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
         mat.name.resize(nameLen);
         file.read(mat.name.data(), nameLen);
 
-        // textures (전체 경로 포함)
+        // textures
         for (int t = 0; t < (int)TextureType::End; t++)
         {
             _uint numTex = 0;
@@ -445,7 +467,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
     }
 
     // ---------------------
-    // 3. root node
+    // 3. Node hierarchy
     std::function<void(NodeData&)> readNode;
     readNode = [&](NodeData& node)
     {
@@ -471,7 +493,7 @@ ModelData* Model::LoadNoAssimpModel(const _char* pFilePath)
     readNode(pModelData->rootNode);
 
     // ---------------------
-    // 4. animations + channels
+    // 4. Animations
     _uint numAnims = 0;
     file.read(reinterpret_cast<char*>(&numAnims), sizeof(_uint));
     pModelData->animations.resize(numAnims);

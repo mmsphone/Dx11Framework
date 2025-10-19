@@ -23,6 +23,9 @@ public:
 	void Update(const _float4x4* pParentMatrix);
 	_bool isMove(_fvector vResultPos);
 	_vector SetOnNavigation(_fvector vWorldPos);
+	_bool IsInCell(_fvector vWorldPos, _int* pOutCellIndex = nullptr);
+	_bool SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos);
+
 
 	const vector<class Cell*>& GetCells();
 	void AddCell(_float3* pPoints);

@@ -17,14 +17,21 @@ HRESULT Channel::Initialize(const string& name, const vector<ChannelData>& chann
         });
 
     if (iter == bones.end())
+     {
+        OutputDebugStringA(("Channel::Initialize - Bone not found for channel: " + string(m_szName) + "\n").c_str());
         return E_FAIL;
+    }
+
 
     // 해당 본 이름과 일치하는 채널을 찾기
     auto chIter = find_if(channelData.begin(), channelData.end(),
         [&](const ChannelData& data) { return data.nodeName == m_szName; });
 
     if (chIter == channelData.end())
+    {
+        OutputDebugStringA(("Channel::Initialize - ChannelData not found for: " + string(m_szName) + "\n").c_str());
         return E_FAIL;
+    }
 
     m_ChannelData = *chIter;
     return S_OK;
@@ -116,6 +123,11 @@ void Channel::UpdateTransformationMatrix(_float fCurrentTrackPosition, const vec
     _matrix TransformationMatrix = XMMatrixAffineTransformation(vScale, XMVectorZero(), vRotation, vTranslation);
 
     Bones[m_iBoneIndex]->SetTransformationMatrix(TransformationMatrix);
+}
+
+const char* Channel::GetName()
+{
+    return m_szName;
 }
 
 Channel* Channel::Create(const string& name, const vector<ChannelData>& channelData, const vector<class Bone*>& bones)

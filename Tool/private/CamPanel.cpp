@@ -12,7 +12,8 @@ CamPanel::CamPanel(const string& PanelName, bool open)
 
 HRESULT CamPanel::Initialize(SCENE eType)
 {
-    if (FAILED(m_pCamObject = m_pEngineUtility->FindObject(eType, TEXT("Cam"), 0)))
+    m_pCamObject = m_pEngineUtility->FindObject(eType, TEXT("Cam"), 0);
+    if (m_pCamObject == nullptr)
         return E_FAIL;
     SafeAddRef(m_pCamObject);
 

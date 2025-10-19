@@ -13,6 +13,8 @@ private:
 public:
 	HRESULT AddObject(class Object* pObject);
 	class Object* FindObject(_uint iIndex);
+	_uint GetLayerSize() const;
+
 	void PriorityUpdate(_float fTimeDelta);
 	void Update(_float fTimeDelta);
 	void LateUpdate(_float fTimeDelta);
@@ -21,7 +23,7 @@ public:
 	virtual void Free() override;
 
 private:
-	list<class Object*> m_Objects;
+	list<class Object*> m_Objects = {};
 };
 
 NS_END

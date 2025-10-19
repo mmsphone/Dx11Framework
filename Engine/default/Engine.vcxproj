@@ -33,6 +33,7 @@
     <ClInclude Include="..\public\Component.h" />
     <ClInclude Include="..\public\Container.h" />
     <ClInclude Include="..\public\CustomFont.h" />
+    <ClInclude Include="..\public\DebugDraw.h" />
     <ClInclude Include="..\public\EngineUtility.h" />
     <ClInclude Include="..\public\Engine_Defines.h" />
     <ClInclude Include="..\public\Engine_Enum.h" />
@@ -90,6 +91,7 @@
     <ClCompile Include="..\private\Component.cpp" />
     <ClCompile Include="..\private\Container.cpp" />
     <ClCompile Include="..\private\CustomFont.cpp" />
+    <ClCompile Include="..\private\DebugDraw.cpp" />
     <ClCompile Include="..\private\EngineUtility.cpp" />
     <ClCompile Include="..\private\FontManager.cpp" />
     <ClCompile Include="..\private\Graphic.cpp" />

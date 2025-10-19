@@ -55,6 +55,7 @@ HRESULT MapScene::Initialize()
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Prototype_GameObject_FieldObject"), FieldObject::Create());
 
 	m_pEngineUtility->AddObject(SCENE::MAP, TEXT("Prototype_GameObject_Terrain"), SCENE::MAP, TEXT("Terrain"));
+	
 	//IMGUI Panel
 	string str = "MapPanel";
 	MapPanel* pPanel = MapPanel::Create(str);

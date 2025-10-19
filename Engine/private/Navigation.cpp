@@ -40,7 +40,7 @@ HRESULT Navigation::InitializePrototype(const _tchar* pNavigationDataFile)
         if (0 == dwByte)
             break;
 
-        Cell* pCell = Cell::Create(vPoints, m_Cells.size());
+        Cell* pCell = Cell::Create(vPoints, static_cast<_uint>(m_Cells.size()));
         if (nullptr == pCell)
             return E_FAIL;
 
@@ -113,6 +113,71 @@ _vector Navigation::SetOnNavigation(_fvector vWorldPos)
     _vector     vPosition = XMVector3TransformCoord(vWorldPos, XMMatrixInverse(nullptr, XMLoadFloat4x4(m_pParentMatrix)));
 
     return XMVectorSetY(vPosition, m_Cells[m_iCurrentCellIndex]->ComputeHeight(vPosition));
+}
+
+_bool Navigation::IsInCell(_fvector vWorldPos, _int* pOutCellIndex)
+{
+    if (m_Cells.empty())
+        return false;
+
+    // 부모 행렬이 nullptr일 경우 단위행렬 사용
+    _float4x4 matInvParent{};
+    if (m_pParentMatrix)
+        matInvParent = *m_pParentMatrix;
+    else
+        XMStoreFloat4x4(&matInvParent, XMMatrixIdentity());
+
+    _vector vLocalPos = XMVector3TransformCoord(
+        vWorldPos,
+        XMMatrixInverse(nullptr, XMLoadFloat4x4(&matInvParent))
+    );
+
+    for (size_t i = 0; i < m_Cells.size(); ++i)
+    {
+        _int iNeighbor = -1;
+        if (m_Cells[i]->isIn(vLocalPos, &iNeighbor))
+        {
+            if (pOutCellIndex)
+                *pOutCellIndex = static_cast<_int>(i);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+_bool Navigation::SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos)
+{
+    if (m_Cells.empty())
+        return false;
+
+    _int iCellIndex = -1;
+    if (!IsInCell(vWorldPos, &iCellIndex))
+        return false;
+
+    // 부모 행렬이 nullptr일 경우 단위행렬 사용
+    _float4x4 matParent{};
+    if (m_pParentMatrix)
+        matParent = *m_pParentMatrix;
+    else
+        XMStoreFloat4x4(&matParent, XMMatrixIdentity());
+
+    _vector vLocalPos = XMVector3TransformCoord(
+        vWorldPos,
+        XMMatrixInverse(nullptr, XMLoadFloat4x4(&matParent))
+    );
+
+    float fHeight = m_Cells[iCellIndex]->ComputeHeight(vLocalPos);
+
+    _vector vAdjusted = XMVectorSetY(vLocalPos, fHeight);
+
+    // 다시 월드 좌표로 변환
+    vAdjusted = XMVector3TransformCoord(vAdjusted, XMLoadFloat4x4(&matParent));
+
+    if (pOutAdjustedPos)
+        *pOutAdjustedPos = vAdjusted;
+
+    return true;
 }
 
 const vector<class Cell*>& Navigation::GetCells()

@@ -15,6 +15,9 @@ private:
 public:
 	_uint GetMaterialIndex() const;
 
+	void SetVisible(_bool bVisible);
+	_bool IsVisible();
+
 	virtual HRESULT InitializePrototype(MODELTYPE eType, const MeshData& mesh, const vector<class Bone*>& Bones, _fmatrix PreTransformMatrix);
 	virtual HRESULT Initialize(void* pArg) override;
 
@@ -37,6 +40,8 @@ private:
 	vector<_uint>	m_BoneIndices;
 	_float4x4		m_BoneMatrices[g_iMaxNumBones] = {};
 	vector<_float4x4>	m_OffsetMatrices;
+
+	_bool m_bVisible = true;
 };
 
 NS_END

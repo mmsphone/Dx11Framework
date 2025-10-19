@@ -55,6 +55,12 @@ void Bone::UpdateCombinedTransformationMatrix(const vector<Bone*>& Bones, _fmatr
             XMLoadFloat4x4(&m_TransformationMatrix) *
             XMLoadFloat4x4(&Bones[m_iParentBoneIndex]->m_CombinedTransformationMatrix));
     }
+
+#ifdef _DEBUG
+    char buf[256];
+    sprintf_s(buf, "Bone::UpdateCombined - %s updated.\n", m_szName);
+    OutputDebugStringA(buf);
+#endif
 }
 
 Bone* Bone::Create(const NodeData* pNode, _int iParentIndex)

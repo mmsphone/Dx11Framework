@@ -87,7 +87,7 @@ _float2 Input::GetMousePos()
 	GetCursorPos(&mousePos);
 	ScreenToClient(m_pEngineUtility->GetWindowHandle(), &mousePos);
 
-	return _float2(mousePos.x, mousePos.y);
+	return _float2(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
 }
 
 void Input::SetMousePos(_float2 mousePos)

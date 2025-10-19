@@ -19,6 +19,16 @@ _uint Mesh::GetMaterialIndex() const
 	return m_iMaterialIndex;
 }
 
+void Mesh::SetVisible(_bool bVisible)
+{
+    m_bVisible = bVisible;
+}
+
+_bool Mesh::IsVisible()
+{
+    return m_bVisible;
+}
+
 HRESULT Mesh::InitializePrototype(MODELTYPE eType, const MeshData& mesh, const vector<class Bone*>& Bones, _fmatrix PreTransformMatrix)
 {
     strcpy_s(m_szName, mesh.name.c_str());

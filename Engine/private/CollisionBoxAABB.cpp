@@ -1,5 +1,7 @@
 ﻿#include "CollisionBoxAABB.h"
 
+#include "Collision.h"
+
 CollisionBoxAABB::CollisionBoxAABB()
     : CollisionBox{  }
 {
@@ -17,7 +19,42 @@ HRESULT CollisionBoxAABB::Initialize(CollisionBox::COLLISIONBOX_DESC* pInitialDe
 
 void CollisionBoxAABB::Update(_fmatrix WorldMatrix)
 {
-    m_pOriginalDesc->Transform(*m_pDesc, WorldMatrix);
+    _matrix     TransformMatrix = WorldMatrix;
+
+    TransformMatrix.r[0] = XMVectorSet(1.f, 0.f, 0.f, 0.f) * XMVector3Length(WorldMatrix.r[0]);
+    TransformMatrix.r[1] = XMVectorSet(0.f, 1.f, 0.f, 0.f) * XMVector3Length(WorldMatrix.r[1]);
+    TransformMatrix.r[2] = XMVectorSet(0.f, 0.f, 1.f, 0.f) * XMVector3Length(WorldMatrix.r[2]);
+
+    m_pOriginalDesc->Transform(*m_pDesc, TransformMatrix);
+}
+
+_bool CollisionBoxAABB::Intersect(Collision* pCollision)
+{
+    _bool isIntersected = false;
+
+    switch (pCollision->GetType())
+    {
+    case COLLISIONTYPE::AABB:
+        isIntersected = m_pDesc->Intersects(*static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(AABB)));
+        break;
+
+    case COLLISIONTYPE::OBB:
+        isIntersected = m_pDesc->Intersects(*static_cast<BoundingOrientedBox*>(pCollision->GetWorldCollisionBox(OBB)));
+        break;
+
+    case COLLISIONTYPE::SPHERE:
+        isIntersected = m_pDesc->Intersects(*static_cast<BoundingSphere*>(pCollision->GetWorldCollisionBox(SPHERE)));
+        break;
+    }
+
+    return isIntersected;
+}
+
+HRESULT CollisionBoxAABB::Render(PrimitiveBatch<VertexPositionColor>* pBatch, _fvector vColor)
+{
+    DX::Draw(pBatch, *m_pDesc, vColor);
+
+    return S_OK;
 }
 
 BoundingBox* CollisionBoxAABB::GetLocalBox() const

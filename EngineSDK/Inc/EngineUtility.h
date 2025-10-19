@@ -55,6 +55,8 @@ public:
 	//ObjectManager
 	HRESULT AddObject(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, _uint iLayerSceneId, const _wstring& strLayerTag, void* pArg = nullptr);
 	class Object* FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex);
+	class Layer* FindLayer(_uint iSceneId, const _wstring& strLayerTag);
+	_uint GetLayerSize(_uint iSceneId, const _wstring& strLayerTag);
 
 	//RenderManager
 	HRESULT JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObject);

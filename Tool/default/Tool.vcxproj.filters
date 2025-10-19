@@ -1,13 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="00.Default">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="01.Define">
-      <UniqueIdentifier>{4c116804-30c7-48fb-a40b-af8d9203ba62}</UniqueIdentifier>
-    </Filter>
     <Filter Include="02.MainApp">
       <UniqueIdentifier>{77deeb21-f0ad-47be-ad7f-fcd838180c1e}</UniqueIdentifier>
     </Filter>
@@ -53,25 +46,32 @@
     <Filter Include="05.Panel\Cam">
       <UniqueIdentifier>{30ecdcb8-fb1c-4c18-bd36-26717d5eec32}</UniqueIdentifier>
     </Filter>
+    <Filter Include="00.Define">
+      <UniqueIdentifier>{4c116804-30c7-48fb-a40b-af8d9203ba62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01.Default">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </ClInclude>
     <ClInclude Include="Tool.h">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </ClInclude>
     <ClInclude Include="..\public\ToolApp.h">
       <Filter>02.MainApp</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Tool_Defines.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\ModelScene.h">
       <Filter>03.Scene\ModelScene</Filter>
@@ -106,20 +106,20 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Tool.rc">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </Image>
     <Image Include="Tool.ico">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tool.cpp">
-      <Filter>00.Default</Filter>
+      <Filter>01.Default</Filter>
     </ClCompile>
     <ClCompile Include="..\private\ToolApp.cpp">
       <Filter>02.MainApp</Filter>

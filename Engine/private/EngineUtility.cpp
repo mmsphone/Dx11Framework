@@ -220,6 +220,16 @@ Object* EngineUtility::FindObject(_uint iLayerSceneId, const _wstring& strLayerT
 	return m_pObjectManager->FindObject(iLayerSceneId, strLayerTag, iIndex);
 }
 
+Layer* EngineUtility::FindLayer(_uint iSceneId, const _wstring& strLayerTag)
+{
+	return m_pObjectManager->FindLayer(iSceneId,strLayerTag);
+}
+
+_uint EngineUtility::GetLayerSize(_uint iSceneId, const _wstring& strLayerTag)
+{
+	return m_pObjectManager->GetLayerSize(iSceneId, strLayerTag);
+}
+
 HRESULT EngineUtility::JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObject)
 {
 	return m_pRenderManager->JoinRenderGroup(eGroupID, pObject);

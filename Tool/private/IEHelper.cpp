@@ -1,12 +1,12 @@
 ﻿#include "IEHelper.h"
-
 #include "Tool_Defines.h"
 
 bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
 {
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(filePath,
-        aiProcess_ConvertToLeftHanded | aiProcessPreset_TargetRealtime_Fast);
+    _uint iFlag = { aiProcess_ConvertToLeftHanded | aiProcessPreset_TargetRealtime_Fast };
+
+    const aiScene* scene = importer.ReadFile(filePath, iFlag);
 
     if (!scene || !scene->mRootNode)
         return false;
@@ -14,6 +14,7 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
     outModel.meshes.clear();
     outModel.materials.clear();
     outModel.animations.clear();
+    outModel.bones.clear();
 
     // 모델 파일 폴더 경로
     std::filesystem::path modelFolder = std::filesystem::path(filePath).parent_path();
@@ -63,6 +64,17 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
                 meshBone.weights.push_back(vw);
             }
             meshData.bones.push_back(meshBone);
+
+            // ✅ 전역 본 목록에도 추가 (중복 방지)
+            bool exists = std::any_of(outModel.bones.begin(), outModel.bones.end(),
+                [&](const BoneData& bData) { return bData.name == meshBone.name; });
+            if (!exists)
+            {
+                BoneData boneData;
+                boneData.name = meshBone.name;
+                boneData.offsetMatrix = meshBone.offsetMatrix;
+                outModel.bones.push_back(boneData);
+            }
         }
 
         outModel.meshes.push_back(meshData);
@@ -84,7 +96,6 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
                 aiString texPath;
                 if (mat->GetTexture(type, t, &texPath) == AI_SUCCESS)
                 {
-                    // 모델 폴더 기준으로 전체 경로 결합
                     std::filesystem::path fullPath = modelFolder / texPath.C_Str();
                     matData.texturePaths[eType].push_back(fullPath.string());
                 }
@@ -189,56 +200,45 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
 
     for (const auto& mesh : model.meshes)
     {
-        // name
         _uint nameLen = static_cast<_uint>(mesh.name.size());
         file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
         file.write(mesh.name.data(), nameLen);
 
-        // material index
         file.write(reinterpret_cast<const char*>(&mesh.materialIndex), sizeof(_uint));
 
-        // positions
         _uint numPos = static_cast<_uint>(mesh.positions.size());
         file.write(reinterpret_cast<const char*>(&numPos), sizeof(_uint));
         file.write(reinterpret_cast<const char*>(mesh.positions.data()), sizeof(_float3) * numPos);
 
-        // normals
         _uint numNormals = static_cast<_uint>(mesh.normals.size());
         file.write(reinterpret_cast<const char*>(&numNormals), sizeof(_uint));
         file.write(reinterpret_cast<const char*>(mesh.normals.data()), sizeof(_float3) * numNormals);
 
-        // texcoords
         _uint numTex = static_cast<_uint>(mesh.texcoords.size());
         file.write(reinterpret_cast<const char*>(&numTex), sizeof(_uint));
         file.write(reinterpret_cast<const char*>(mesh.texcoords.data()), sizeof(_float2) * numTex);
 
-        // tangents
         _uint numTang = static_cast<_uint>(mesh.tangents.size());
         file.write(reinterpret_cast<const char*>(&numTang), sizeof(_uint));
         file.write(reinterpret_cast<const char*>(mesh.tangents.data()), sizeof(_float3) * numTang);
 
-        // indices
         _uint numIndices = static_cast<_uint>(mesh.indices.size());
         file.write(reinterpret_cast<const char*>(&numIndices), sizeof(_uint));
         file.write(reinterpret_cast<const char*>(mesh.indices.data()), sizeof(_uint) * numIndices);
 
-        // bones
         _uint numBones = static_cast<_uint>(mesh.bones.size());
         file.write(reinterpret_cast<const char*>(&numBones), sizeof(_uint));
 
         for (const auto& bone : mesh.bones)
         {
-            // bone name
             _uint boneNameLen = static_cast<_uint>(bone.name.size());
             file.write(reinterpret_cast<const char*>(&boneNameLen), sizeof(_uint));
             file.write(bone.name.data(), boneNameLen);
 
-            // weights
             _uint numWeights = static_cast<_uint>(bone.weights.size());
             file.write(reinterpret_cast<const char*>(&numWeights), sizeof(_uint));
             file.write(reinterpret_cast<const char*>(bone.weights.data()), sizeof(VertexWeight) * numWeights);
 
-            // offset matrix
             file.write(reinterpret_cast<const char*>(&bone.offsetMatrix), sizeof(_float4x4));
         }
     }
@@ -250,12 +250,10 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
 
     for (const auto& mat : model.materials)
     {
-        // material name
         _uint nameLen = static_cast<_uint>(mat.name.size());
         file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
         file.write(mat.name.data(), nameLen);
 
-        // textures (전체 경로 유지)
         for (int t = 0; t < (int)TextureType::End; t++)
         {
             _uint numTex = static_cast<_uint>(mat.texturePaths[t].size());
@@ -288,7 +286,6 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
             writeNode(child);
     };
 
-
     writeNode(model.rootNode);
 
     // ---------------------
@@ -305,7 +302,6 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
         file.write(reinterpret_cast<const char*>(&anim.duration), sizeof(float));
         file.write(reinterpret_cast<const char*>(&anim.ticksPerSecond), sizeof(float));
 
-        // channels
         _uint numChannels = static_cast<_uint>(anim.channels.size());
         file.write(reinterpret_cast<const char*>(&numChannels), sizeof(_uint));
 
@@ -315,21 +311,30 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
             file.write(reinterpret_cast<const char*>(&nodeNameLen), sizeof(_uint));
             file.write(ch.nodeName.data(), nodeNameLen);
 
-            // position keys
             _uint numPosKeys = static_cast<_uint>(ch.positionKeys.size());
             file.write(reinterpret_cast<const char*>(&numPosKeys), sizeof(_uint));
             file.write(reinterpret_cast<const char*>(ch.positionKeys.data()), sizeof(KeyVector) * numPosKeys);
 
-            // rotation keys
             _uint numRotKeys = static_cast<_uint>(ch.rotationKeys.size());
             file.write(reinterpret_cast<const char*>(&numRotKeys), sizeof(_uint));
             file.write(reinterpret_cast<const char*>(ch.rotationKeys.data()), sizeof(KeyQuat) * numRotKeys);
 
-            // scaling keys
             _uint numScaleKeys = static_cast<_uint>(ch.scalingKeys.size());
             file.write(reinterpret_cast<const char*>(&numScaleKeys), sizeof(_uint));
             file.write(reinterpret_cast<const char*>(ch.scalingKeys.data()), sizeof(KeyVector) * numScaleKeys);
         }
+    }
+
+    // ---------------------
+    // 5. Global Bones (선택적 — 구조 완결성용)
+    _uint numBones = static_cast<_uint>(model.bones.size());
+    file.write(reinterpret_cast<const char*>(&numBones), sizeof(_uint));
+    for (const auto& bone : model.bones)
+    {
+        _uint nameLen = static_cast<_uint>(bone.name.size());
+        file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
+        file.write(bone.name.data(), nameLen);
+        file.write(reinterpret_cast<const char*>(&bone.offsetMatrix), sizeof(_float4x4));
     }
 
     file.close();

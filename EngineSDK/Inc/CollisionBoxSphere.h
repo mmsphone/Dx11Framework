@@ -18,6 +18,10 @@ private:
 public:
 	HRESULT Initialize(CollisionBox::COLLISIONBOX_DESC* pInitialDesc);
 	void Update(_fmatrix WorldMatrix);
+	virtual _bool Intersect(class Collision* pCollision)override;
+#ifdef _DEBUG
+	virtual HRESULT Render(PrimitiveBatch<VertexPositionColor>* pBatch, _fvector vColor) override;
+#endif
 
 	BoundingSphere* GetLocalBox() const;
 	BoundingSphere* GetWorldBox() const;

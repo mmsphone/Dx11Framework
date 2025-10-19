@@ -24,24 +24,36 @@ Object* Layer::FindObject(_uint iIndex)
 	return *iter;
 }
 
+_uint Layer::GetLayerSize() const
+{
+	return static_cast<_uint>(m_Objects.size());
+}
+
 void Layer::PriorityUpdate(_float fTimeDelta)
 {
 	for (auto& pGameObject : m_Objects)
 	{
-		pGameObject->PriorityUpdate(fTimeDelta);
+		if(pGameObject != nullptr)
+			pGameObject->PriorityUpdate(fTimeDelta);
 	}
 }
 
 void Layer::Update(_float fTimeDelta)
 {
 	for (auto& pGameObject : m_Objects)
-		pGameObject->Update(fTimeDelta);
+	{
+		if (pGameObject != nullptr)
+			pGameObject->Update(fTimeDelta);
+	}
 }
 
 void Layer::LateUpdate(_float fTimeDelta)
 {
 	for (auto& pGameObject : m_Objects)
-		pGameObject->LateUpdate(fTimeDelta);
+	{
+		if (pGameObject != nullptr)
+			pGameObject->LateUpdate(fTimeDelta);
+	}
 }
 
 Layer* Layer::Create()

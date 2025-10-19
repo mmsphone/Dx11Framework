@@ -11,6 +11,9 @@
 #include "DirectXTK/ScreenGrab.h"
 #include "DirectXTK/SpriteFont.h"
 #include "DirectXTK/SpriteBatch.h"
+#include "DirectXTK/VertexTypes.h"
+#include "DirectXTK/PrimitiveBatch.h"
+#include "DirectXTK/Effects.h"
 
 #ifdef new
 #undef new

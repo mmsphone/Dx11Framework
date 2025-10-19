@@ -91,7 +91,7 @@ HRESULT FieldObject::Render()
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
     _uint       iNumMeshes = pModel->GetNumMeshes();
 
-    for (size_t i = 0; i < iNumMeshes; i++)
+    for (_uint i = 0; i < iNumMeshes; i++)
     {
         if (FAILED(pModel->BindShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
             return E_FAIL;

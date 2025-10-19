@@ -15,7 +15,8 @@ ModelPanel::ModelPanel(const string& PanelName, bool open)
 
 HRESULT ModelPanel::Initialize()
 {
-    if (FAILED(m_pModelObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Test"), 0)))
+    m_pModelObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Test"), 0);
+    if (m_pModelObject == nullptr)
         return E_FAIL;
     SafeAddRef(m_pModelObject);
 
@@ -55,7 +56,7 @@ void ModelPanel::OnRender()
 
             if (filesystem::exists(fbxPath))
             {
-                ModelData* model = nullptr;
+                ModelData* model = new ModelData();
                 if (IEHelper::ImportFBX(fbxPath, *model))
                 {
                     Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
@@ -111,7 +112,7 @@ void ModelPanel::OnRender()
             }
         }
     }
-    ImGui::Text("--Ixported ModelFilePath--");
+    ImGui::Text("--Imported ModelFilePath--");
     ImGui::Text("%s", ImportPath.c_str());
     ImGui::Text("\n");
     static string ExportPath = "None";
@@ -165,6 +166,13 @@ void ModelPanel::OnRender()
     if(ImGui::InputInt("##TargetMeshIndex", &iTargetMeshIndex))
     {
         pModel->SetTargetMesh(iTargetMeshIndex);
+    }
+
+    static _int iTargetAnimIndex = 0;
+    ImGui::Text("--TargetAnimIndex(Default : 0)--");
+    if (ImGui::InputInt("##TargetMeshIndex", &iTargetAnimIndex))
+    {
+        pModel->SetAnimation(iTargetAnimIndex, true);
     }
 }
 

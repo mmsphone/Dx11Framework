@@ -15,6 +15,9 @@ public:
 	HRESULT Initialize(_uint iNumScenes);
 	HRESULT AddObject(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, _uint iLayerSceneId, const _wstring& strLayerTag, void* pArg);
 	class Object* FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex);
+	class Layer* FindLayer(_uint iSceneId, const _wstring& strLayerTag);
+	_uint GetLayerSize(_uint iSceneId, const _wstring& strLayerTag);
+
 	void Clear(_uint iSceneId);
 	void PriorityUpdate(_float fTimeDelta);
 	void Update(_float fTimeDelta);
@@ -22,9 +25,6 @@ public:
 
 	static ObjectManager* Create(_uint iNumScenes);
 	virtual void Free() override;
-
-private:
-	class Layer* FindLayer(_uint iSceneId, const _wstring& strLayerTag);
 
 private:
 	_uint m_iNumScenes = {};

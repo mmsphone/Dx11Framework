@@ -33,20 +33,59 @@ void MapPanel::OnRender()
         m_pEngineUtility->SetPanelOpen(GetPanelName(), false);
     }
     ImGui::Text("\n");
-    auto camPos = m_pEngineUtility->GetCamPosition();
-    ImGui::Text("Current Cam Position : %f %f %f", camPos->x, camPos->y,camPos->z);
-    ImGui::Text("\n");
-    ImGui::Text("Pick Terrain With LeftButton To Place Marking Texture");
-    ImGui::Text("Pick Terrain With RightButton To Add Navigation Cell");
+    ImGui::Text("Mouse LB To Place Marker");
+    ImGui::Text("Mouse RB To Add Navigation Cell");
     static _float4 pickPos{};
     TestTerrain* pTerrain = dynamic_cast<TestTerrain*>(m_pTerrain);
     if (pTerrain != nullptr)
         pickPos = pTerrain->GetBrushPos();
     ImGui::Text("Recent Pick Position : %f %f %f", pickPos.x, pickPos.y, pickPos.z);
     ImGui::Text("\n");
-    ImGui::Text("Press R To Remove Recent Navigation Cell");
-    ImGui::Text("Press L To Save Navigation Cells");
-    ImGui::Text("Press O To Place FieldObject");
+
+    if (ImGui::Button("Remove Recent Navigation Cell"))
+    {
+        Navigation* pNavigation = dynamic_cast<Navigation*>(m_pTerrain->FindComponent(TEXT("Navigation")));
+        if (!pNavigation)
+            return;
+        pNavigation->RemoveRecentCell();
+    }
+    if (ImGui::Button("Save Navigation Cells"))
+    {
+        Navigation* pNavigation = dynamic_cast<Navigation*>(m_pTerrain->FindComponent(TEXT("Navigation")));
+        if (!pNavigation)
+            return;
+        pNavigation->SaveCells(TEXT("../bin/data/Navigation.dat"));
+    } 
+    if (ImGui::Button("Place FieldObject on Marker"))
+    {
+        if (m_pTerrain == nullptr)
+            return;
+        
+        _uint iIndex = m_pEngineUtility->GetLayerSize(SCENE::MAP, TEXT("FieldObject"));
+        m_pEngineUtility->AddObject(SCENE::MAP, TEXT("Prototype_GameObject_FieldObject"), SCENE::MAP, TEXT("FieldObject"));
+        Object* pObject = m_pEngineUtility->FindObject(SCENE::MAP, TEXT("FieldObject"), iIndex);
+        if (pObject == nullptr)
+            return;
+
+        Transform* pTransform = dynamic_cast<Transform*>(pObject->FindComponent(TEXT("Transform")));
+        if (pTransform == nullptr)
+            return;
+        
+        TestTerrain* pTerrain = dynamic_cast<TestTerrain*>(m_pTerrain);
+        if (pTerrain == nullptr)
+            return;
+        
+        _float4 fPos = pTerrain->GetBrushPos();
+        _vector vPos = XMLoadFloat4(&fPos);
+
+        Navigation* pNavigation = dynamic_cast<Navigation*>(pTerrain->FindComponent(TEXT("Navigation")));
+        if (pNavigation == nullptr)
+            return;
+        _bool isInCell = pNavigation->IsInCell(vPos);
+        if(isInCell == true)
+            pNavigation->SetHeightOnCell(vPos, &vPos);
+        pTransform->SetState(POSITION, vPos);
+    }
 }
 
 

@@ -35,7 +35,7 @@ HRESULT TestObject::Initialize(void* pArg)
     ));
 
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    pModel->SetAnimation(3, true);
+    pModel->SetAnimation(0, true);
 
     return S_OK;
 }
@@ -48,8 +48,11 @@ void TestObject::PriorityUpdate(_float fTimeDelta)
 void TestObject::Update(_float fTimeDelta)
 {
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    pModel->SetAnimation(3, true);
-
+#ifdef _DEBUG
+    char buf[256];
+    sprintf_s(buf, "TestObject::Update - CurrentAnimIndex: %u, Finished: %d\n", pModel->GetCurrentAnimIndex(), pModel->isAnimFinished());
+    OutputDebugStringA(buf);
+#endif
     pModel->PlayAnimation(fTimeDelta);
 
     __super::Update(fTimeDelta);
@@ -95,7 +98,7 @@ HRESULT TestObject::Render()
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
     _uint       iNumMeshes = pModel->GetNumMeshes();
 
-    for (size_t i = 0; i < iNumMeshes; i++)
+    for (_uint i = 0; i < iNumMeshes; i++)
     {
         if (FAILED(pModel->BindShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
             return E_FAIL;

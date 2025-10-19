@@ -15,6 +15,8 @@ public:
     HRESULT Initialize(const string& name, const vector<ChannelData>& channelData, const vector<class Bone*>& bones);
     void UpdateTransformationMatrix(_float fCurrentTrackPosition, const vector<class Bone*>& Bones, _uint* pCurrentKeyFrameIndex);
 
+    const char* GetName();
+
     static Channel* Create(const string& name, const vector<ChannelData>& channelData, const vector<class Bone*>& bones);
     virtual void Free() override;
 

@@ -112,46 +112,6 @@ void TestTerrain::Update(_float fTimeDelta)
     }
     bPrevRBState = bCurrRBState;
 
-    static _bool bPrevRState = false;
-    _bool bCurrRState = m_pEngineUtility->GetKeyState(DIK_R);
-    if (bCurrRState && !bPrevRState)
-    {
-        Navigation* pNavigation = dynamic_cast<Navigation*>(FindComponent(TEXT("Navigation")));
-        if (!pNavigation)
-            return;
-        pNavigation->RemoveRecentCell();
-    }
-    bPrevRState = bCurrRState;
-
-    static _bool bPrevOState = false;
-    static _uint iNumFieldObjects = 0;
-    _bool bCurrOState = m_pEngineUtility->GetKeyState(DIK_O);
-    if (bCurrOState && !bPrevOState)
-    {
-        m_pEngineUtility->AddObject(SCENE::MAP, TEXT("Prototype_GameObject_FieldObject"), SCENE::MAP, TEXT("FieldObject"));
-        Object* pObject = m_pEngineUtility->FindObject(SCENE::MAP, TEXT("FieldObject"), iNumFieldObjects);
-        if (pObject == nullptr) 
-            return;
-        ++iNumFieldObjects;
-
-        Transform* pTransform = dynamic_cast<Transform*>(pObject->FindComponent(TEXT("Transform")));
-        if (pTransform == nullptr)
-            return;
-        _vector vPos = XMLoadFloat4(&m_vBrushPos) + XMVectorSet(0.f, 0.1f, 0.f, 0.f);
-        pTransform->SetState(POSITION, vPos);
-    }
-    bPrevOState = bCurrOState;
-
-    static _bool bPrevLState = false;
-    _bool bCurrLState = m_pEngineUtility->GetKeyState(DIK_L);
-    if (bCurrLState && !bPrevLState)
-    {
-        Navigation* pNavigation = dynamic_cast<Navigation*>(FindComponent(TEXT("Navigation")));
-        if (!pNavigation)
-            return;
-        pNavigation->SaveCells(TEXT("../bin/data/Navigation.dat"));
-    }
-    bPrevLState = bCurrLState;
 }
 
 void TestTerrain::LateUpdate(_float fTimeDelta)

@@ -17,7 +17,6 @@ public:
 	const _float4x4* GetSocketBoneMatrixPtr(const _char* pBoneName) const;
 
 	virtual HRESULT InitializePrototype(MODELTYPE eType, const _char* pFilePath, _fmatrix PreTransformMatrix);
-
 	virtual HRESULT Initialize(void* pArg);
 	virtual HRESULT Render(_uint iMeshIndex);
 
@@ -26,11 +25,13 @@ public:
 
 	void PlayAnimation(_float fTimeDelta);
 	void SetAnimation(_uint iIndex, _bool isLoop = false);
+	_uint GetCurrentAnimIndex();
 	_bool isAnimFinished() const;
 
 	ModelData* GetModelData() const;
 	void SetModelData(ModelData* pModelData);
 	void SetTargetMesh(_int iMeshIndex);
+	void SetMeshVisible(_uint iMeshIndex, _bool bVisible);
 	
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 
@@ -64,8 +65,6 @@ private:
 	_uint						m_iCurrentAnimIndex = {};
 	_uint						m_iNumAnimations = {};
 	vector<class Animation*>	m_Animations;
-
-	_int m_iTargetMeshIndex = -1;
 };
 
 NS_END

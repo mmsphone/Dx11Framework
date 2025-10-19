@@ -46,12 +46,9 @@ HRESULT ObjectManager::AddObject(_uint iPrototypeSceneId, const _wstring& strPro
 Object* ObjectManager::FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex)
 {
 	Layer* pLayer = FindLayer(iLayerSceneId, strLayerTag);
-	if (pLayer != nullptr)
-	{
-		m_pLayers[iLayerSceneId].at(strLayerTag)->FindObject(iIndex);
-	}
-	else
+	if (pLayer == nullptr)
 		return nullptr;
+	return m_pLayers[iLayerSceneId].at(strLayerTag)->FindObject(iIndex);
 }
 
 void ObjectManager::Clear(_uint iSceneId)
@@ -63,28 +60,50 @@ void ObjectManager::Clear(_uint iSceneId)
 
 void ObjectManager::PriorityUpdate(_float fTimeDelta)
 {
-	for (size_t i = 0; i < m_iNumScenes; i++)
+	if (!m_pLayers || m_iNumScenes == 0)
+		return;
+
+	for (size_t i = 0; i < m_iNumScenes; ++i)
 	{
 		for (auto& Pair : m_pLayers[i])
-			Pair.second->PriorityUpdate(fTimeDelta);
+		{
+			Layer* pLayer = Pair.second;
+			if (pLayer)
+				pLayer->PriorityUpdate(fTimeDelta);
+		}
 	}
 }
 
+
 void ObjectManager::Update(_float fTimeDelta)
 {
+	if (!m_pLayers || m_iNumScenes == 0)
+		return;
+
 	for (size_t i = 0; i < m_iNumScenes; i++)
 	{
 		for (auto& Pair : m_pLayers[i])
-			Pair.second->Update(fTimeDelta);
+		{
+			Layer* pLayer = Pair.second;
+			if (pLayer)
+				pLayer->Update(fTimeDelta);
+		}
 	}
 }
 
 void ObjectManager::LateUpdate(_float fTimeDelta)
 {
+	if (!m_pLayers || m_iNumScenes == 0)
+		return;
+
 	for (size_t i = 0; i < m_iNumScenes; i++)
 	{
 		for (auto& Pair : m_pLayers[i])
-			Pair.second->LateUpdate(fTimeDelta);
+		{
+			Layer* pLayer = Pair.second;
+			if (pLayer)
+				pLayer->LateUpdate(fTimeDelta);
+		}
 	}
 }
 
@@ -121,6 +140,13 @@ Layer* ObjectManager::FindLayer(_uint iSceneId, const _wstring& strLayerTag)
 		return nullptr;
 
 	return iter->second;
+}
+
+_uint ObjectManager::GetLayerSize(_uint iSceneId, const _wstring& strLayerTag)
+{
+	Layer* pLayer = FindLayer(iSceneId, strLayerTag);
+	if (pLayer == nullptr) return 0;
+	else return pLayer->GetLayerSize();
 }
 
 NS_END

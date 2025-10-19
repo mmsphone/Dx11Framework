@@ -12,7 +12,11 @@ Animation::Animation(const Animation& Prototype)
     , m_fTicksPerSecond{ Prototype.m_fTicksPerSecond }
     , m_iNumChannels{ Prototype.m_iNumChannels }
     , m_CurrentChannelIndex{ Prototype.m_CurrentChannelIndex }
+    , m_Channels{ Prototype.m_Channels }
 {
+    for (_uint i = 0; i < m_iNumChannels; i++) {
+        SafeAddRef(m_Channels[i]);
+    }
 }
 
 HRESULT Animation::Initialize(const AnimationData& animationData, const vector<Bone*> bones)
@@ -36,6 +40,13 @@ void Animation::UpdateTransformationMatrix(_float fTimeDelta, const vector<Bone*
 {
     m_fCurrentTrackPosition += m_fTicksPerSecond * fTimeDelta;
 
+#ifdef _DEBUG
+    char buf[256];
+    sprintf_s(buf, "Animation::Update - CurrentTrack: %f / Duration: %f\n", m_fCurrentTrackPosition, m_fDuration);
+    OutputDebugStringA(buf);
+
+#endif
+
     if (m_fCurrentTrackPosition >= m_fDuration)
     {
         if (!isLoop)
@@ -50,6 +61,12 @@ void Animation::UpdateTransformationMatrix(_float fTimeDelta, const vector<Bone*
     for (auto& pChannel : m_Channels)
     {
         pChannel->UpdateTransformationMatrix(m_fCurrentTrackPosition, bones, &m_CurrentChannelIndex[iIndex++]);
+
+#ifdef _DEBUG
+        sprintf_s(buf, "Animation::Update - Channel[%s] CurrentKeyFrameIndex: %u\n",
+            pChannel->GetName(), m_CurrentChannelIndex[iIndex - 1]);
+        OutputDebugStringA(buf);
+#endif
     }
 }
 

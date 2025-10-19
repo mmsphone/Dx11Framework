@@ -1,12 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="00.Base">
-      <UniqueIdentifier>{a9bbccc7-673d-40a1-9149-eec5fde0b1bf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="01.Define">
-      <UniqueIdentifier>{db8759f4-08c3-4213-b2b9-4cdb4cc5ffac}</UniqueIdentifier>
-    </Filter>
     <Filter Include="03.Utility">
       <UniqueIdentifier>{fa4a27a6-cfb9-40db-afec-1e575b197574}</UniqueIdentifier>
     </Filter>
@@ -166,10 +160,19 @@
     <Filter Include="05.Component\VertexIndexBuffer\VIBufferCell">
       <UniqueIdentifier>{f4aee4fd-b7b6-4476-b92a-e32f55bfd170}</UniqueIdentifier>
     </Filter>
+    <Filter Include="00.Define">
+      <UniqueIdentifier>{db8759f4-08c3-4213-b2b9-4cdb4cc5ffac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="01.Base">
+      <UniqueIdentifier>{a9bbccc7-673d-40a1-9149-eec5fde0b1bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.ForComponent\DebugDraw">
+      <UniqueIdentifier>{a34a1d6c-21c1-4502-8ff1-d71c1b693ac0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
-      <Filter>00.Base</Filter>
+      <Filter>01.Base</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Camera.h">
       <Filter>04.ForUtility\Camera</Filter>
@@ -256,25 +259,25 @@
       <Filter>05.Component\VertexIndexBuffer\VIBufferRect</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Enum.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Macro.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Struct.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Typedef.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Defines.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Engine_Function.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\NoAssimpModelStruct.h">
-      <Filter>01.Define</Filter>
+      <Filter>00.Define</Filter>
     </ClInclude>
     <ClInclude Include="..\public\VertexIndexBuffer.h">
       <Filter>05.Component\VertexIndexBuffer</Filter>
@@ -333,10 +336,13 @@
     <ClInclude Include="..\public\VIBufferCell.h">
       <Filter>05.Component\VertexIndexBuffer\VIBufferCell</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\DebugDraw.h">
+      <Filter>06.ForComponent\DebugDraw</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Base.cpp">
-      <Filter>00.Base</Filter>
+      <Filter>01.Base</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Camera.cpp">
       <Filter>04.ForUtility\Camera</Filter>
@@ -499,6 +505,9 @@
     </ClCompile>
     <ClCompile Include="..\private\VIBufferCell.cpp">
       <Filter>05.Component\VertexIndexBuffer\VIBufferCell</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\DebugDraw.cpp">
+      <Filter>06.ForComponent\DebugDraw</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

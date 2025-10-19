@@ -20,6 +20,7 @@ public:
 
 protected:
 	class EngineUtility* m_pEngineUtility = nullptr;
+	_bool m_isCloned = false;
 };
 
 NS_END

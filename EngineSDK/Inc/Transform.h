@@ -25,6 +25,11 @@ public:
 	_float3 GetScale() const;
 	void SetScale(_float fSizeX = 1.f, _float fSizeY = 1.f, _float fSizeZ = 1.f);
 
+	void SetSpeedPerSec(_float& fSpeed);
+	_float GetSpeedPerSec() const;
+	void SetRotatePerSec(_float& fRotate);
+	_float GetRotatePerSec() const;
+
 	const _float4x4* GetWorldMatrixPtr() const;
 	_matrix GetWorldMatrixInverse();
 
@@ -49,8 +54,8 @@ public:
 
 private:
 	_float4x4					m_WorldMatrix = { };
-	_float						m_fSpeedPerSec = {};
-	_float						m_fRotationPerSec = {};
+	_float						m_fSpeedPerSec = { 0.f };
+	_float						m_fRotationPerSec = { 0.f };
 };
 
 NS_END

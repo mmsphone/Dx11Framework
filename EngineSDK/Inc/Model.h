@@ -32,7 +32,11 @@ public:
 	void SetModelData(ModelData* pModelData);
 	void SetTargetMesh(_int iMeshIndex);
 	void SetMeshVisible(_uint iMeshIndex, _bool bVisible);
-	
+
+	void SetPreTransformRotation(const _float3& eulerDeg);
+	_float3 GetPreTransformRotation() const;
+	HRESULT UpdateNonAnimVertexBuffer();
+
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 
 	static Model* Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix = XMMatrixIdentity());

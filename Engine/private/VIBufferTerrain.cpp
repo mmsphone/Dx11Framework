@@ -40,9 +40,9 @@ HRESULT VIBufferTerrain::InitializePrototype(const _tchar* pHeightMapFilePath)
     VTXNORTEX* pVertices = new VTXNORTEX[m_iNumVertices];
     ZeroMemory(pVertices, sizeof(VTXNORTEX) * m_iNumVertices);
 
-    for (size_t z = 0; z < m_iNumVerticesZ; ++z)
+    for (_uint z = 0; z < m_iNumVerticesZ; ++z)
     {
-        for (size_t x = 0; x < m_iNumVerticesX; ++x)
+        for (_uint x = 0; x < m_iNumVerticesX; ++x)
         {
             size_t iIndex = z * m_iNumVerticesX + x;
             pVertices[iIndex].vPosition = _float3((float)x, m_HeightMapData[z][x], (float)z);
@@ -64,9 +64,9 @@ HRESULT VIBufferTerrain::InitializePrototype(const _tchar* pHeightMapFilePath)
 
     _uint iNumIndices = 0;
 
-    for (size_t z = 0; z < m_iNumVerticesZ - 1; ++z)
+    for (_uint z = 0; z < m_iNumVerticesZ - 1; ++z)
     {
-        for (size_t x = 0; x < m_iNumVerticesX - 1; ++x)
+        for (_uint x = 0; x < m_iNumVerticesX - 1; ++x)
         {
             _uint iIndex = z * m_iNumVerticesX + x;
 

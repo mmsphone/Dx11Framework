@@ -184,6 +184,59 @@ void Model::SetMeshVisible(_uint iMeshIndex, _bool bVisible)
     m_Meshes.at(iMeshIndex)->SetVisible(bVisible);
 }
 
+void Model::SetPreTransformRotation(const _float3& _eulerDeg)
+{
+    _matrix curMat = XMLoadFloat4x4(&m_PreTransformMatrix);
+    XMVECTOR Scale, RotationQuat, Translation;
+    XMMatrixDecompose(&Scale, &RotationQuat, &Translation, curMat);
+
+    const _float rotX = XMConvertToRadians(_eulerDeg.x); // X
+    const _float rotY = XMConvertToRadians(_eulerDeg.y); // Y
+    const _float rotZ = XMConvertToRadians(_eulerDeg.z); // Z
+
+    _matrix ScaleMat = XMMatrixScalingFromVector(Scale);
+    _matrix RotationMat = XMMatrixRotationRollPitchYaw(rotX, rotY, rotZ);
+    _matrix TranslationMat = XMMatrixTranslationFromVector(Translation);
+
+    _matrix newMat = ScaleMat * RotationMat * TranslationMat;
+    XMStoreFloat4x4(&m_PreTransformMatrix, newMat);
+
+    for (auto& pBone : m_Bones)
+        pBone->UpdateCombinedTransformationMatrix(m_Bones, XMLoadFloat4x4(&m_PreTransformMatrix));
+    UpdateNonAnimVertexBuffer();
+}
+
+_float3 Model::GetPreTransformRotation() const
+{
+    _matrix mat = XMLoadFloat4x4(&m_PreTransformMatrix);
+
+    _vector Scale, RotationQuat, Translation;
+    XMMatrixDecompose(&Scale, &RotationQuat, &Translation, mat);
+    RotationQuat = XMQuaternionNormalize(RotationQuat);
+
+    _float4 Q{};
+    XMStoreFloat4(&Q, RotationQuat);
+
+    float sinp = 2.0f * (Q.w * Q.x + Q.y * Q.z);
+    float cosp = 1.0f - 2.0f * (Q.x * Q.x + Q.y * Q.y);
+    float rotX = std::atan2(sinp, cosp);
+
+    float siny = 2.0f * (Q.w * Q.y - Q.z * Q.x);
+    siny = std::clamp(siny, -1.0f, 1.0f);
+    float rotY = std::asin(siny);
+
+    float sinr = 2.0f * (Q.w * Q.z + Q.x * Q.y);
+    float cosr = 1.0f - 2.0f * (Q.y * Q.y + Q.z * Q.z);
+    float rotZ = std::atan2(sinr, cosr);
+
+    _float3 Deg{};
+    Deg.x = XMConvertToDegrees(rotX);
+    Deg.y = XMConvertToDegrees(rotY);
+    Deg.z = XMConvertToDegrees(rotZ);
+
+    return Deg;
+}
+
 Model* Model::Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix)
 {
     Model* pInstance = new Model();

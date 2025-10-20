@@ -127,9 +127,10 @@ HRESULT Mesh::ReadyVertexBufferForAnim(const MeshData& mesh, const vector<class 
 
     for (size_t i = 0; i < m_iNumVertices; i++)
     {
-        vertices[i].vPosition = mesh.positions[i];
-        vertices[i].vNormal = mesh.normals[i];
-
+        if (i < mesh.positions.size())
+            vertices[i].vPosition = mesh.positions[i];
+        if (i < mesh.normals.size())
+            vertices[i].vNormal = mesh.normals[i];
         if (i < mesh.texcoords.size())
             vertices[i].vTexcoord = mesh.texcoords[i];
         if (i < mesh.tangents.size())
@@ -140,7 +141,7 @@ HRESULT Mesh::ReadyVertexBufferForAnim(const MeshData& mesh, const vector<class 
     m_iNumBones = (_uint)mesh.bones.size();
     m_OffsetMatrices.reserve(m_iNumBones);
 
-    for (size_t i = 0; i < mesh.bones.size(); i++)
+    for (_uint i = 0; i < mesh.bones.size(); i++)
     {
         const MeshBone& bone = mesh.bones[i];
 

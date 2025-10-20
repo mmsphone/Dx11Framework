@@ -47,13 +47,13 @@ HRESULT ModelScene::Initialize()
 		return E_FAIL;
 
 	FreeCam::FREECAM_DESC			Desc{};
-	Desc.vEye = _float3(0.f, 10.f, -6.f);
-	Desc.vAt = _float3(0.f, 0.f, 0.f);
+	Desc.vEye = _float3(0.f, 0.f, 0.f);
+	Desc.vAt = _float3(0.f, 0.f, 1.f);
 	Desc.fFovy = XMConvertToRadians(60.0f);
 	Desc.fNear = 0.1f;
-	Desc.fFar = 500.f;
+	Desc.fFar = 50000.f;
 	Desc.fSensor = 0.1f;
-	Desc.fSpeedPerSec = 10.f;
+	Desc.fSpeedPerSec = 40.f;
 	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
 
 	if (FAILED(m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("Prototype_GameObject_FreeCam"), SCENE::MODEL, TEXT("Cam"), &Desc)))

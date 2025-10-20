@@ -54,6 +54,26 @@ void Transform::SetScale(_float fSizeX, _float fSizeY, _float fSizeZ)
 	SetState(STATE::LOOK, XMVector3Normalize(GetState(STATE::LOOK)) * fSizeZ);
 }
 
+void Transform::SetSpeedPerSec(_float& fSpeed)
+{
+	m_fSpeedPerSec = fSpeed;
+}
+
+_float Transform::GetSpeedPerSec() const
+{
+	return m_fSpeedPerSec;
+}
+
+void Transform::SetRotatePerSec(_float& fRotate)
+{
+	m_fRotationPerSec = fRotate;
+}
+
+_float Transform::GetRotatePerSec() const
+{
+	return m_fRotationPerSec;
+}
+
 const _float4x4* Transform::GetWorldMatrixPtr() const
 {
 	return &m_WorldMatrix;

@@ -30,7 +30,7 @@ HRESULT TestObject::Initialize(void* pArg)
     pTransform->SetState(STATE::POSITION, XMVectorSet(
         0.f,
         0.f,
-        1.f,
+        10.f,
         1.f
     ));
 
@@ -101,7 +101,7 @@ HRESULT TestObject::Render()
     for (_uint i = 0; i < iNumMeshes; i++)
     {
         if (FAILED(pModel->BindShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
-            return E_FAIL;
+            continue;
 
         pModel->BindBoneMatrices(i, pShader, "g_BoneMatrices");
         pShader->Begin(0);

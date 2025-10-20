@@ -21,7 +21,7 @@ HRESULT ModelPanel::Initialize()
     SafeAddRef(m_pModelObject);
 
     m_PanelPosition = _float2(50.f, 50.f);
-    m_PanelSize = _float2(400.f, 800.f);
+    m_PanelSize = _float2(400.f, 1000.f);
 
     return S_OK;
 }
@@ -174,6 +174,17 @@ void ModelPanel::OnRender()
     {
         pModel->SetAnimation(iTargetAnimIndex, true);
     }
+
+    ImGui::Text("--Model PreTransformRotation--");
+    static _float3 rot = pModel->GetPreTransformRotation();
+    ImGui::InputFloat("RotationX", &rot.x);
+    ImGui::InputFloat("RotationY", &rot.y);
+    ImGui::InputFloat("RotationZ", &rot.z);
+    // 적용 버튼
+    if (ImGui::Button("Apply PreTransformRotation")) {
+        pModel->SetPreTransformRotation(rot);
+    }
+
 }
 
 

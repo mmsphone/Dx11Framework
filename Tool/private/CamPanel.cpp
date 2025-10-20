@@ -20,7 +20,7 @@ HRESULT CamPanel::Initialize(SCENE eType)
     m_SceneType = eType;
 
     m_PanelPosition = _float2(400.f, 50.f);
-    m_PanelSize = _float2(400.f, 500.f);
+    m_PanelSize = _float2(400.f, 800.f);
 
     return S_OK;
 }
@@ -36,11 +36,23 @@ void CamPanel::OnRender()
     XMStoreFloat3(&vPos, pTransform->GetState(POSITION));
     ImGui::Text("--Cam Position--");
     ImGui::Text("X : %f / Y : %f / Z : %f", vPos.x, vPos.y, vPos.z);
+    ImGui::Text("\n");
 
     _float3 vDir{};
     XMStoreFloat3(&vDir, pTransform->GetState(LOOK));
     ImGui::Text("--Cam Forward Direction--");
     ImGui::Text("X : %f / Y : %f / Z : %f", vDir.x, vDir.y, vDir.z);
+    ImGui::Text("\n");
+
+    static _float2 vSpeed{
+    vSpeed.x = pTransform->GetSpeedPerSec(),
+    vSpeed.y = pTransform->GetRotatePerSec()
+    };
+    ImGui::InputFloat("Move Speed", &vSpeed.x);
+    ImGui::InputFloat("Rotate Speed", &vSpeed.y);
+
+    pTransform->SetSpeedPerSec(vSpeed.x);
+    pTransform->SetRotatePerSec(vSpeed.y);
 }
 
 

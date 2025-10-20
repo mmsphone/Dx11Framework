@@ -50,7 +50,7 @@ HRESULT Shader::InitializePrototype(const _tchar* pShaderFilePath, const D3D11_I
 
 	m_iNumPasses = TechniqueDesc.Passes;
 
-	for (size_t i = 0; i < m_iNumPasses; i++)
+	for (_uint i = 0; i < m_iNumPasses; i++)
 	{
 		ID3D11InputLayout* pInputLayout = { nullptr };
 

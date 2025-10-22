@@ -69,6 +69,30 @@ PICK_RESULT PickingManager::Pick()
         }
     }
     
+    //Grid 피킹
+    {
+        _vector rayOrigin = XMLoadFloat3(&ray.origin);
+        _vector rayDir = XMLoadFloat3(&ray.direction);
+
+        _vector gridPlaneNormal = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+        _float fDot = XMVectorGetX(XMVector3Dot(gridPlaneNormal, rayDir));
+
+        if (fabs(fDot) > 1e-6f)//평행 체크
+        { 
+            _float distance = -XMVectorGetX(XMVector3Dot(gridPlaneNormal, rayOrigin)) / fDot;
+            if (distance > 0.f)//카메라 앞뒤체크
+            {
+                XMStoreFloat3(&result.hitPos,rayOrigin + rayDir * distance);
+                result.hit = true;
+                result.pHitObject = nullptr;
+
+                m_pEngineUtility->SetMarkerPosition(result.hitPos);
+                
+                return result;
+            }
+        }
+    }
+
     return result;
 }
 

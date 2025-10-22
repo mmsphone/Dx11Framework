@@ -429,3 +429,12 @@ void EngineUtility::SetNumGridCells(_uint iNumGridCells)
 {
 	m_pGridManager->SetNumGridCells(iNumGridCells);
 }
+
+void EngineUtility:: SetMarkerPosition(const _float3& vPos)
+{
+	m_pGridManager->SetMarkerPosition(vPos);
+}
+void EngineUtility::ClearMarker()
+{
+	m_pGridManager->ClearMarker();
+}

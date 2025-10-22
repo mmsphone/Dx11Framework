@@ -111,6 +111,8 @@ public:
 	void SetGridCellSize(_float cellSize);
 	_uint GetNumGridCells();
 	void SetNumGridCells(_uint iNumGridCells);
+	void SetMarkerPosition(const _float3& vPos);
+	void ClearMarker();
 
 private:
 	class Graphic* m_pGraphic = { nullptr };

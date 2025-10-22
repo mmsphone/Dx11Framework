@@ -110,6 +110,8 @@ HRESULT MapScene::Render()
 	if (!target)
 		return S_OK;
 
+
+
 	Transform* pTransform = dynamic_cast<Transform*>(target->FindComponent(TEXT("Transform")));
 	if (!pTransform)
 		return S_OK;

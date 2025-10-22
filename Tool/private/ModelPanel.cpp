@@ -169,7 +169,7 @@ void ModelPanel::OnRender()
     {
         pModel->SetTargetMesh(iTargetMeshIndex);
     }
-    if (iTargetMeshIndex != -1 && iTargetMeshIndex < pModel->GetNumMeshes())
+    if (iTargetMeshIndex != -1 && iTargetMeshIndex < static_cast<_int>(pModel->GetNumMeshes()))
     {
         _bool bMeshVisible = pModel->IsMeshVisible(iTargetMeshIndex);
         ImGui::SameLine();

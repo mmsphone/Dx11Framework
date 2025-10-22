@@ -3,6 +3,7 @@
 #include "EngineUtility.h"
 #include "Bone.h"
 #include "Shader.h"
+#include "GridManager.h"
 
 Mesh::Mesh()
     : VertexIndexBuffer{ }

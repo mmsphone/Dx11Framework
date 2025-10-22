@@ -44,74 +44,10 @@ void TestTerrain::Update(_float fTimeDelta)
 
     if (m_pEngineUtility->GetMouseState(MOUSEKEYSTATE::LB))
     {
-        RAY ray = m_pEngineUtility->GetRay();
-        if (m_pEngineUtility->RayIntersectTerrain(ray, this))
-        {
-            _float3 hitPos = m_pEngineUtility->GetRayHitPosition(ray, this);
-            m_vBrushPos = _float4(hitPos.x, hitPos.y, hitPos.z, 1.f);
-        }
+        PICK_RESULT pickResult = m_pEngineUtility->Pick();
+        if (pickResult.hit && pickResult.pHitObject == this)
+            m_vBrushPos = _float4(pickResult.hitPos.x, pickResult.hitPos.y, pickResult.hitPos.z, 1.f);
     }
-
-    static vector<_float3> vTempPoints{};
-    static _bool bPrevRBState = false;
-    _bool bCurrRBState = m_pEngineUtility->GetMouseState(MOUSEKEYSTATE::RB);
-    if (bCurrRBState && !bPrevRBState)
-    {
-        RAY ray = m_pEngineUtility->GetRay();
-        if (m_pEngineUtility->RayIntersectTerrain(ray, this))
-        {
-            _float3 hitPos = m_pEngineUtility->GetRayHitPosition(ray, this);
-
-            Navigation* pNavigation = dynamic_cast<Navigation*>(FindComponent(TEXT("Navigation")));
-            if (!pNavigation)
-                return;
-
-            if (pNavigation->GetCells().empty())
-            {
-                if (vTempPoints.size() < 3)
-                    vTempPoints.push_back(hitPos);
-
-                if (vTempPoints.size() == 3)
-                {
-                    SortPointsClockWise(vTempPoints);
-                    pNavigation->AddCell(&vTempPoints[0]);
-                    vTempPoints.clear();
-                }
-            }
-            else
-            {
-                const vector<Cell*>& cells = pNavigation->GetCells();
-                Cell* lastCell = cells.back();
-
-                _float3 points[3] = {};
-                XMStoreFloat3(&points[0], lastCell->GetPoint(POINTTYPE::A));
-                XMStoreFloat3(&points[1], lastCell->GetPoint(POINTTYPE::B));
-                XMStoreFloat3(&points[2], lastCell->GetPoint(POINTTYPE::C));
-
-                pair<int, int> closestPair = { 0, 1 };
-                float minDistSum = FLT_MAX;
-
-                for (int i = 0; i < 3; ++i)
-                {
-                    for (int j = i + 1; j < 3; ++j)
-                    {
-                        float distSum = XMVectorGetX(XMVector3Length(XMLoadFloat3(&points[i]) - XMLoadFloat3(&hitPos))) +
-                            XMVectorGetX(XMVector3Length(XMLoadFloat3(&points[j]) - XMLoadFloat3(&hitPos)));
-                        if (distSum < minDistSum)
-                        {
-                            minDistSum = distSum;
-                            closestPair = { i, j };
-                        }
-                    }
-                }
-
-                _float3 newTriangle[3] = { points[closestPair.first], points[closestPair.second], hitPos };
-                pNavigation->AddCell(&newTriangle[0]);
-            }
-        }
-    }
-    bPrevRBState = bCurrRBState;
-
 }
 
 void TestTerrain::LateUpdate(_float fTimeDelta)
@@ -191,43 +127,24 @@ _float TestTerrain::GetIncTexSize() const
 HRESULT TestTerrain::ReadyComponents()
 {
     /* For.Com_VIBuffer */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_VIBufferTerrain"), TEXT("VIBuffer"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("VIBufferTerrain"), TEXT("VIBuffer"), nullptr, nullptr)))
         return E_FAIL;
     /* For.Com_Texture_Diffuse */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_Texture_Terrain_Diffuse"), TEXT("Texture_Diffuse"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Texture_Terrain_Diffuse"), TEXT("Texture_Diffuse"), nullptr, nullptr)))
         return E_FAIL;
     /* For.Com_Texture_Mask */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_Texture_Terrain_Mask"), TEXT("Texture_Mask"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Texture_Terrain_Mask"), TEXT("Texture_Mask"), nullptr, nullptr)))
         return E_FAIL;
     /* For.Com_Texture_Brush */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_Texture_Terrain_Brush"), TEXT("Texture_Brush"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Texture_Terrain_Brush"), TEXT("Texture_Brush"), nullptr, nullptr)))
         return E_FAIL;
     /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_Shader_VtxTerrain"), TEXT("Shader"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Shader_VtxTerrain"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
     /* For.Com_Navigation */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_Navigation"), TEXT("Navigation"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Navigation"), TEXT("Navigation"), nullptr, nullptr)))
         return E_FAIL;
     return S_OK;
-}
-
-void TestTerrain::SortPointsClockWise(vector<_float3>& points)
-{
-    if (points.size() != 3) return;
-
-    _float3 center = {
-        (points[0].x + points[1].x + points[2].x) / 3.0f,
-        (points[0].y + points[1].y + points[2].y) / 3.0f,
-        (points[0].z + points[1].z + points[2].z) / 3.0f
-    };
-
-    std::sort(points.begin(), points.end(),
-        [&](const _float3& a, const _float3& b)
-        {
-            _float angleA = atan2f(a.z - center.z, a.x - center.x);
-            _float angleB = atan2f(b.z - center.z, b.x - center.x);
-            return angleA > angleB; // 시계방향
-        });
 }
 
 TestTerrain* TestTerrain::Create()

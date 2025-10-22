@@ -12,6 +12,7 @@
 #include "FontManager.h"
 #include "IMGUIManager.h"
 #include "PickingManager.h"
+#include "GridManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -56,6 +57,9 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 
 	m_pPickingManager = PickingManager::Create();
 	CHECKNULLPTR(m_pPickingManager) return E_FAIL;
+
+	m_pGridManager = GridManager::Create();
+	CHECKNULLPTR(m_pGridManager) return E_FAIL;
 
 	return S_OK;
 }
@@ -122,6 +126,15 @@ _float EngineUtility::Random(_float fMin, _float fMax)
 {
 	_float		fRandomNormal = static_cast<_float>(rand()) / RAND_MAX;
 	return fMin + fRandomNormal * (fMax - fMin);
+}
+
+void EngineUtility::SetPathToBin()
+{
+	std::filesystem::path cur = std::filesystem::current_path();
+	while (cur.has_parent_path() && cur.filename() != "bin")
+		cur = cur.parent_path();
+	if (cur.filename() == "bin")
+		std::filesystem::current_path(cur);
 }
 
 ID3D11Device* EngineUtility::GetDevice()
@@ -196,8 +209,13 @@ HRESULT EngineUtility::ChangeScene(_uint iSceneId, Scene* pScene)
 
 void EngineUtility::ClearScene(_uint iSceneId)
 {
-	m_pPrototypeManager->Clear(iSceneId);
 	m_pObjectManager->Clear(iSceneId);
+	m_pPrototypeManager->Clear(iSceneId);
+}
+
+_uint EngineUtility::GetCurrentSceneId()
+{
+	return m_pSceneManager->GetCurrentSceneId();
 }
 
 HRESULT EngineUtility::AddPrototype(_uint iSceneId, const _wstring& strPrototypeTag, Base* pPrototype)
@@ -228,6 +246,15 @@ Layer* EngineUtility::FindLayer(_uint iSceneId, const _wstring& strLayerTag)
 _uint EngineUtility::GetLayerSize(_uint iSceneId, const _wstring& strLayerTag)
 {
 	return m_pObjectManager->GetLayerSize(iSceneId, strLayerTag);
+}
+
+std::vector<class Object*> EngineUtility::GetAllObjects(_uint iSceneId)
+{
+	return m_pObjectManager->GetAllObjects(iSceneId);
+}
+void EngineUtility::ClearDeadObjects()
+{
+	m_pObjectManager->ClearDeadObjects();
 }
 
 HRESULT EngineUtility::JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObject)
@@ -329,14 +356,34 @@ void EngineUtility::DrawPanels()
 	m_pIMGUIManager->DrawPanels();
 }
 
+void EngineUtility::SetGizmoState(Object* pTarget, ImGuizmo::OPERATION eOperation)
+{
+	m_pIMGUIManager->SetGizmoTarget(pTarget, eOperation);
+}
+
+std::pair<class Object*, ImGuizmo::OPERATION> EngineUtility::GetGizmoState() const
+{
+	return m_pIMGUIManager->GetGizmoTarget();
+}
+
+bool EngineUtility::HasGizmoTarget() const
+{
+	return m_pIMGUIManager->HasGizmoTarget();
+}
+
+void EngineUtility::ClearGizmoState()
+{
+	m_pIMGUIManager->ClearGizmoTarget();
+}
+
 RAY EngineUtility::GetRay()
 {
 	return m_pPickingManager->GetRay();
 }
 
-_float3 EngineUtility::GetRayHitPosition(const RAY& ray, Object* pObject)
+PICK_RESULT EngineUtility::Pick()
 {
-	return m_pPickingManager->GetRayHitPosition(ray, pObject);
+	return m_pPickingManager->Pick();
 }
 
 _bool EngineUtility::RayIntersectObject(const RAY& ray, Object* pObject)
@@ -347,4 +394,38 @@ _bool EngineUtility::RayIntersectObject(const RAY& ray, Object* pObject)
 _bool EngineUtility::RayIntersectTerrain(const RAY& ray, Terrain* pTerrain)
 {
 	return m_pPickingManager->RayIntersectTerrain(ray, pTerrain);
+}
+
+void EngineUtility::RenderGrid()
+{
+#ifdef _DEBUG
+	if(m_pGridManager->IsVisible())
+		m_pGridManager->Render();
+#endif
+}
+
+void EngineUtility::SetGridVisible(_bool enable)
+{
+	m_pGridManager->SetVisible(enable);
+}
+
+_bool EngineUtility::IsGridVisible() const
+{
+	return m_pGridManager->IsVisible();
+}
+_float EngineUtility::GetGridCellSize()
+{
+	return m_pGridManager->GetGridCellSize();
+}
+void EngineUtility::SetGridCellSize(_float cellSize)
+{
+	m_pGridManager->SetGridCellSize(cellSize);
+}
+_uint EngineUtility::GetNumGridCells()
+{
+	return m_pGridManager->GetNumGridCells();
+}
+void EngineUtility::SetNumGridCells(_uint iNumGridCells)
+{
+	m_pGridManager->SetNumGridCells(iNumGridCells);
 }

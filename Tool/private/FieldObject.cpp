@@ -36,6 +36,7 @@ HRESULT FieldObject::Initialize(void* pArg)
 
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
     pModel->SetAnimation(0, true);
+    pModel->StopAnimation();
 
     return S_OK;
 }
@@ -49,6 +50,16 @@ void FieldObject::Update(_float fTimeDelta)
 {
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
     pModel->PlayAnimation(fTimeDelta);
+
+#ifdef _DEBUG
+    Collision* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision")));
+    if (pCollision != nullptr)
+    {
+        Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+        if (pTransform != nullptr)
+            pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+    }
+#endif
 
     __super::Update(fTimeDelta);
 }
@@ -100,18 +111,29 @@ HRESULT FieldObject::Render()
         pShader->Begin(0);
         pModel->Render(i);
     }
-
+#ifdef _DEBUG
+    Collision* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision")));
+    if (pCollision != nullptr)
+        pCollision->Render();
+#endif
     return S_OK;
 }
 
 HRESULT FieldObject::ReadyComponents()
 {
     /* For.Com_Model */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_Model_Bullet"), TEXT("Model"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Model_Fiona"), TEXT("Model"), nullptr, nullptr)))
+        return E_FAIL;
+
+    // For.Com_CollisionAABB
+    CollisionBoxAABB::COLLISIONAABB_DESC     AABBDesc{};
+    AABBDesc.vSize = _float3(0.8f, 1.2f, 0.8f);
+    AABBDesc.vCenter = _float3(0.f, AABBDesc.vSize.y * 0.5f, 0.f);
+    if(FAILED(AddComponent(SCENE::MAP, TEXT("CollisionAABB"), TEXT("Collision"), nullptr, &AABBDesc)))
         return E_FAIL;
 
     /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Prototype_Component_Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
 
     return S_OK;

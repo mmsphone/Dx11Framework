@@ -23,7 +23,9 @@ public:
 	void ReleaseEngine();
 	virtual void Free() override;
 
+	//Utility
 	_float Random(_float fMin, _float fMax);
+	void SetPathToBin();
 
 	//Graphic
 	ID3D11Device* GetDevice();
@@ -47,6 +49,7 @@ public:
 	//SceneManager
 	HRESULT ChangeScene(_uint iSceneId, class Scene* pScene);
 	void ClearScene(_uint iSceneId);
+	_uint GetCurrentSceneId();
 
 	//PrototypeManager
 	HRESULT AddPrototype(_uint iSceneId, const _wstring& strPrototypeTag, Base* pPrototype);
@@ -57,6 +60,8 @@ public:
 	class Object* FindObject(_uint iLayerSceneId, const _wstring& strLayerTag, _uint iIndex);
 	class Layer* FindLayer(_uint iSceneId, const _wstring& strLayerTag);
 	_uint GetLayerSize(_uint iSceneId, const _wstring& strLayerTag);
+	std::vector<class Object*> GetAllObjects(_uint iSceneId);
+	void ClearDeadObjects();
 
 	//RenderManager
 	HRESULT JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObject);
@@ -87,12 +92,25 @@ public:
 	HRESULT SetPanelOpen(const string& PanelName, bool open);
 	ImGuiContext* GetIMGUIContext();
 	void DrawPanels();
+	void SetGizmoState(class Object* pTarget, ImGuizmo::OPERATION eOperation);
+	std::pair<class Object*, ImGuizmo::OPERATION> GetGizmoState() const;
+	bool HasGizmoTarget() const;
+	void ClearGizmoState();
 
 	//PickingManager
 	RAY GetRay();
-	_float3 GetRayHitPosition(const RAY& ray, class Object* pObject);
+	PICK_RESULT Pick();
 	_bool RayIntersectObject(const RAY& ray, class Object* pObject);
 	_bool RayIntersectTerrain(const RAY& ray, class Terrain* pTerrain);
+
+	//GridManager
+	void RenderGrid();
+	void SetGridVisible(_bool enable);
+	_bool IsGridVisible() const;
+	_float GetGridCellSize();
+	void SetGridCellSize(_float cellSize);
+	_uint GetNumGridCells();
+	void SetNumGridCells(_uint iNumGridCells);
 
 private:
 	class Graphic* m_pGraphic = { nullptr };
@@ -107,6 +125,7 @@ private:
 	class FontManager* m_pFontManager = { nullptr };
 	class IMGUIManager* m_pIMGUIManager = { nullptr };
 	class PickingManager* m_pPickingManager = { nullptr };
+	class GridManager* m_pGridManager = { nullptr };
 };
 
 NS_END

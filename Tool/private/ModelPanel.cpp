@@ -1,7 +1,5 @@
 ﻿#include "ModelPanel.h"
 
-#include "Tool_Defines.h"
-
 #include "EngineUtility.h"
 #include "MapScene.h"
 #include "IEHelper.h"
@@ -15,13 +13,13 @@ ModelPanel::ModelPanel(const string& PanelName, bool open)
 
 HRESULT ModelPanel::Initialize()
 {
-    m_pModelObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Test"), 0);
+    m_pModelObject = m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("TestObject"), 0);
     if (m_pModelObject == nullptr)
         return E_FAIL;
     SafeAddRef(m_pModelObject);
 
-    m_PanelPosition = _float2(50.f, 50.f);
-    m_PanelSize = _float2(400.f, 1000.f);
+    m_PanelPosition = _float2(0.f, 0.f);
+    m_PanelSize = _float2(400.f, 600.f);
 
     return S_OK;
 }
@@ -30,8 +28,11 @@ void ModelPanel::OnRender()
 {
     if (ImGui::Button("MapScene"))
     {
+        m_pEngineUtility->SetPathToBin();
+
         m_pEngineUtility->ChangeScene(SCENE::MAP, MapScene::Create(SCENE::MAP));
-        m_pEngineUtility->SetPanelOpen(GetPanelName(), false);
+        m_pEngineUtility->SetPanelOpen("ModelPanel", false);
+        m_pEngineUtility->SetPanelOpen("ModelCamPanel", false);
     }
     ImGui::Text("\n");
     static string ImportPath = "None";
@@ -163,9 +164,17 @@ void ModelPanel::OnRender()
 
     static _int iTargetMeshIndex = -1;
     ImGui::Text("--TargetMeshIndex(Default : -1)--");
-    if(ImGui::InputInt("##TargetMeshIndex", &iTargetMeshIndex))
+    ImGui::InputInt("##TargetMeshIndex", &iTargetMeshIndex);
+    if (ImGui::Button("SetTargetMesh"))
     {
         pModel->SetTargetMesh(iTargetMeshIndex);
+    }
+    if (iTargetMeshIndex != -1 && iTargetMeshIndex < pModel->GetNumMeshes())
+    {
+        _bool bMeshVisible = pModel->IsMeshVisible(iTargetMeshIndex);
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Visible", &bMeshVisible))
+            pModel->SetMeshVisible(iTargetMeshIndex, bMeshVisible);
     }
 
     static _int iTargetAnimIndex = 0;
@@ -174,17 +183,29 @@ void ModelPanel::OnRender()
     {
         pModel->SetAnimation(iTargetAnimIndex, true);
     }
+    if (ImGui::Button("PlayAnim"))
+    {
+        pModel->ResumeAnimation();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("StopAnim"))
+    {
+        pModel->StopAnimation();
+    }
 
     ImGui::Text("--Model PreTransformRotation--");
     static _float3 rot = pModel->GetPreTransformRotation();
-    ImGui::InputFloat("RotationX", &rot.x);
-    ImGui::InputFloat("RotationY", &rot.y);
-    ImGui::InputFloat("RotationZ", &rot.z);
-    // 적용 버튼
-    if (ImGui::Button("Apply PreTransformRotation")) {
+
+    ImGui::PushItemWidth(120);
+    bool changedX = ImGui::DragFloat("RotationX", &rot.x, 5.f, -360.f, 360.f, "%.2f");
+    bool changedY = ImGui::DragFloat("RotationY", &rot.y, 5.f, -360.f, 360.f, "%.2f");
+    bool changedZ = ImGui::DragFloat("RotationZ", &rot.z, 5.f, -360.f, 360.f, "%.2f");
+    ImGui::PopItemWidth();
+
+    if (changedX || changedY || changedZ)
+    {
         pModel->SetPreTransformRotation(rot);
     }
-
 }
 
 

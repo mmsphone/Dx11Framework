@@ -19,11 +19,16 @@ public:
     HRESULT Initialize();
     virtual void OnRender() override;
 
+    void SortPointsClockWise(vector<_float3>& points);
+
+
     static MapPanel* Create(const string& PanelName, bool open = true);
     virtual void		Free() override;
 
 private:
     Object* m_pTerrain = nullptr;
+    Object* m_pSelectedObject = nullptr;
+    class ObjectPanel* m_pObjectPanel = nullptr;
 };
 
 NS_END

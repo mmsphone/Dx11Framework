@@ -36,6 +36,7 @@ HRESULT TestObject::Initialize(void* pArg)
 
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
     pModel->SetAnimation(0, true);
+    pModel->StopAnimation();
 
     return S_OK;
 }
@@ -114,11 +115,11 @@ HRESULT TestObject::Render()
 HRESULT TestObject::ReadyComponents()
 {
     /* For.Com_Model */
-    if (FAILED(AddComponent(SCENE::MODEL, TEXT("Prototype_Component_Model_Fiona"), TEXT("Model"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MODEL, TEXT("Model_Fiona"), TEXT("Model"), nullptr, nullptr)))
         return E_FAIL;
 
     /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::MODEL, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
 
     return S_OK;

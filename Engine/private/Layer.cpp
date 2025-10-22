@@ -29,6 +29,11 @@ _uint Layer::GetLayerSize() const
 	return static_cast<_uint>(m_Objects.size());
 }
 
+list<Object*>& Layer::GetAllObjects()
+{
+	return m_Objects;
+}
+
 void Layer::PriorityUpdate(_float fTimeDelta)
 {
 	for (auto& pGameObject : m_Objects)

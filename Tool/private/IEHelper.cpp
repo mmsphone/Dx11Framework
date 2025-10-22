@@ -75,11 +75,8 @@ static std::string DumpEmbeddedTexture(const aiTexture* tex, const std::filesyst
 bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
 {
     Assimp::Importer importer;
-
-    // ★ 프로퍼티: 본 가중치 제한, Collada 업축 무시(관성), 글로벌 스케일 옵션 등
+    importer.FreeScene();
     importer.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
-    importer.SetPropertyBool(AI_CONFIG_IMPORT_COLLADA_IGNORE_UP_DIRECTION, true);
-    // 필요 시: importer.SetPropertyFloat(AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1.0f);
 
     unsigned int flags =
         aiProcess_ConvertToLeftHanded |
@@ -168,8 +165,7 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
                 boneData.offsetMatrix = meshBone.offsetMatrix;
                 outModel.bones.push_back(boneData);
             }
-        }
-
+        }   
         outModel.meshes.push_back(std::move(meshData));
     }
 
@@ -313,153 +309,79 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
 bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
 {
     std::ofstream file(filePath, std::ios::binary);
-    if (!file.is_open())
-        return false;
+    if (!file.is_open()) return false;
 
-    // ---------------------
     // 1. Meshes
-    _uint numMeshes = static_cast<_uint>(model.meshes.size());
-    file.write(reinterpret_cast<const char*>(&numMeshes), sizeof(_uint));
-
-    for (const auto& mesh : model.meshes)
+    _uint numMeshes = (_uint)model.meshes.size();
+    file.write((char*)&numMeshes, 4);
+    for (auto& mesh : model.meshes)
     {
-        _uint nameLen = static_cast<_uint>(mesh.name.size());
-        file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
-        file.write(mesh.name.data(), nameLen);
+        _uint len = (_uint)mesh.name.size();
+        file.write((char*)&len, 4);
+        file.write(mesh.name.data(), len);
+        file.write((char*)&mesh.materialIndex, 4);
 
-        file.write(reinterpret_cast<const char*>(&mesh.materialIndex), sizeof(_uint));
+        auto W = [&](auto& v) { _uint n = (_uint)v.size(); file.write((char*)&n, 4); if (n)file.write((char*)v.data(), sizeof(v[0]) * n); };
+        W(mesh.positions); W(mesh.normals); W(mesh.texcoords); W(mesh.tangents); W(mesh.indices);
 
-        _uint numPos = static_cast<_uint>(mesh.positions.size());
-        file.write(reinterpret_cast<const char*>(&numPos), sizeof(_uint));
-        file.write(reinterpret_cast<const char*>(mesh.positions.data()), sizeof(_float3) * numPos);
-
-        _uint numNormals = static_cast<_uint>(mesh.normals.size());
-        file.write(reinterpret_cast<const char*>(&numNormals), sizeof(_uint));
-        file.write(reinterpret_cast<const char*>(mesh.normals.data()), sizeof(_float3) * numNormals);
-
-        _uint numTex = static_cast<_uint>(mesh.texcoords.size());
-        file.write(reinterpret_cast<const char*>(&numTex), sizeof(_uint));
-        file.write(reinterpret_cast<const char*>(mesh.texcoords.data()), sizeof(_float2) * numTex);
-
-        _uint numTang = static_cast<_uint>(mesh.tangents.size());
-        file.write(reinterpret_cast<const char*>(&numTang), sizeof(_uint));
-        file.write(reinterpret_cast<const char*>(mesh.tangents.data()), sizeof(_float3) * numTang);
-
-        _uint numIndices = static_cast<_uint>(mesh.indices.size());
-        file.write(reinterpret_cast<const char*>(&numIndices), sizeof(_uint));
-        file.write(reinterpret_cast<const char*>(mesh.indices.data()), sizeof(_uint) * numIndices);
-
-        _uint numBones = static_cast<_uint>(mesh.bones.size());
-        file.write(reinterpret_cast<const char*>(&numBones), sizeof(_uint));
-
-        for (const auto& bone : mesh.bones)
+        _uint numBones = (_uint)mesh.bones.size();
+        file.write((char*)&numBones, 4);
+        for (auto& b : mesh.bones)
         {
-            _uint boneNameLen = static_cast<_uint>(bone.name.size());
-            file.write(reinterpret_cast<const char*>(&boneNameLen), sizeof(_uint));
-            file.write(bone.name.data(), boneNameLen);
-
-            _uint numWeights = static_cast<_uint>(bone.weights.size());
-            file.write(reinterpret_cast<const char*>(&numWeights), sizeof(_uint));
-            file.write(reinterpret_cast<const char*>(bone.weights.data()), sizeof(VertexWeight) * numWeights);
-
-            file.write(reinterpret_cast<const char*>(&bone.offsetMatrix), sizeof(_float4x4));
+            _uint n = (_uint)b.name.size();
+            file.write((char*)&n, 4); file.write(b.name.data(), n);
+            _uint w = (_uint)b.weights.size();
+            file.write((char*)&w, 4);
+            if (w) file.write((char*)b.weights.data(), sizeof(VertexWeight) * w);
+            file.write((char*)&b.offsetMatrix, sizeof(_float4x4));
         }
     }
 
-    // ---------------------
     // 2. Materials
-    _uint numMaterials = static_cast<_uint>(model.materials.size());
-    file.write(reinterpret_cast<const char*>(&numMaterials), sizeof(_uint));
-
-    for (const auto& mat : model.materials)
+    _uint numMat = (_uint)model.materials.size();
+    file.write((char*)&numMat, 4);
+    for (auto& m : model.materials)
     {
-        _uint nameLen = static_cast<_uint>(mat.name.size());
-        file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
-        file.write(mat.name.data(), nameLen);
-
-        for (int t = 0; t < (int)TextureType::End; t++)
-        {
-            _uint numTex = static_cast<_uint>(mat.texturePaths[t].size());
-            file.write(reinterpret_cast<const char*>(&numTex), sizeof(_uint));
-            for (const auto& path : mat.texturePaths[t])
-            {
-                _uint pathLen = static_cast<_uint>(path.size());
-                file.write(reinterpret_cast<const char*>(&pathLen), sizeof(_uint));
-                file.write(path.data(), pathLen);
+        _uint n = (_uint)m.name.size(); file.write((char*)&n, 4); file.write(m.name.data(), n);
+        for (int t = 0; t < (int)TextureType::End; t++) {
+            _uint numTex = (_uint)m.texturePaths[t].size();
+            file.write((char*)&numTex, 4);
+            for (auto& p : m.texturePaths[t]) {
+                _uint l = (_uint)p.size();
+                file.write((char*)&l, 4);
+                file.write(p.data(), l);
             }
         }
     }
 
-    // ---------------------
-    // 3. Node hierarchy
-    std::function<void(const NodeData&)> writeNode;
-    writeNode = [&](const NodeData& node)
-    {
-        std::string safeName = node.name.empty() ? "Unnamed" : node.name;
-        _uint nameLen = static_cast<_uint>(safeName.size());
-        file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
-        file.write(safeName.data(), nameLen);
-
-        file.write(reinterpret_cast<const char*>(&node.parentIndex), sizeof(_int));
-        file.write(reinterpret_cast<const char*>(&node.transform), sizeof(_float4x4));
-
-        _uint numChildren = static_cast<_uint>(node.children.size());
-        file.write(reinterpret_cast<const char*>(&numChildren), sizeof(_uint));
-        for (const auto& child : node.children)
-            writeNode(child);
+    // 3. Node
+    std::function<void(const NodeData&)> WNode = [&](auto& n) {
+        _uint l = (_uint)n.name.size(); file.write((char*)&l, 4); file.write(n.name.data(), l);
+        file.write((char*)&n.parentIndex, 4);
+        file.write((char*)&n.transform, sizeof(_float4x4));
+        _uint c = (_uint)n.children.size(); file.write((char*)&c, 4);
+        for (auto& ch : n.children)WNode(ch);
     };
+    WNode(model.rootNode);
 
-    writeNode(model.rootNode);
-
-    // ---------------------
     // 4. Animations
-    _uint numAnims = static_cast<_uint>(model.animations.size());
-    file.write(reinterpret_cast<const char*>(&numAnims), sizeof(_uint));
-
-    for (const auto& anim : model.animations)
-    {
-        _uint nameLen = static_cast<_uint>(anim.name.size());
-        file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
-        file.write(anim.name.data(), nameLen);
-
-        file.write(reinterpret_cast<const char*>(&anim.duration), sizeof(float));
-        file.write(reinterpret_cast<const char*>(&anim.ticksPerSecond), sizeof(float));
-
-        _uint numChannels = static_cast<_uint>(anim.channels.size());
-        file.write(reinterpret_cast<const char*>(&numChannels), sizeof(_uint));
-
-        for (const auto& ch : anim.channels)
-        {
-            _uint nodeNameLen = static_cast<_uint>(ch.nodeName.size());
-            file.write(reinterpret_cast<const char*>(&nodeNameLen), sizeof(_uint));
-            file.write(ch.nodeName.data(), nodeNameLen);
-
-            _uint numPosKeys = static_cast<_uint>(ch.positionKeys.size());
-            file.write(reinterpret_cast<const char*>(&numPosKeys), sizeof(_uint));
-            file.write(reinterpret_cast<const char*>(ch.positionKeys.data()), sizeof(KeyVector) * numPosKeys);
-
-            _uint numRotKeys = static_cast<_uint>(ch.rotationKeys.size());
-            file.write(reinterpret_cast<const char*>(&numRotKeys), sizeof(_uint));
-            file.write(reinterpret_cast<const char*>(ch.rotationKeys.data()), sizeof(KeyQuat) * numRotKeys);
-
-            _uint numScaleKeys = static_cast<_uint>(ch.scalingKeys.size());
-            file.write(reinterpret_cast<const char*>(&numScaleKeys), sizeof(_uint));
-            file.write(reinterpret_cast<const char*>(ch.scalingKeys.data()), sizeof(KeyVector) * numScaleKeys);
+    _uint numA = (_uint)model.animations.size(); file.write((char*)&numA, 4);
+    for (auto& a : model.animations) {
+        _uint n = (_uint)a.name.size(); file.write((char*)&n, 4); file.write(a.name.data(), n);
+        file.write((char*)&a.duration, 4); file.write((char*)&a.ticksPerSecond, 4);
+        _uint c = (_uint)a.channels.size(); file.write((char*)&c, 4);
+        for (auto& ch : a.channels) {
+            _uint nn = (_uint)ch.nodeName.size(); file.write((char*)&nn, 4); file.write(ch.nodeName.data(), nn);
+            auto WK = [&](auto& v) {_uint n = (_uint)v.size(); file.write((char*)&n, 4); if (n)file.write((char*)v.data(), sizeof(v[0]) * n); };
+            WK(ch.positionKeys); WK(ch.rotationKeys); WK(ch.scalingKeys);
         }
     }
 
-    // ---------------------
-    // 5. Global Bones (선택적 — 구조 완결성용)
-    _uint numBones = static_cast<_uint>(model.bones.size());
-    file.write(reinterpret_cast<const char*>(&numBones), sizeof(_uint));
-    for (const auto& bone : model.bones)
-    {
-        _uint nameLen = static_cast<_uint>(bone.name.size());
-        file.write(reinterpret_cast<const char*>(&nameLen), sizeof(_uint));
-        file.write(bone.name.data(), nameLen);
-        file.write(reinterpret_cast<const char*>(&bone.offsetMatrix), sizeof(_float4x4));
+    // 5. Global Bones
+    _uint nb = (_uint)model.bones.size(); file.write((char*)&nb, 4);
+    for (auto& b : model.bones) {
+        _uint n = (_uint)b.name.size(); file.write((char*)&n, 4); file.write(b.name.data(), n);
+        file.write((char*)&b.offsetMatrix, sizeof(_float4x4));
     }
-
-    file.close();
-    return true;
+    file.close(); return true;
 }

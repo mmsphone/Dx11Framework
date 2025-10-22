@@ -51,6 +51,16 @@ HRESULT Object::Render()
     return S_OK;
 }
 
+_bool Object::IsDead()
+{
+	return m_IsDead;
+}
+
+void Object::SetDead(_bool bDead)
+{
+	m_IsDead = bDead;
+}
+
 HRESULT Object::AddComponent(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, const _wstring& strComponentTag, Component** ppOut, void* pArg)
 {
 	if (nullptr != FindComponent(strComponentTag))

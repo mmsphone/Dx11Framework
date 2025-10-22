@@ -11,12 +11,15 @@ SceneManager::SceneManager()
 
 HRESULT SceneManager::ChangeScene(_uint iSceneId, Scene* pScene)
 {
+#ifdef _DEBUG
+	OutputDebugStringA("Clearing Scene...\n");
+#endif
 	CHECKPTR(m_pCurrentScene)
-		m_pEngineUtility->ClearScene(m_iSceneId);
+		m_pEngineUtility->ClearScene(m_iCurrentSceneId);
 	SafeRelease(m_pCurrentScene);
 
 	m_pCurrentScene = pScene;
-	m_iSceneId = iSceneId;
+	m_iCurrentSceneId = iSceneId;
 
 	return S_OK;
 }
@@ -35,6 +38,11 @@ HRESULT SceneManager::Render()
 		return E_FAIL;
 
 	return m_pCurrentScene->Render();
+}
+
+_uint SceneManager::GetCurrentSceneId() const
+{
+	return m_iCurrentSceneId;
 }
 
 SceneManager* SceneManager::Create()

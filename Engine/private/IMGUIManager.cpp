@@ -134,6 +134,27 @@ void IMGUIManager::DrawPanels()
     }
 }
 
+void IMGUIManager::SetGizmoTarget(Object* pTarget, ImGuizmo::OPERATION eOperation)
+{
+    m_pGizmoTarget = pTarget;
+    m_eGizmoOperation = eOperation;
+}
+
+std::pair<class Object*, ImGuizmo::OPERATION> IMGUIManager::GetGizmoTarget() const
+{
+    return { m_pGizmoTarget, m_eGizmoOperation };
+}
+
+void IMGUIManager::ClearGizmoTarget()
+{
+    m_pGizmoTarget = nullptr;
+}
+
+bool IMGUIManager::HasGizmoTarget() const
+{
+    return (m_pGizmoTarget != nullptr);
+}
+
 void IMGUIManager::Free()
 {
     __super::Free();

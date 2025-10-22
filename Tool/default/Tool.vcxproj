@@ -109,7 +109,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <AdditionalIncludeDirectories>../public/;../../EngineSDK/Inc/;../../EngineSDK/Inc/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -149,6 +149,7 @@
     <ClInclude Include="..\public\MapScene.h" />
     <ClInclude Include="..\public\ModelPanel.h" />
     <ClInclude Include="..\public\ModelScene.h" />
+    <ClInclude Include="..\public\ObjectPanel.h" />
     <ClInclude Include="..\public\TestTerrain.h" />
     <ClInclude Include="..\public\TestObject.h" />
     <ClInclude Include="..\public\ToolApp.h" />
@@ -162,6 +163,7 @@
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui.cpp" />
+    <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\ImGuizmo.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_demo.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_draw.cpp" />
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui_tables.cpp" />
@@ -174,6 +176,7 @@
     <ClCompile Include="..\private\MapScene.cpp" />
     <ClCompile Include="..\private\ModelPanel.cpp" />
     <ClCompile Include="..\private\ModelScene.cpp" />
+    <ClCompile Include="..\private\ObjectPanel.cpp" />
     <ClCompile Include="..\private\TestTerrain.cpp" />
     <ClCompile Include="..\private\TestObject.cpp" />
     <ClCompile Include="..\private\ToolApp.cpp" />

@@ -18,12 +18,13 @@ public:
 	void Update(_float fTimeDelta);
 	HRESULT Render();
 	
+	_uint GetCurrentSceneId() const;
 
 	static SceneManager* Create();
 	virtual void Free() override;
 
 private:
-	_uint m_iSceneId = {};
+	_uint m_iCurrentSceneId = {};
 	class Scene* m_pCurrentScene = { nullptr };
 	class EngineUtility* m_pEngineUtility = { nullptr };
 };

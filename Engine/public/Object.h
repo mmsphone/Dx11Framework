@@ -24,8 +24,10 @@ public:
 	virtual void PriorityUpdate(_float fTimeDelta);
 	virtual void Update(_float fTimeDelta);
 	virtual void LateUpdate(_float fTimeDelta);
-
 	virtual HRESULT Render();
+
+	_bool IsDead();
+	void SetDead(_bool bDead);
 
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free();
@@ -36,6 +38,7 @@ public:
 protected:
 	class EngineUtility* m_pEngineUtility = { nullptr };
 	map<const _wstring, class Component*> m_Components;
+	_bool m_IsDead = false;
 };
 
 NS_END

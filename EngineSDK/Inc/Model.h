@@ -25,17 +25,20 @@ public:
 
 	void PlayAnimation(_float fTimeDelta);
 	void SetAnimation(_uint iIndex, _bool isLoop = false);
+	void StopAnimation();
+	void ResumeAnimation();
 	_uint GetCurrentAnimIndex();
 	_bool isAnimFinished() const;
 
 	ModelData* GetModelData() const;
 	void SetModelData(ModelData* pModelData);
 	void SetTargetMesh(_int iMeshIndex);
+
+	_bool IsMeshVisible(_uint iMeshIndex);
 	void SetMeshVisible(_uint iMeshIndex, _bool bVisible);
 
 	void SetPreTransformRotation(const _float3& eulerDeg);
 	_float3 GetPreTransformRotation() const;
-	HRESULT UpdateNonAnimVertexBuffer();
 
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 
@@ -66,6 +69,7 @@ private:
 
 	_bool						m_isAnimLoop = { false };
 	_bool						m_isAnimFinished = { false };
+	_bool						m_isAnimStop = { false };
 	_uint						m_iCurrentAnimIndex = {};
 	_uint						m_iNumAnimations = {};
 	vector<class Animation*>	m_Animations;

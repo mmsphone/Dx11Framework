@@ -43,6 +43,7 @@
     <ClInclude Include="..\public\Engine_Typedef.h" />
     <ClInclude Include="..\public\FontManager.h" />
     <ClInclude Include="..\public\Graphic.h" />
+    <ClInclude Include="..\public\GridManager.h" />
     <ClInclude Include="..\public\IMGUIManager.h" />
     <ClInclude Include="..\public\Input.h" />
     <ClInclude Include="..\public\Layer.h" />
@@ -95,6 +96,7 @@
     <ClCompile Include="..\private\EngineUtility.cpp" />
     <ClCompile Include="..\private\FontManager.cpp" />
     <ClCompile Include="..\private\Graphic.cpp" />
+    <ClCompile Include="..\private\GridManager.cpp" />
     <ClCompile Include="..\private\IMGUIManager.cpp" />
     <ClCompile Include="..\private\Input.cpp" />
     <ClCompile Include="..\private\Layer.cpp" />
@@ -129,6 +131,7 @@
     <ClCompile Include="..\public\IMGUI\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="..\public\IMGUI\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="..\public\IMGUI\imgui.cpp" />
+    <ClCompile Include="..\public\IMGUI\ImGuizmo.cpp" />
     <ClCompile Include="..\public\IMGUI\imgui_demo.cpp" />
     <ClCompile Include="..\public\IMGUI\imgui_draw.cpp" />
     <ClCompile Include="..\public\IMGUI\imgui_tables.cpp" />
@@ -241,7 +244,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
@@ -256,6 +259,9 @@
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
     </FxCompile>
+    <PostBuildEvent>
+      <Command>call $(SolutionDir)UpdateLib.bat</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

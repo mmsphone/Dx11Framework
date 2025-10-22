@@ -9,10 +9,11 @@ class PickingManager final : public Base
     virtual ~PickingManager() = default;
 
 public:
-    _float3 GetRayHitPosition(const RAY& ray, class Object* pObject) const;
+    PICK_RESULT Pick();
 
-    _bool RayIntersectObject(const RAY& ray, class Object* pObject) const;
-    _bool RayIntersectTerrain(const RAY& ray, class Terrain* pTerrain) const;
+    _bool IsMouseOverUI() const;
+    _bool RayIntersectObject(const RAY& ray, class Object* pObject, _float3* pOutHitPos = nullptr) const;
+    _bool RayIntersectTerrain(const RAY& ray, class Terrain* pTerrain, _float3* pOutHitPos = nullptr) const;
 
     RAY GetRay();
 

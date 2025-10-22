@@ -11,6 +11,8 @@ ToolApp::ToolApp()
 
 HRESULT ToolApp::Initialize()
 {
+	std::filesystem::current_path("../bin");
+	
 	ENGINE_DESC			EngineDesc{};
 	EngineDesc.hInstance = g_hInstance;
 	EngineDesc.hWnd = g_hWnd;
@@ -46,6 +48,8 @@ HRESULT ToolApp::Render()
 	/* 백, 깊이버퍼를 초기화한다. */
 	m_pEngineUtility->BeginDraw(&vClearColor);
 
+	m_pEngineUtility->RenderGrid();
+
 	/* 객체들을 그린다. */
 	m_pEngineUtility->Draw();
 
@@ -55,6 +59,8 @@ HRESULT ToolApp::Render()
 
 	/* 후면버퍼를 전면으로 보여준다. */
 	m_pEngineUtility->EndDraw();
+
+	m_pEngineUtility->ClearDeadObjects();
 
 	return S_OK;
 }

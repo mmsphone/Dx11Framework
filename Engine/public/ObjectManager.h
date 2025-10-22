@@ -18,7 +18,10 @@ public:
 	class Layer* FindLayer(_uint iSceneId, const _wstring& strLayerTag);
 	_uint GetLayerSize(_uint iSceneId, const _wstring& strLayerTag);
 
+	std::vector<class Object*> GetAllObjects(_uint iSceneId);
+
 	void Clear(_uint iSceneId);
+	void ClearDeadObjects();
 	void PriorityUpdate(_float fTimeDelta);
 	void Update(_float fTimeDelta);
 	void LateUpdate(_float fTimeDelta);

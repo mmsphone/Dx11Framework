@@ -1,7 +1,5 @@
 ﻿#include "CamPanel.h"
 
-#include "Tool_Defines.h"
-
 #include "EngineUtility.h"
 #include "Object.h"
 
@@ -19,8 +17,8 @@ HRESULT CamPanel::Initialize(SCENE eType)
 
     m_SceneType = eType;
 
-    m_PanelPosition = _float2(400.f, 50.f);
-    m_PanelSize = _float2(400.f, 800.f);
+    m_PanelPosition = _float2(900.f, 0.f);
+    m_PanelSize = _float2(400.f, 300.f);
 
     return S_OK;
 }
@@ -54,7 +52,6 @@ void CamPanel::OnRender()
     pTransform->SetSpeedPerSec(vSpeed.x);
     pTransform->SetRotatePerSec(vSpeed.y);
 }
-
 
 CamPanel* CamPanel::Create(const string& PanelName, SCENE eType, bool open)
 {

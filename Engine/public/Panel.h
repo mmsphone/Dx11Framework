@@ -24,7 +24,7 @@ public:
 protected:
     class EngineUtility* m_pEngineUtility = { nullptr };
     const string m_PanelName;
-    bool m_IsOpen;
+    bool m_IsOpen = true;
     _float2 m_PanelPosition = { 50.f, 50.f };
     _float2 m_PanelSize = { 400.f, 600.f };
 };

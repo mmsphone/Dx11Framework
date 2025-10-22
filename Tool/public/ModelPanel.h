@@ -3,7 +3,7 @@
 #include "Tool_Defines.h"
 #include "Panel.h"
 
-namespace Engine 
+namespace Engine
 {
     class Object;
 }

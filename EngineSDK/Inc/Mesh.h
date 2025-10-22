@@ -26,8 +26,6 @@ public:
 	HRESULT ReadyVertexBufferForNonAnim(const MeshData& mesh, _fmatrix PreTransformMatrix);
 	HRESULT ReadyVertexBufferForAnim(const MeshData& mesh, const vector<class Bone*>& Bones);
 
-	HRESULT UpdateNonAnimVertexBuffer(const MeshData& mesh, _fmatrix PreTransformMatrix);
-
 	static Mesh* Create(MODELTYPE eType, const MeshData& mesh, const vector<class Bone*>& Bones, _fmatrix PreTransformMatrix);
 	virtual Component* Clone(void* pArg) override;
 	virtual void Free() override;

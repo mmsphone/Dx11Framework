@@ -5,6 +5,7 @@
 #include "Object.h"
 #include "Terrain.h"
 #include "Collision.h"
+#include "Layer.h"
 
 PickingManager::PickingManager()
     : Base{}, m_pEngineUtility(EngineUtility::GetInstance())
@@ -12,70 +13,71 @@ PickingManager::PickingManager()
     SafeAddRef(m_pEngineUtility);
 }
 
-_float3 PickingManager::GetRayHitPosition(const RAY& ray, Object* pObject) const
+PICK_RESULT PickingManager::Pick()
 {
-    if (!pObject)
-        return _float3(0.f, 0.f, 0.f);
+    PICK_RESULT result{};
 
-    Terrain* pTerrain = dynamic_cast<Terrain*>(pObject);
-    if (pTerrain != nullptr)
+    RAY ray = GetRay();
+
+    if (IsMouseOverUI())
+        return result;
+
+    _uint iCurrentSceneId = m_pEngineUtility->GetCurrentSceneId();
+    vector<Object*> objectList = m_pEngineUtility->GetAllObjects(iCurrentSceneId);
+    float nearestDist = FLT_MAX;
+    Object* nearestObj = nullptr;
+    _float3 nearestPos{};
+
+    for (auto* obj : objectList)
     {
-        if (RayIntersectTerrain(ray, pTerrain))
+        _float3 hitPos{};
+        if (RayIntersectObject(ray, obj, &hitPos))
         {
-            float t = 0.f;
-            _float3 rayOrig = ray.origin;
-            _float3 rayDir = ray.direction;
-            const float step = 0.1f;
-
-            VIBufferTerrain* pVIBufferTerrain = dynamic_cast<VIBufferTerrain*>(pTerrain->FindComponent(TEXT("VIBuffer")));
-            if (pVIBufferTerrain == nullptr)
-                return _float3(0.f, 0.f, 0.f);
-
-            const auto terrainSizeX = pVIBufferTerrain->GetNumVerticesX();
-            const auto terrainSizeZ = pVIBufferTerrain->GetNumVerticesZ();;
-            
-            for (t = 0.f; t < 1000.f; t += step)
+            float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&hitPos) - XMLoadFloat3(&ray.origin)));
+            if (dist < nearestDist)
             {
-                _float3 pos = _float3(rayOrig.x + rayDir.x * t, rayOrig.y + rayDir.y * t, rayOrig.z + rayDir.z * t);
-                if (pos.x < 0 || pos.x >= terrainSizeX || pos.z < 0 || pos.z >= terrainSizeZ)
-                    continue;
-
-                float terrainY = pVIBufferTerrain->GetHeightAt(pos.x, pos.z);
-                if (pos.y <= terrainY)
-                    return _float3(pos.x, terrainY, pos.z);
+                nearestDist = dist;
+                nearestObj = obj;
+                nearestPos = hitPos;
             }
         }
     }
-    else
+
+    if (nearestObj)
     {
-        if (RayIntersectObject(ray, pObject))
+        result.hit = true;
+        result.pHitObject = nearestObj;
+        result.hitPos = nearestPos;
+        return result;
+    }
+
+    // 3️⃣ Terrain 피킹 (오브젝트 실패 시)
+    list<Object*> objects = m_pEngineUtility->FindLayer(iCurrentSceneId, TEXT("Terrain"))->GetAllObjects();
+    for (auto& object : objects)
+    {
+        Terrain* pTerrain = dynamic_cast<Terrain*>(object);
+        if (pTerrain)
         {
-            XMVECTOR origin = XMLoadFloat3(&ray.origin);
-            XMVECTOR dir = XMLoadFloat3(&ray.direction);
-
-            Collision* pCollision = dynamic_cast<Collision*>(pObject->FindComponent(TEXT("Collision")));
-            if (pCollision == nullptr)
-                return _float3(0.f, 0.f, 0.f);
-
-            BoundingBox* pBox = static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(AABB));
-            if (pBox == nullptr)
-                return _float3(0.f, 0.f, 0.f);
-
-            float dist = 0.f;
-            if (pBox->Intersects(origin, dir, dist))
+            _float3 hitPos{};
+            if (RayIntersectTerrain(ray, pTerrain, &hitPos))
             {
-                XMVECTOR hitPos = origin + dir * dist;
-                _float3 result;
-                XMStoreFloat3(&result, hitPos);
+                result.hit = true;
+                result.pHitObject = pTerrain;
+                result.hitPos = hitPos;
                 return result;
             }
         }
     }
-
-    return _float3(0.f, 0.f, 0.f);
+    
+    return result;
 }
 
-_bool PickingManager::RayIntersectObject(const RAY& ray, Object* pObject) const
+_bool PickingManager::IsMouseOverUI() const
+{
+    return ImGui::GetIO().WantCaptureMouse;
+}
+
+_bool PickingManager::RayIntersectObject(const RAY& ray, Object* pObject, _float3* pOutHitPos) const
 {
     if (!pObject) 
         return false;
@@ -84,18 +86,46 @@ _bool PickingManager::RayIntersectObject(const RAY& ray, Object* pObject) const
     if (pCollision == nullptr) 
         return false;
 
-    BoundingBox* pBox = static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(AABB));
-    if (pBox == nullptr)
-        return false;
-
     _vector origin = XMLoadFloat3(&ray.origin);
     _vector dir = XMLoadFloat3(&ray.direction);
+    _float dist = 0.0f;
+    _bool hit = false;
 
-    float dist = 0.0f;
-    return pBox->Intersects(origin, dir, dist);
+    switch (pCollision->GetType())
+    {
+    case COLLISIONTYPE::AABB:
+    {
+        BoundingBox* pBox = static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(AABB));
+        if (pBox && pBox->Intersects(origin, dir, dist) && dist >= 0.f)
+            hit = true;
+        break;
+    }
+    case COLLISIONTYPE::OBB:
+    {
+        BoundingOrientedBox* pBox = static_cast<BoundingOrientedBox*>(pCollision->GetWorldCollisionBox(OBB));
+        if (pBox && pBox->Intersects(origin, dir, dist) && dist >= 0.f)
+            hit = true;
+        break;
+    }
+    case COLLISIONTYPE::SPHERE:
+    {
+        BoundingSphere* pBox = static_cast<BoundingSphere*>(pCollision->GetWorldCollisionBox(SPHERE));
+        if (pBox && pBox->Intersects(origin, dir, dist) && dist >= 0.f)
+            hit = true;
+        break;
+    }
+    }
+
+
+    if (hit && pOutHitPos)
+    {
+        XMVECTOR hitPos = origin + dir * dist;
+        XMStoreFloat3(pOutHitPos, hitPos);
+    }
+    return hit;
 }
 
-_bool PickingManager::RayIntersectTerrain(const RAY& ray, Terrain* pTerrain) const
+_bool PickingManager::RayIntersectTerrain(const RAY& ray, Terrain* pTerrain, _float3* pOutHitPos) const
 {
     if (!pTerrain) return false;
 
@@ -121,7 +151,11 @@ _bool PickingManager::RayIntersectTerrain(const RAY& ray, Terrain* pTerrain) con
 
         float terrainY = pVIBufferTerrain->GetHeightAt(pos.x, pos.z);
         if (pos.y <= terrainY)
+        {
+            if (pOutHitPos)
+                *pOutHitPos = _float3(pos.x, terrainY, pos.z);
             return true;
+        }
     }
     return false;
 }
@@ -164,6 +198,5 @@ PickingManager* PickingManager::Create()
 void PickingManager::Free()
 {
     __super::Free();
-
     SafeRelease(m_pEngineUtility);
 }

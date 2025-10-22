@@ -1,8 +1,5 @@
 ﻿#include "Collision.h"
 
-#include "CollisionBoxAABB.h"
-#include "CollisionBoxOBB.h"
-#include "CollisionBoxSphere.h"
 #include "EngineUtility.h"
 
 Collision::Collision()

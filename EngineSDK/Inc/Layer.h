@@ -14,6 +14,7 @@ public:
 	HRESULT AddObject(class Object* pObject);
 	class Object* FindObject(_uint iIndex);
 	_uint GetLayerSize() const;
+	list<class Object*>& GetAllObjects();
 
 	void PriorityUpdate(_float fTimeDelta);
 	void Update(_float fTimeDelta);

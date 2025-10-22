@@ -15,8 +15,8 @@ void Panel::Draw()
     if (!m_IsOpen)
         return;
 
-    ImGui::SetNextWindowPos(ImVec2(m_PanelPosition.x, m_PanelPosition.y), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(m_PanelSize.x, m_PanelSize.y), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(ImVec2(m_PanelPosition.x, m_PanelPosition.y), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(m_PanelSize.x, m_PanelSize.y), ImGuiCond_Once);
     if (ImGui::Begin(m_PanelName.c_str(), &m_IsOpen))
     {
         OnRender();

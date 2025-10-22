@@ -22,7 +22,6 @@ HRESULT Channel::Initialize(const string& name, const vector<ChannelData>& chann
         return E_FAIL;
     }
 
-
     // 해당 본 이름과 일치하는 채널을 찾기
     auto chIter = find_if(channelData.begin(), channelData.end(),
         [&](const ChannelData& data) { return data.nodeName == m_szName; });

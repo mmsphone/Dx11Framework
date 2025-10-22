@@ -184,10 +184,13 @@ void VIBufferTerrain::Free()
 HRESULT VIBufferTerrain::LoadHeightMap(const std::wstring& heightMapPath)
 {
     _ulong dwByte = {};
-    HANDLE hFile = CreateFile(heightMapPath.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE hFile = CreateFile(heightMapPath.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (hFile == INVALID_HANDLE_VALUE)
+    {
+        DWORD err = GetLastError();
+        printf("CreateFile failed: %lu\n", err);
         return E_FAIL;
-
+    }
     BITMAPFILEHEADER fh{};
     ReadFile(hFile, &fh, sizeof(fh), &dwByte, nullptr);
 

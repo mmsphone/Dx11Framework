@@ -32,7 +32,6 @@ public:
 
 private:
 	HRESULT ReadyComponents();
-	void SortPointsClockWise(vector<_float3>& points);
 
 private:
 	_float4 m_vBrushPos = {};

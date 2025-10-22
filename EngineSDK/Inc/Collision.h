@@ -1,6 +1,9 @@
 ﻿#pragma once
 
 #include "Component.h"
+#include "CollisionBoxAABB.h"
+#include "CollisionBoxOBB.h"
+#include "CollisionBoxSphere.h"
 
 NS_BEGIN(Engine)
 

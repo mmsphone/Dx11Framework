@@ -24,6 +24,12 @@ public:
 
 	void DrawPanels();
 
+	void SetGizmoTarget(class Object* pTarget, ImGuizmo::OPERATION eOperation);
+	std::pair<class Object*, ImGuizmo::OPERATION> GetGizmoTarget() const;
+	void ClearGizmoTarget();
+	bool HasGizmoTarget() const;
+
+
 	static IMGUIManager* Create(HWND hWnd);
 	virtual void		Free() override;
 
@@ -31,6 +37,9 @@ private:
 	class EngineUtility* m_pEngineUtility = { nullptr };
 	map<string, Panel*> m_Panels;
 	ImGuiContext* m_IMGUIContext = { nullptr };
+
+	class Object* m_pGizmoTarget = nullptr;
+	ImGuizmo::OPERATION m_eGizmoOperation = ImGuizmo::TRANSLATE;
 };
 
 NS_END

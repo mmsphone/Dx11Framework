@@ -18,32 +18,32 @@ ModelScene::ModelScene()
 HRESULT ModelScene::Initialize()
 {
 	// Buffer
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_VIBuffer_Rect"),	VIBufferRect::Create());
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_VIBuffer_Cube"),	VIBufferCube::Create());
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("VIBuffer_Rect"),	VIBufferRect::Create());
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("VIBuffer_Cube"),	VIBufferCube::Create());
 	
 	//Shader
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxPosTex"), 
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxPosTex"), 
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"),	VTXPOSTEX::Elements, VTXPOSTEX::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxNorTex"),
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxNorTex"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxNorTex.hlsl"),	VTXNORTEX::Elements, VTXNORTEX::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxMesh"),
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxMesh"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"),	VTXMESH::Elements, VTXMESH::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxAnimMesh"),
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxAnimMesh"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxAnimMesh.hlsl"),	VTXSKINMESH::Elements, VTXSKINMESH::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Shader_VtxCube"),
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxCube"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxCube.hlsl"),	VTXCUBE::Elements, VTXCUBE::iNumElements));
 	
 	//Model
 	ModelData* model = new ModelData();
 	IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", *model);
 	_matrix		PreTransformMatrix = XMMatrixIdentity();
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_Component_Model_Fiona"), Model::Create(MODELTYPE::ANIM, model, PreTransformMatrix))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Model_Fiona"), Model::Create(MODELTYPE::ANIM, model, PreTransformMatrix))))
 		return E_FAIL;
 	//Object
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_GameObject_TestObject"), TestObject::Create());
-	m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("Prototype_GameObject_TestObject"), SCENE::MODEL, TEXT("Test"));
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("TestObject"), TestObject::Create());
+	m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("TestObject"), SCENE::MODEL, TEXT("TestObject"));
 
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Prototype_GameObject_FreeCam"), FreeCam::Create())))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("FreeCam"), FreeCam::Create())))
 		return E_FAIL;
 
 	FreeCam::FREECAM_DESC			Desc{};
@@ -56,7 +56,7 @@ HRESULT ModelScene::Initialize()
 	Desc.fSpeedPerSec = 40.f;
 	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
 
-	if (FAILED(m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("Prototype_GameObject_FreeCam"), SCENE::MODEL, TEXT("Cam"), &Desc)))
+	if (FAILED(m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("FreeCam"), SCENE::MODEL, TEXT("Cam"), &Desc)))
 		return E_FAIL;
 
 	//Light
@@ -76,7 +76,7 @@ HRESULT ModelScene::Initialize()
 	ModelPanel* pModelPanel = ModelPanel::Create(strModelPanel);
 	m_pEngineUtility->AddPanel(pModelPanel->GetPanelName(), pModelPanel);
 
-	string strCamPanel = "CamPanel";
+	string strCamPanel = "ModelCamPanel";
 	CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MODEL);
 	m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);
 

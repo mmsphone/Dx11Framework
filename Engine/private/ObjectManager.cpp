@@ -58,6 +58,25 @@ void ObjectManager::Clear(_uint iSceneId)
 	m_pLayers[iSceneId].clear();
 }
 
+void ObjectManager::ClearDeadObjects()
+{
+	for(_uint iSceneId = 0; iSceneId < m_iNumScenes ; ++iSceneId)
+		for (auto& Pair : m_pLayers[iSceneId])
+		{
+			auto& objects = Pair.second->GetAllObjects();
+			for (auto iter = objects.begin(); iter != objects.end(); )
+			{
+				if ((*iter)->IsDead())
+				{
+					SafeRelease(*iter);
+					iter = objects.erase(iter);
+				}
+				else
+					++iter;
+			}
+		}
+}
+
 void ObjectManager::PriorityUpdate(_float fTimeDelta)
 {
 	if (!m_pLayers || m_iNumScenes == 0)
@@ -147,6 +166,22 @@ _uint ObjectManager::GetLayerSize(_uint iSceneId, const _wstring& strLayerTag)
 	Layer* pLayer = FindLayer(iSceneId, strLayerTag);
 	if (pLayer == nullptr) return 0;
 	else return pLayer->GetLayerSize();
+}
+
+std::vector<class Object*> ObjectManager::GetAllObjects(_uint iSceneId)
+{
+	std::vector<Object*> vObjects{};
+
+	for (auto& Pair : m_pLayers[iSceneId])
+	{
+		list<Object*> objects = Pair.second->GetAllObjects();
+		for (auto& object : objects)
+		{
+			vObjects.push_back(object);
+		}
+	}
+
+	return vObjects;
 }
 
 NS_END

@@ -78,7 +78,6 @@ void FreeCam::PriorityUpdate(_float fTimeDelta)
     }
     altPressedLastFrame = altPressed;
 
-
     UpdatePipeLine();
 }
 

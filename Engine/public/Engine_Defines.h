@@ -21,6 +21,7 @@
 #include "IMGUI/imgui.h"
 #include "IMGUI/backends/imgui_impl_win32.h"
 #include "IMGUI/backends/imgui_impl_dx11.h"
+#include "IMGUI/ImGuizmo.h"
 
 #include "d3dcompiler.h"
 
@@ -36,6 +37,7 @@ using namespace std;
 #include <string>
 
 #include <fstream>
+#include <filesystem>
 #include <memory>
 
 using namespace DirectX;

@@ -169,6 +169,9 @@
     <Filter Include="06.ForComponent\DebugDraw">
       <UniqueIdentifier>{a34a1d6c-21c1-4502-8ff1-d71c1b693ac0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03.Utility\GridManager">
+      <UniqueIdentifier>{67152651-e023-45c3-b9b7-10b022b81a3c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -339,6 +342,9 @@
     <ClInclude Include="..\public\DebugDraw.h">
       <Filter>06.ForComponent\DebugDraw</Filter>
     </ClInclude>
+    <ClInclude Include="..\public\GridManager.h">
+      <Filter>03.Utility\GridManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Base.cpp">
@@ -508,6 +514,12 @@
     </ClCompile>
     <ClCompile Include="..\private\DebugDraw.cpp">
       <Filter>06.ForComponent\DebugDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="..\public\IMGUI\ImGuizmo.cpp">
+      <Filter>04.ForUtility\IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\GridManager.cpp">
+      <Filter>03.Utility\GridManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

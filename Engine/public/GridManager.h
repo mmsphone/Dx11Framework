@@ -16,11 +16,13 @@ public:
 #endif 
 
     void SetVisible(_bool bGridVisible);
-    _bool IsVisible();
-    _float GetGridCellSize();
+    _bool IsVisible() const;
+    _float GetGridCellSize() const;
     void SetGridCellSize(_float cellSize);
-    _uint GetNumGridCells();
+    _uint GetNumGridCells() const;
     void SetNumGridCells(_uint iNumGridCells);
+    void SetMarkerPosition(const _float3& vPos);
+    void ClearMarker();
 
     static GridManager* Create(_uint iNumCells = 200, _float fCellSize = 2.0f);
     virtual void Free() override;
@@ -30,6 +32,9 @@ private:
 
     _uint m_iNumCells = 0;
     _float m_fCellSize = 0.f;
+
+    _bool m_isMark = false;
+    _float3 m_vMarkerPosition = { 0.f,0.f,0.f };
 
 #ifdef _DEBUG
     class PrimitiveBatch<VertexPositionColor>* m_pBatch = nullptr;

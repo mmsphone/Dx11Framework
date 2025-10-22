@@ -60,6 +60,7 @@ void GridManager::Render()
 
     float half = (m_iNumCells * m_fCellSize) * 0.5f;
 
+    //그리드 
     for (int i = 0; i <= static_cast<int>(m_iNumCells); ++i)
     {
         float pos = -half + i * m_fCellSize;
@@ -80,6 +81,48 @@ void GridManager::Render()
         );
     }
 
+    //마커
+    if (m_isMark)
+    {
+        const _int segments = 32;
+        const _float radius = 0.5f;
+        _float4 color = _float4(1.f, 1.f, 0.f, 1.f); // 노란색 마커
+        _float3 center = m_vMarkerPosition;
+
+        // XZ 원
+        for (int i = 0; i < segments; ++i)
+        {
+            _float a0 = (_float)i / segments * XM_2PI;
+            _float a1 = (_float)(i + 1) / segments * XM_2PI;
+
+            _float3 p0(center.x + radius * cosf(a0), center.y, center.z + radius * sinf(a0));
+            _float3 p1(center.x + radius * cosf(a1), center.y, center.z + radius * sinf(a1));
+            m_pBatch->DrawLine(VertexPositionColor(p0, color), VertexPositionColor(p1, color));
+        }
+
+        // XY 원
+        for (int i = 0; i < segments; ++i)
+        {
+            _float a0 = (_float)i / segments * XM_2PI;
+            _float a1 = (_float)(i + 1) / segments * XM_2PI;
+
+            _float3 p0(center.x + radius * cosf(a0), center.y + radius * sinf(a0), center.z);
+            _float3 p1(center.x + radius * cosf(a1), center.y + radius * sinf(a1), center.z);
+            m_pBatch->DrawLine(VertexPositionColor(p0, color), VertexPositionColor(p1, color));
+        }
+
+        // YZ 원
+        for (int i = 0; i < segments; ++i)
+        {
+            float a0 = (float)i / segments * XM_2PI;
+            float a1 = (float)(i + 1) / segments * XM_2PI;
+
+            XMFLOAT3 p0(center.x, center.y + radius * cosf(a0), center.z + radius * sinf(a0));
+            XMFLOAT3 p1(center.x, center.y + radius * cosf(a1), center.z + radius * sinf(a1));
+            m_pBatch->DrawLine(VertexPositionColor(p0, color), VertexPositionColor(p1, color));
+        }
+    }
+
     m_pBatch->End();
 }
 
@@ -90,12 +133,12 @@ void GridManager::SetVisible(_bool bVisible)
     m_GridVisible = bVisible;
 }
 
-_bool GridManager::IsVisible()
+_bool GridManager::IsVisible() const
 {
     return m_GridVisible;
 }
 
-_float GridManager::GetGridCellSize()
+_float GridManager::GetGridCellSize() const
 {
     return m_fCellSize;
 }
@@ -105,7 +148,7 @@ void GridManager::SetGridCellSize(_float cellSize)
     m_fCellSize = cellSize;
 }
 
-_uint GridManager::GetNumGridCells()
+_uint GridManager::GetNumGridCells() const
 {
     return m_iNumCells;
 }
@@ -113,6 +156,17 @@ _uint GridManager::GetNumGridCells()
 void GridManager::SetNumGridCells(_uint iNumGridCells)
 {
     m_iNumCells = iNumGridCells;
+}
+
+void GridManager::SetMarkerPosition(const _float3& vPos)
+{
+    m_vMarkerPosition = vPos;
+    m_isMark = true;
+}
+
+void GridManager::ClearMarker()
+{
+    m_isMark = false;
 }
 
 GridManager* GridManager::Create(_uint iNumCells, _float fCellSize)

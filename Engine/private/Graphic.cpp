@@ -48,8 +48,8 @@ HRESULT Graphic::Initialize(HWND windowHandle, WINMODE isWindowMode, _uint iWind
     m_pContext->RSSetViewports(ViewPortCount, &ViewPortDescriptor);
 
     m_WindowHandle = windowHandle;
-    m_WindowSize.x = iWindowSizeX;
-    m_WindowSize.y = iWindowSizeY;
+    m_WindowSize.x = static_cast<_float>(iWindowSizeX);
+    m_WindowSize.y = static_cast<_float>(iWindowSizeY);
 
     return S_OK;
 }

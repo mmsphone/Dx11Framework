@@ -16,7 +16,7 @@ HRESULT ObjectPanel::Initialize(Object* pTarget)
     m_pTargetObject = pTarget;
     SafeAddRef(m_pTargetObject);
 
-    m_PanelPosition = _float2(400.f, 500.f);
+    m_PanelPosition = _float2(900.f, 300.f);
     m_PanelSize = _float2(400.f, 200.f);
 
     return S_OK;
@@ -24,20 +24,42 @@ HRESULT ObjectPanel::Initialize(Object* pTarget)
 
 void ObjectPanel::OnRender()
 {
+    static _bool bActiveGuizmo = true;
     ImGui::SeparatorText("Gizmo Mode");
     static ImGuizmo::OPERATION gizmoOp = ImGuizmo::TRANSLATE;
 
-    if (ImGui::RadioButton("Translate", gizmoOp == ImGuizmo::TRANSLATE)) gizmoOp = ImGuizmo::TRANSLATE;
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Rotate", gizmoOp == ImGuizmo::ROTATE)) gizmoOp = ImGuizmo::ROTATE;
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Scale", gizmoOp == ImGuizmo::SCALE)) gizmoOp = ImGuizmo::SCALE;
+    if (ImGui::RadioButton("None", !bActiveGuizmo))
+        bActiveGuizmo = false;
 
-    m_pEngineUtility->SetGizmoState(m_pTargetObject, gizmoOp);
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Translate", bActiveGuizmo && gizmoOp == ImGuizmo::TRANSLATE))
+    {
+        gizmoOp = ImGuizmo::TRANSLATE;
+        bActiveGuizmo = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Rotate", bActiveGuizmo && gizmoOp == ImGuizmo::ROTATE))
+    {
+        gizmoOp = ImGuizmo::ROTATE;
+        bActiveGuizmo = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Scale", bActiveGuizmo && gizmoOp == ImGuizmo::SCALE))
+    {
+        gizmoOp = ImGuizmo::SCALE;
+        bActiveGuizmo = true;
+    }
 
+    if (bActiveGuizmo)
+        m_pEngineUtility->SetGizmoState(m_pTargetObject, gizmoOp);
+    else
+        m_pEngineUtility->ClearGizmoState();
+
+    ImGui::Separator();
     if (ImGui::Button("Delete Object"))
     {
         SetOpen(false);
+        m_pEngineUtility->ClearGizmoState();
         m_pTargetObject->SetDead(true);
     }
 }

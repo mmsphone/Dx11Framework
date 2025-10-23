@@ -29,7 +29,6 @@ public:
 	void ClearGizmoTarget();
 	bool HasGizmoTarget() const;
 
-
 	static IMGUIManager* Create(HWND hWnd);
 	virtual void		Free() override;
 

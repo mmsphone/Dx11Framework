@@ -181,17 +181,21 @@ void MapPanel::OnRender()
         if (!pTransform) 
             return;
 
+        _vector vPos{};
         TestTerrain* pTerrain = dynamic_cast<TestTerrain*>(m_pTerrain);
-        if (!pTerrain) 
-            return;
+        if (pTerrain)
+        {
+            _float4 fPos = pTerrain->GetBrushPos();
+            _vector vPos = XMLoadFloat4(&fPos);
 
-        _float4 fPos = pTerrain->GetBrushPos();
-        _vector vPos = XMLoadFloat4(&fPos);
-
-        Navigation* pNavigation = dynamic_cast<Navigation*>(pTerrain->FindComponent(TEXT("Navigation")));
-        if (pNavigation && pNavigation->IsInCell(vPos))
-            pNavigation->SetHeightOnCell(vPos, &vPos);
-
+            Navigation* pNavigation = dynamic_cast<Navigation*>(pTerrain->FindComponent(TEXT("Navigation")));
+            if (pNavigation && pNavigation->IsInCell(vPos))
+                pNavigation->SetHeightOnCell(vPos, &vPos);
+        }
+        else
+        {
+            m_pEngineUtility->GetMarkerPosition();
+        }
         pTransform->SetState(POSITION, vPos);
     }
 

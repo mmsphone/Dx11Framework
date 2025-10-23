@@ -16,12 +16,13 @@ public:
 #endif 
 
     void SetVisible(_bool bGridVisible);
-    _bool IsVisible();
-    _float GetGridCellSize();
+    _bool IsVisible() const;
+    _float GetGridCellSize() const;
     void SetGridCellSize(_float cellSize);
-    _uint GetNumGridCells();
+    _uint GetNumGridCells() const;
     void SetNumGridCells(_uint iNumGridCells);
     void SetMarkerPosition(const _float3& vPos);
+    _float3 GetMarkerPosition() const;
     void ClearMarker();
 
     static GridManager* Create(_uint iNumCells = 200, _float fCellSize = 2.0f);

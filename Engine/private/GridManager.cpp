@@ -164,6 +164,11 @@ void GridManager::SetMarkerPosition(const _float3& vPos)
     m_isMark = true;
 }
 
+_float3 GridManager::GetMarkerPosition() const
+{
+    return m_vMarkerPosition;
+}
+
 void GridManager::ClearMarker()
 {
     m_isMark = false;

@@ -438,3 +438,7 @@ void EngineUtility::ClearMarker()
 {
 	m_pGridManager->ClearMarker();
 }
+_float3 EngineUtility::GetMarkerPosition() const
+{
+	return m_pGridManager->GetMarkerPosition();
+}

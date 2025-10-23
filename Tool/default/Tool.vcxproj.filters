@@ -56,6 +56,9 @@
     <Filter Include="05.Panel\Object">
       <UniqueIdentifier>{167d949c-3038-42b6-958a-423fdc574d9c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05.Panel\Asset">
+      <UniqueIdentifier>{f4796f6a-9444-4ba8-9ffa-c1439f3228e8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -108,6 +111,9 @@
     </ClInclude>
     <ClInclude Include="..\public\ObjectPanel.h">
       <Filter>05.Panel\Object</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\AssetPanel.h">
+      <Filter>05.Panel\Asset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +192,9 @@
     </ClCompile>
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\ImGuizmo.cpp">
       <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\AssetPanel.cpp">
+      <Filter>05.Panel\Asset</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

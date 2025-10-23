@@ -113,6 +113,7 @@ public:
 	void SetNumGridCells(_uint iNumGridCells);
 	void SetMarkerPosition(const _float3& vPos);
 	void ClearMarker();
+	_float3 GetMarkerPosition() const;
 
 private:
 	class Graphic* m_pGraphic = { nullptr };

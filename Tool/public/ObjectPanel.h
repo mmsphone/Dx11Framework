@@ -10,7 +10,7 @@ namespace Engine
 
 NS_BEGIN(Tool)
 
-class ObjectPanel : public Panel
+class ObjectPanel final : public Panel
 {
     ObjectPanel(const string& PanelName, bool open = true);
     virtual ~ObjectPanel() = default;

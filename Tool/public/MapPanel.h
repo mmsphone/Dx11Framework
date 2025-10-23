@@ -10,7 +10,7 @@ namespace Engine
 
 NS_BEGIN(Tool)
 
-class MapPanel : public Panel
+class MapPanel final : public Panel
 {
     MapPanel(const string& PanelName, bool open = true);
     virtual ~MapPanel() = default;

@@ -55,6 +55,8 @@ HRESULT ToolApp::Render()
 
 	m_pEngineUtility->DrawFont(TEXT("Font_Default"), TEXT("ab이거 봐라de"), _float2(0.f, 0.f));
 
+	m_pEngineUtility->RenderNavigation();
+
 	m_pEngineUtility->RenderIMGUI();
 
 	/* 후면버퍼를 전면으로 보여준다. */

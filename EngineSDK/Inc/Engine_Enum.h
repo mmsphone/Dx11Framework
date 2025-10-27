@@ -7,6 +7,7 @@ namespace Engine
 
 	enum MOUSEKEYSTATE : int { LB, RB, KEY_WHEEL, MOUSEKEYSTATE_END };
 	enum MOUSEMOVESTATE : int { X, Y, MOVE_WHEEL, MOUSEMOVESTATE_END };
+	enum KEYSTATE : int { KEY_UP, KEY_PRESSED, KEY_DOWN, KEY_RELEASED };
 
 	enum STATE : int { RIGHT, UP, LOOK, POSITION, STATE_END };
 	enum PROTOTYPE : int { OBJECT, COMPONENT };
@@ -18,5 +19,6 @@ namespace Engine
 
 	enum POINTTYPE : int { A, B, C, POINT_END };
 	enum LINETYPE : int { AB, BC, CA, LINE_END };
+	enum PICKTYPE : int {PICK_UI, PICK_OBJECT, PICK_TERRAIN, PICK_GRID, PICK_END };
 }
 #endif // Engine_Enum_h__

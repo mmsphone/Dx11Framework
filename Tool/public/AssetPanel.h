@@ -17,9 +17,14 @@ public:
 	virtual void Free() override;
 
 private:
+	_bool LoadPreviewTexture(const std::filesystem::path& path);
+
+private:
 	std::filesystem::path m_CurrentDirectory;
 	std::filesystem::path m_RootDirectory;
 	std::string m_SelectedFile;
+
+	ID3D11ShaderResourceView* m_pPreviewShaderResourceView = nullptr;
 };
 
 NS_END

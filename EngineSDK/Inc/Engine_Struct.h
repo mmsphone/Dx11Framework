@@ -122,6 +122,7 @@ namespace Engine
 		bool hit = false;
 		class Object* pHitObject = nullptr;
 		XMFLOAT3 hitPos = { 0.f,0.f,0.f };
+		PICKTYPE pickType = PICK_END;
 	}PICK_RESULT;
 }
 

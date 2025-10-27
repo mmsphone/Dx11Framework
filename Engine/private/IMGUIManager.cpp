@@ -108,6 +108,14 @@ HRESULT IMGUIManager::RemovePanel(const string& PanelName)
     m_Panels.erase(it);
     return S_OK;
 }
+Panel* IMGUIManager::FindPanel(const string& PanelName)
+{
+    auto it = m_Panels.find(PanelName);
+    if (it == m_Panels.end())
+        return nullptr;
+
+    return it->second;
+}
 
 HRESULT IMGUIManager::ClearPanels()
 {

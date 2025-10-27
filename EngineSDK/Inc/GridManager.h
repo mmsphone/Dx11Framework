@@ -24,6 +24,7 @@ public:
     void SetMarkerPosition(const _float3& vPos);
     _float3 GetMarkerPosition() const;
     void ClearMarker();
+    _bool IsMark() const;
 
     static GridManager* Create(_uint iNumCells = 200, _float fCellSize = 2.0f);
     virtual void Free() override;

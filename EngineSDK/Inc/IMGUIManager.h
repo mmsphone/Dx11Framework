@@ -19,6 +19,7 @@ public:
 	HRESULT AddPanel(const string& PanelName, class Panel* pPanel);
 	HRESULT SetPanelOpen(const string& PanelName, bool open);
 	HRESULT RemovePanel(const string& PanelName);
+	Panel* FindPanel(const string& PanelName);
 	HRESULT ClearPanels();
 	ImGuiContext* GetIMGUIContext() const;
 

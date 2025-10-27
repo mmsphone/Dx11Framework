@@ -1,8 +1,8 @@
 ﻿#include "MapPanel.h"
 
 #include "EngineUtility.h"
-#include "ModelScene.h"
 
+#include "ModelScene.h"
 #include "TestTerrain.h"
 #include "IEHelper.h"
 #include "Cell.h"
@@ -15,165 +15,159 @@ MapPanel::MapPanel(const string& PanelName, bool open)
 
 HRESULT MapPanel::Initialize()
 {
-    m_pTerrain = m_pEngineUtility->FindObject(SCENE::MAP, TEXT("Terrain"), 0);
-    if (m_pTerrain == nullptr) 
-        return E_FAIL;
-    SafeAddRef(m_pTerrain);
-
     m_PanelPosition = _float2(0.f, 0.f);
-    m_PanelSize = _float2(400.f, 600.f);
+    m_PanelSize = _float2(400.f, 300.f);
 
     return S_OK;
 }
 
 void MapPanel::OnRender()
 {
-    static _bool CellMode = false;
     //씬 전환
     if (ImGui::Button("ModelScene"))
     {
         m_pEngineUtility->SetPathToBin();
-
         m_pEngineUtility->ChangeScene(SCENE::MODEL, ModelScene::Create(SCENE::MODEL));
+        
         m_pEngineUtility->SetPanelOpen("MapPanel", false);
         m_pEngineUtility->SetPanelOpen("MapCamPanel", false);
+        m_pEngineUtility->SetPanelOpen("AssetPanel", false);
         if (m_pSelectedObject != nullptr)
             m_pEngineUtility->SetPanelOpen("ObjectPanel", false);
+
     }
-    ImGui::Text("\n");
+    ImGui::Separator();
+    
+    //오브젝트, 지형, 그리드 피킹
+    ImGui::Text("Click To Place Marker");
+    static PICK_RESULT s_pick{};
 
-    //지형 마커
-    ImGui::Text("Mouse LB Click To Place Marker");
-    static _float4 markerPos{};
-    TestTerrain* pTerrain = dynamic_cast<TestTerrain*>(m_pTerrain);
-    if (pTerrain != nullptr)
-        markerPos = pTerrain->GetBrushPos();
-    ImGui::Text("Recent Pick Position : %f %f %f", markerPos.x, markerPos.y, markerPos.z);
-    ImGui::Text("\n");
-
-    //네비 셀 추가
-    if (ImGui::Checkbox("Cell Mode", &CellMode))
-        ImGui::Text(CellMode ? "Cell Mode: ON" : "Cell Mode: OFF");
-    static bool bPrevRB = false;
-    bool bCurrRB = m_pEngineUtility->GetMouseState(MOUSEKEYSTATE::RB);
-    if (CellMode && bCurrRB && !bPrevRB)
+    if (m_CellMode == false && m_pEngineUtility->IsMousePressed(LB))
     {
         PICK_RESULT pick = m_pEngineUtility->Pick();
-        if (pick.hit)
+        if (pick.hit == true)
         {
-            Terrain* pTerrain = dynamic_cast<Terrain*>(pick.pHitObject);
-            if (!pTerrain)
-                return;
-
-            Navigation* pNav = dynamic_cast<Navigation*>(pTerrain->FindComponent(TEXT("Navigation")));
-            if (!pNav)
-                return;
-
-            static vector<_float3> vTempPoints{};
-            _float3 hit = pick.hitPos;
-
-            if (pNav->GetCells().empty())
+            switch (pick.pickType)
             {
-                if (vTempPoints.size() < 3)
-                    vTempPoints.push_back(hit);
-
-                if (vTempPoints.size() == 3)
+            case PICK_OBJECT:
+                if (pick.pHitObject != m_pSelectedObject)
                 {
-                    SortPointsClockWise(vTempPoints);
-                    pNav->AddCell(&vTempPoints[0]);
-                    vTempPoints.clear();
-                }
-            }
-            else
-            {
-                const auto& cells = pNav->GetCells();
-                Cell* last = cells.back();
+                    m_pSelectedObject = pick.pHitObject;
 
-                _float3 pts[3];
-                XMStoreFloat3(&pts[0], last->GetPoint(POINTTYPE::A));
-                XMStoreFloat3(&pts[1], last->GetPoint(POINTTYPE::B));
-                XMStoreFloat3(&pts[2], last->GetPoint(POINTTYPE::C));
-
-                pair<int, int> closestPair = { 0,1 };
-                float minSum = FLT_MAX;
-
-                for (int i = 0; i < 3; ++i)
-                    for (int j = i + 1; j < 3; ++j)
+                    if (m_pObjectPanel)
                     {
-                        float sum = XMVectorGetX(XMVector3Length(XMLoadFloat3(&pts[i]) - XMLoadFloat3(&hit))) +
-                            XMVectorGetX(XMVector3Length(XMLoadFloat3(&pts[j]) - XMLoadFloat3(&hit)));
-                        if (sum < minSum)
-                        {
-                            minSum = sum;
-                            closestPair = { i,j };
-                        }
+                        m_pEngineUtility->RemovePanel(m_pObjectPanel->GetPanelName());
+                        SafeRelease(m_pObjectPanel);
+                        m_pObjectPanel = nullptr;
                     }
 
-                _float3 newTri[3] = { pts[closestPair.first], pts[closestPair.second], hit };
-                pNav->AddCell(&newTri[0]);
+                    std::string objPanelName = "ObjectPanel";
+                    m_pObjectPanel = ObjectPanel::Create(objPanelName, true, m_pSelectedObject);
+                    m_pEngineUtility->AddPanel(objPanelName, m_pObjectPanel);
+                }
+                break;
+            case PICK_TERRAIN:
+            {
+                s_pick = pick;
+                TestTerrain* pTerrain = dynamic_cast<TestTerrain*>(pick.pHitObject);
+                if (pTerrain != nullptr)
+                {
+                    _float4 vPos = { pick.hitPos.x, pick.hitPos.y, pick.hitPos.z, 1.f };
+                    pTerrain->SetBrushPos(vPos);
+                }
+                break;
+            }
+            case PICK_GRID:
+                s_pick = pick;
+                m_pEngineUtility->SetMarkerPosition(pick.hitPos);
+                break;
+            default:
+                break;
             }
         }
     }
-    bPrevRB = bCurrRB;
 
+    if (s_pick.hit)
+    {
+        const char* pickTypeName =
+            (s_pick.pickType == PICK_TERRAIN) ? "Terrain" :
+            (s_pick.pickType == PICK_GRID) ? "Grid" :
+            (s_pick.pickType == PICK_OBJECT) ? "Object" : "Unknown";
+
+        ImGui::Text("Marker Type: %s", pickTypeName);
+        ImGui::Text("Marker Pos: %.2f, %.2f, %.2f",
+            s_pick.hitPos.x, s_pick.hitPos.y, s_pick.hitPos.z);
+    }
+    else
+        ImGui::TextDisabled("No marker placed yet");
+    ImGui::Separator();
+
+    //네비 셀 추가
+    if (ImGui::Checkbox("Cell Mode", &m_CellMode))
+        ImGui::Text(m_CellMode ? "Cell Mode: ON" : "Cell Mode: OFF");
+    
+    if (m_CellMode && m_pEngineUtility->IsMousePressed(MOUSEKEYSTATE::LB))
+    {
+        PICK_RESULT pick = m_pEngineUtility->Pick();
+        if (pick.hit && (pick.pickType == PICK_TERRAIN || pick.pickType == PICK_GRID))
+        {
+            m_pEngineUtility->AddTempPoint(pick.hitPos);
+        }
+    }
     //최신 셀 제거
     if (ImGui::Button("Remove Recent Navigation Cell"))
     {
-        Navigation* pNavigation = dynamic_cast<Navigation*>(m_pTerrain->FindComponent(TEXT("Navigation")));
-        if (!pNavigation)
-            return;
-        pNavigation->RemoveRecentCell();
+        m_pEngineUtility->RemoveRecentCell();
     }
-
+    //네비게이션 데이터 경로
+    ImGui::Text("Navigation Data Path:");
+    if (!m_NavigationDataPath.empty())
+        ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.f), "%s", m_NavigationDataPath.c_str());
+    else
+        ImGui::TextDisabled("None");
+    //네비 셀 로드
+    if (ImGui::Button("Load Navigation Cells"))
+    {
+        m_pEngineUtility->LoadCells(m_NavigationDataPath.c_str());
+    }
+    ImGui::SameLine();
     //네비 셀 저장
     if (ImGui::Button("Save Navigation Cells"))
     {
-        Navigation* pNavigation = dynamic_cast<Navigation*>(m_pTerrain->FindComponent(TEXT("Navigation")));
-        if (!pNavigation)
-            return;
-        pNavigation->SaveCells(TEXT("../bin/data/Navigation.dat"));
+        m_pEngineUtility->SaveCells(m_NavigationDataPath.c_str());
     } 
-
-    //바이너리 모델 선택
-    static std::string g_SelectedBinPath{};
     ImGui::Separator();
-    ImGui::Text("--Selected BIN--");
-    ImGui::Text("%s", g_SelectedBinPath.empty() ? "None" : g_SelectedBinPath.c_str());
-    if (ImGui::Button("Select BIN"))
-    {
-        char path[MAX_PATH] = {};
-        OPENFILENAMEA ofn = {};
-        ofn.lStructSize = sizeof(ofn);
-        ofn.lpstrFilter = "Binary Files\0*.bin\0All Files\0*.*\0";
-        ofn.lpstrFile = path;
-        ofn.nMaxFile = MAX_PATH;
-        ofn.Flags = OFN_FILEMUSTEXIST;
-        if (GetOpenFileNameA(&ofn))
-            g_SelectedBinPath = path;
-    }
-
+    //모델 데이터 경로
+    ImGui::Text("Model Data Path:");
+    if (!m_SelectedModelDataPath.empty())
+        ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.f), "%s", m_SelectedModelDataPath.c_str());
+    else
+        ImGui::TextDisabled("None");
+    ImGui::Separator();
     //필드 오브젝트 추가
     if (ImGui::Button("Place FieldObject on Marker"))
     {
-        if (!m_pTerrain) 
+        if (s_pick.hit == false)
+        {
+            MessageBoxA(nullptr, "No valid marker or pick point found.", "Placement Error", MB_OK);
             return;
+        }
 
         _uint iIndex = m_pEngineUtility->GetLayerSize(SCENE::MAP, TEXT("FieldObject"));
         m_pEngineUtility->AddObject(SCENE::MAP, TEXT("FieldObject"),
             SCENE::MAP, TEXT("FieldObject"));
         Object* pObject = m_pEngineUtility->FindObject(SCENE::MAP, TEXT("FieldObject"), iIndex);
-        if (!pObject) return;
+        if (!pObject) 
+            return;
 
-        if (!g_SelectedBinPath.empty())
+        if (!m_SelectedModelDataPath.empty())
         {
             Model* pModel = dynamic_cast<Model*>(pObject->FindComponent(TEXT("Model")));
             if (pModel)
             {
-                ModelData* pModelData = pModel->LoadNoAssimpModel(g_SelectedBinPath.c_str());
+                ModelData* pModelData = pModel->LoadNoAssimpModel(m_SelectedModelDataPath.c_str());
                 if (pModelData)
                     pModel->SetModelData(pModelData);
-                else
-                    MessageBoxA(nullptr, "Failed to load binary model", "Import Error", MB_OK | MB_ICONERROR);
             }
         }
 
@@ -181,66 +175,26 @@ void MapPanel::OnRender()
         if (!pTransform) 
             return;
 
-        _vector vPos{};
-        TestTerrain* pTerrain = dynamic_cast<TestTerrain*>(m_pTerrain);
-        if (pTerrain)
-        {
-            _float4 fPos = pTerrain->GetBrushPos();
-            _vector vPos = XMLoadFloat4(&fPos);
+        _vector vPos = XMVectorSet(s_pick.hitPos.x, s_pick.hitPos.y, s_pick.hitPos.z, 1.f);
 
-            Navigation* pNavigation = dynamic_cast<Navigation*>(pTerrain->FindComponent(TEXT("Navigation")));
-            if (pNavigation && pNavigation->IsInCell(vPos))
-                pNavigation->SetHeightOnCell(vPos, &vPos);
-        }
-        else
+        if (m_pEngineUtility->IsInCell(vPos))
         {
-            m_pEngineUtility->GetMarkerPosition();
+            _vector adjusted = {};
+            m_pEngineUtility->SetHeightOnCell(vPos, &adjusted);
+            vPos = adjusted;
         }
         pTransform->SetState(POSITION, vPos);
     }
-
-    //오브젝트 피킹
-    if (!CellMode && m_pEngineUtility->GetMouseState(MOUSEKEYSTATE::LB))
-    {
-        PICK_RESULT pick = m_pEngineUtility->Pick();
-        if (pick.hit && !dynamic_cast<Terrain*>(pick.pHitObject))
-        {
-            if (pick.pHitObject != m_pSelectedObject)
-            {
-                m_pSelectedObject = pick.pHitObject;
-
-                if (m_pObjectPanel)
-                {
-                    m_pEngineUtility->RemovePanel(m_pObjectPanel->GetPanelName());
-                    SafeRelease(m_pObjectPanel);
-                    m_pObjectPanel = nullptr;
-                }
-
-                std::string objPanelName = "ObjectPanel";
-                m_pObjectPanel = ObjectPanel::Create(objPanelName, true, m_pSelectedObject);
-                m_pEngineUtility->AddPanel(objPanelName, m_pObjectPanel);
-            }
-        }
-    }
 }
 
-void MapPanel::SortPointsClockWise(vector<_float3>& points)
+void MapPanel::SetSelectedBinPath(const string& path)
 {
-    if (points.size() != 3) return;
+    m_SelectedModelDataPath = path;
+}
 
-    _float3 center = {
-        (points[0].x + points[1].x + points[2].x) / 3.0f,
-        (points[0].y + points[1].y + points[2].y) / 3.0f,
-        (points[0].z + points[1].z + points[2].z) / 3.0f
-    };
-
-    std::sort(points.begin(), points.end(),
-        [&](const _float3& a, const _float3& b)
-        {
-            float angleA = atan2f(a.z - center.z, a.x - center.x);
-            float angleB = atan2f(b.z - center.z, b.x - center.x);
-            return angleA > angleB; // 시계 방향
-        });
+void MapPanel::SetNavigationDataPath(const string& path)
+{
+    m_NavigationDataPath = path;
 }
 
 MapPanel* MapPanel::Create(const string& PanelName, bool open)
@@ -259,5 +213,4 @@ MapPanel* MapPanel::Create(const string& PanelName, bool open)
 void MapPanel::Free()
 {
     __super::Free();
-    SafeRelease(m_pTerrain);
 }

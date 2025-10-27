@@ -23,6 +23,7 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	void SetBrushPos(const _float4& vPos);
 	_float4 GetBrushPos() const;
 	_float GetIncTexSize() const;
 

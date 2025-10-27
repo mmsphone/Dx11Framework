@@ -22,10 +22,19 @@ public:
 	_byte	GetMouseState(MOUSEKEYSTATE eMouse);
 	_long	GetMouseMove(MOUSEMOVESTATE eMouseState);
 	_float2 GetMousePos();
-
 	//Cursor 제어
 	void SetMousePos(_float2 mousePos);
 	void SetMouseVisible(_bool bVisible);
+	//키보드,마우스 상태 판정
+	_bool IsKeyDown(_ubyte byKeyID) const;
+	_bool IsKeyPressed(_ubyte byKeyID) const;
+	_bool IsKeyReleased(_ubyte byKeyID) const;
+	_bool IsKeyUp(_ubyte byKeyID) const;
+
+	_bool IsMouseDown(MOUSEKEYSTATE eMouse) const;
+	_bool IsMousePressed(MOUSEKEYSTATE eMouse) const;
+	_bool IsMouseReleased(MOUSEKEYSTATE eMouse) const;
+	_bool IsMouseUp(MOUSEKEYSTATE eMouse) const;
 
 	static Input* Create(HINSTANCE InstanceHandle, HWND WindowHandle);
 	virtual void	Free() override;
@@ -35,8 +44,13 @@ private:
 	LPDIRECTINPUTDEVICE8	m_pKeyboard = nullptr;
 	LPDIRECTINPUTDEVICE8	m_pMouse = nullptr;
 
-	_byte					m_byKeyState[256] = {};
-	DIMOUSESTATE			m_tMouseState = {};
+	_byte					m_curKeyState[256] = {};
+	_byte					m_preKeyState[256] = {};
+	KEYSTATE				m_KeyState[256] = {};
+
+	DIMOUSESTATE			m_curMouse = {};
+	DIMOUSESTATE			m_preMouse = {};
+	KEYSTATE				m_MouseState[MOUSEKEYSTATE_END] = {};
 
 	class EngineUtility* m_pEngineUtility = nullptr;
 };

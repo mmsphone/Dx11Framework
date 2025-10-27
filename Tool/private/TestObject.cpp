@@ -30,7 +30,7 @@ HRESULT TestObject::Initialize(void* pArg)
     pTransform->SetState(STATE::POSITION, XMVectorSet(
         0.f,
         0.f,
-        10.f,
+        0.f,
         1.f
     ));
 
@@ -49,11 +49,6 @@ void TestObject::PriorityUpdate(_float fTimeDelta)
 void TestObject::Update(_float fTimeDelta)
 {
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-#ifdef _DEBUG
-    char buf[256];
-    sprintf_s(buf, "TestObject::Update - CurrentAnimIndex: %u, Finished: %d\n", pModel->GetCurrentAnimIndex(), pModel->isAnimFinished());
-    OutputDebugStringA(buf);
-#endif
     pModel->PlayAnimation(fTimeDelta);
 
     __super::Update(fTimeDelta);

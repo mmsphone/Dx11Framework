@@ -8,6 +8,7 @@
 #include "TestTerrain.h"
 #include "FieldObject.h"
 #include "CamPanel.h"
+#include "AssetPanel.h"
 
 MapScene::MapScene()
 	:Scene{}
@@ -20,7 +21,8 @@ HRESULT MapScene::Initialize()
 	// Buffer
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBuffer_Rect"), VIBufferRect::Create());
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBuffer_Cube"),	VIBufferCube::Create());
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBufferTerrain"), VIBufferTerrain::Create(TEXT("../bin/Resources/Textures/Terrain/Height.bmp")));
+	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBufferTerrain"), 
+		VIBufferTerrain::Create(TEXT("../bin/Resources/Textures/Terrain/Height.bmp")));
 
 	//Shader
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Shader_VtxPosTex"),
@@ -40,8 +42,9 @@ HRESULT MapScene::Initialize()
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Texture_Terrain_Brush"), Texture::Create(TEXT("../bin/Resources/Textures/Terrain/Brush.png"), 1));
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Texture_Default"), Texture::Create(TEXT("../bin/Resources/Textures/Default%d.jpg"), 2));
 
-	//Navigation
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Navigation"), Navigation::Create(TEXT("../bin/data/Navigation.dat")));
+	//Collision
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("CollisionAABB"), Collision::Create(AABB))))
+		return E_FAIL;
 
 	//Model
 	ModelData* model = new ModelData();
@@ -49,16 +52,13 @@ HRESULT MapScene::Initialize()
 	_matrix		PreTransformMatrix = XMMatrixIdentity();
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Model_Fiona"), Model::Create(MODELTYPE::ANIM, model, PreTransformMatrix))))
 		return E_FAIL;
-
-	//Collision
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("CollisionAABB"), Collision::Create(AABB))))
-		return E_FAIL;
+	
 
 	//Object
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Terrain"), TestTerrain::Create());
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("FieldObject"), FieldObject::Create());
+	//m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Terrain"), TestTerrain::Create());
+	//m_pEngineUtility->AddObject(SCENE::MAP, TEXT("Terrain"), SCENE::MAP, TEXT("Terrain"));
 
-	m_pEngineUtility->AddObject(SCENE::MAP, TEXT("Terrain"), SCENE::MAP, TEXT("Terrain"));
+	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("FieldObject"), FieldObject::Create());
 	
 	//Light
 	LIGHT_DESC		LightDesc{};
@@ -98,6 +98,9 @@ HRESULT MapScene::Initialize()
 	CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MAP);
 	m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);
 
+	string strAssetPanel = "AssetPanel";
+	AssetPanel* pAssetPanel = AssetPanel::Create(strAssetPanel);
+	m_pEngineUtility->AddPanel(pAssetPanel->GetPanelName(), pAssetPanel);
 
 	return S_OK;
 }
@@ -109,8 +112,6 @@ HRESULT MapScene::Render()
 	auto [target, op] = m_pEngineUtility->GetGizmoState();
 	if (!target)
 		return S_OK;
-
-
 
 	Transform* pTransform = dynamic_cast<Transform*>(target->FindComponent(TEXT("Transform")));
 	if (!pTransform)

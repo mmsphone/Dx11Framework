@@ -40,6 +40,14 @@ public:
 	_float2 GetMousePos();
 	void SetMousePos(_float2 mousePos);
 	void SetMouseVisible(_bool bVisible);
+	_bool IsKeyDown(_ubyte byKeyID) const;
+	_bool IsKeyPressed(_ubyte byKeyID) const;
+	_bool IsKeyReleased(_ubyte byKeyID) const;
+	_bool IsKeyUp(_ubyte byKeyID) const;
+	_bool IsMouseDown(MOUSEKEYSTATE eMouse) const;
+	_bool IsMousePressed(MOUSEKEYSTATE eMouse) const;
+	_bool IsMouseReleased(MOUSEKEYSTATE eMouse) const;
+	_bool IsMouseUp(MOUSEKEYSTATE eMouse) const;
 
 	//TimeManager
 	_float GetTimeDelta(const _wstring& pTimerTag);
@@ -88,6 +96,7 @@ public:
 	HRESULT ShutdownIMGUI();
 	HRESULT AddPanel(const string& PanelName, class Panel* pPanel);
 	HRESULT RemovePanel(const string& PanelName);
+	class Panel* FindPanel(const string& PanelName);
 	HRESULT ClearPanels();
 	HRESULT SetPanelOpen(const string& PanelName, bool open);
 	ImGuiContext* GetIMGUIContext();
@@ -114,6 +123,21 @@ public:
 	void SetMarkerPosition(const _float3& vPos);
 	void ClearMarker();
 	_float3 GetMarkerPosition() const;
+	_bool IsMark() const;
+
+	//NavigationManager
+#ifdef _DEBUG
+	HRESULT RenderNavigation();
+#endif
+	void AddCell(_float3* pPoints);
+	void AddTempPoint(const _float3& point);
+	void RemoveRecentCell();
+	void ClearCells();
+	void SaveCells(const _char* pNavigationDataFile);
+	void LoadCells(const _char* pNavigationDataFile);
+	_bool IsInCell(_fvector vWorldPos, _int* pOutCellIndex = nullptr);
+	_bool SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos);
+	const vector<class Cell*>& GetCells() const;
 
 private:
 	class Graphic* m_pGraphic = { nullptr };
@@ -129,6 +153,7 @@ private:
 	class IMGUIManager* m_pIMGUIManager = { nullptr };
 	class PickingManager* m_pPickingManager = { nullptr };
 	class GridManager* m_pGridManager = { nullptr };
+	class NavigationManager* m_pNavigationManager = { nullptr };
 };
 
 NS_END

@@ -19,16 +19,19 @@ public:
     HRESULT Initialize();
     virtual void OnRender() override;
 
-    void SortPointsClockWise(vector<_float3>& points);
-
+    void SetSelectedBinPath(const string& path);
+    void SetNavigationDataPath(const string& path);
 
     static MapPanel* Create(const string& PanelName, bool open = true);
     virtual void		Free() override;
 
 private:
-    Object* m_pTerrain = nullptr;
     Object* m_pSelectedObject = nullptr;
     class ObjectPanel* m_pObjectPanel = nullptr;
+
+    _bool m_CellMode = false;
+    string m_SelectedModelDataPath = {};
+    string m_NavigationDataPath = {};
 };
 
 NS_END

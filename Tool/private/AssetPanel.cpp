@@ -1,6 +1,8 @@
 #include "AssetPanel.h"
 
 #include "Tool_Defines.h"
+#include "EngineUtility.h"
+#include "MapPanel.h"
 
 AssetPanel::AssetPanel(const string& PanelName, bool open)
     :Panel{ PanelName, open }
@@ -10,14 +12,18 @@ HRESULT AssetPanel::Initialize()
 {
     m_RootDirectory = std::filesystem::current_path();
     m_CurrentDirectory = m_RootDirectory;
+
+    m_PanelPosition = _float2(0.f, 300.f);
+    m_PanelSize = _float2(400.f, 450.f);
+
     return S_OK;
 }
 
 void AssetPanel::OnRender()
 {
     ImGui::Text("Current: %s", m_CurrentDirectory.string().c_str());
-    ImGui::SameLine();
-    if (ImGui::Button("Up") && m_CurrentDirectory != m_RootDirectory)
+    
+    if (ImGui::Button("UpperPath") && m_CurrentDirectory != m_RootDirectory)
         m_CurrentDirectory = m_CurrentDirectory.parent_path();
 
     ImGui::Separator();
@@ -41,13 +47,45 @@ void AssetPanel::OnRender()
 
             if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
             {
-                // 더블클릭 시 미리보기 or 로드
-                //if (path.extension() == ".fbx")
-                //    m_pEngineUtility->SetModelData(path.string());
-                //else if (path.extension() == ".png" || path.extension() == ".dds")
-                //    m_pEngineUtility->PreviewTexture(path.string());
+                std::string ext = path.extension().string();
+                std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+                if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" ||
+                    ext == ".bmp" || ext == ".tga" || ext == ".dds")
+                {
+                    LoadPreviewTexture(path);
+                }
+                else if (ext == ".bin")
+                {
+                    // MapPanel에 경로 전달
+                    MapPanel* pMapPanel = dynamic_cast<MapPanel*>(m_pEngineUtility->FindPanel("MapPanel"));
+                    if (pMapPanel)
+                    {
+                        pMapPanel->SetSelectedBinPath(path.string());
+                    }
+                }
+                else if (ext == ".dat")
+                {
+                    MapPanel* pMapPanel = dynamic_cast<MapPanel*>(m_pEngineUtility->FindPanel("MapPanel"));
+                    if (pMapPanel)
+                    {
+                        pMapPanel->SetNavigationDataPath(path.string());
+                    }
+                }
+
             }
         }
+    }
+
+    ImGui::SeparatorText("Preview");
+    if (m_pPreviewShaderResourceView)
+    {
+        ImVec2 previewSize(256, 256);
+        ImGui::Image((ImTextureID)m_pPreviewShaderResourceView, previewSize);
+    }
+    else
+    {
+        ImGui::TextDisabled("No texture selected");
     }
 }
 
@@ -67,4 +105,47 @@ AssetPanel* AssetPanel::Create(const string& PanelName, bool open)
 void AssetPanel::Free()
 {
     __super::Free();
+
+    if(m_pPreviewShaderResourceView)
+        SafeRelease(m_pPreviewShaderResourceView);
+}
+
+_bool AssetPanel::LoadPreviewTexture(const std::filesystem::path& path)
+{
+    if (!std::filesystem::exists(path))
+        return false;
+
+    ID3D11Device* device = m_pEngineUtility->GetDevice();
+    ID3D11DeviceContext* context = m_pEngineUtility->GetContext();
+
+    if (!device || !context)
+        return false;
+
+    // 이전 리소스 해제
+    if (m_pPreviewShaderResourceView)
+        SafeRelease(m_pPreviewShaderResourceView);
+
+    std::wstring ext = path.extension().wstring();
+    for (auto& c : ext) c = towlower(c);
+
+    HRESULT hr = E_FAIL;
+
+    // DDS
+    if (ext == L".dds")
+    {
+        hr = CreateDDSTextureFromFile(device, context, path.c_str(), nullptr, &m_pPreviewShaderResourceView);
+    }
+    // 그 외 (PNG, JPG, BMP, TGA 등)
+    else
+    {
+        hr = CreateWICTextureFromFile(device, context, path.c_str(), nullptr, &m_pPreviewShaderResourceView);
+    }
+
+    if (FAILED(hr))
+    {
+        OutputDebugStringW((L"[AssetPanel] Failed to load preview texture: " + path.wstring() + L"\n").c_str());
+        return false;
+    }
+
+    return true;
 }

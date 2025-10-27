@@ -11,9 +11,6 @@ SceneManager::SceneManager()
 
 HRESULT SceneManager::ChangeScene(_uint iSceneId, Scene* pScene)
 {
-#ifdef _DEBUG
-	OutputDebugStringA("Clearing Scene...\n");
-#endif
 	CHECKPTR(m_pCurrentScene)
 		m_pEngineUtility->ClearScene(m_iCurrentSceneId);
 	SafeRelease(m_pCurrentScene);

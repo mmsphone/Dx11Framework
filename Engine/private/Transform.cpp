@@ -35,7 +35,16 @@ _vector Transform::GetState(STATE eState) const
 
 void Transform::SetState(STATE eState, _fvector vState)
 {
-	XMStoreFloat4(reinterpret_cast<_float4*>(&m_WorldMatrix.m[eState]), vState);
+	if (eState == STATE::POSITION)
+	{
+		XMFLOAT4 pos;
+		XMStoreFloat4(&pos, vState);
+		if (pos.w == 0.f)
+			pos.w = 1.f;
+		XMStoreFloat4(reinterpret_cast<_float4*>(&m_WorldMatrix.m[eState]), XMLoadFloat4(&pos));
+	}
+	else
+		XMStoreFloat4(reinterpret_cast<_float4*>(&m_WorldMatrix.m[eState]), vState);
 }
 
 _float3 Transform::GetScale() const

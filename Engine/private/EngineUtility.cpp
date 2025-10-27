@@ -13,6 +13,7 @@
 #include "IMGUIManager.h"
 #include "PickingManager.h"
 #include "GridManager.h"
+#include "NavigationManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -60,6 +61,9 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 
 	m_pGridManager = GridManager::Create();
 	CHECKNULLPTR(m_pGridManager) return E_FAIL;
+
+	m_pNavigationManager = NavigationManager::Create();
+	CHECKNULLPTR(m_pNavigationManager) return E_FAIL;
 
 	return S_OK;
 }
@@ -113,6 +117,8 @@ void EngineUtility::ReleaseEngine()
 	SafeRelease(m_pTimeManager);
 	SafeRelease(m_pIMGUIManager);
 	SafeRelease(m_pPickingManager);
+	SafeRelease(m_pGridManager);
+	SafeRelease(m_pNavigationManager);
 
 	DestroyInstance();
 }
@@ -185,6 +191,38 @@ void EngineUtility::SetMousePos(_float2 mousePos)
 void EngineUtility::SetMouseVisible(_bool bVisible)
 {
 	m_pInput->SetMouseVisible(bVisible);
+}
+_bool EngineUtility::IsKeyDown(_ubyte byKeyID) const
+{
+	return m_pInput->IsKeyDown(byKeyID);
+}
+_bool EngineUtility::IsKeyPressed(_ubyte byKeyID) const
+{
+	return m_pInput->IsKeyPressed(byKeyID);
+}
+_bool EngineUtility::IsKeyReleased(_ubyte byKeyID) const
+{
+	return m_pInput->IsKeyReleased(byKeyID);
+}
+_bool EngineUtility::IsKeyUp(_ubyte byKeyID) const
+{
+	return m_pInput->IsKeyUp(byKeyID);
+}
+_bool EngineUtility::IsMouseDown(MOUSEKEYSTATE eMouse) const
+{
+	return m_pInput->IsMouseDown(eMouse);
+}
+_bool EngineUtility::IsMousePressed(MOUSEKEYSTATE eMouse) const
+{
+	return m_pInput->IsMousePressed(eMouse);
+}
+_bool EngineUtility::IsMouseReleased(MOUSEKEYSTATE eMouse) const
+{
+	return m_pInput->IsMouseReleased(eMouse);
+}
+_bool EngineUtility::IsMouseUp(MOUSEKEYSTATE eMouse) const
+{
+	return m_pInput->IsMouseUp(eMouse);
 }
 
 _float EngineUtility::GetTimeDelta(const _wstring& pTimerTag)
@@ -337,6 +375,11 @@ HRESULT EngineUtility::RemovePanel(const string& PanelName)
 	return m_pIMGUIManager->RemovePanel(PanelName);
 }
 
+Panel* EngineUtility::FindPanel(const string& PanelName)
+{
+	return m_pIMGUIManager->FindPanel(PanelName);
+}
+
 HRESULT EngineUtility::ClearPanels()
 {
 	return m_pIMGUIManager->ClearPanels();
@@ -441,4 +484,51 @@ void EngineUtility::ClearMarker()
 _float3 EngineUtility::GetMarkerPosition() const
 {
 	return m_pGridManager->GetMarkerPosition();
+}
+
+_bool EngineUtility::IsMark() const
+{
+	return m_pGridManager->IsMark();
+}
+#ifdef _DEBUG
+HRESULT EngineUtility::RenderNavigation()
+{
+	return m_pNavigationManager->Render();
+}
+#endif
+void EngineUtility::AddCell(_float3* pPoints)
+{
+	m_pNavigationManager->AddCell(pPoints);
+}
+void EngineUtility::AddTempPoint(const _float3& point)
+{
+	m_pNavigationManager->AddTempPoint(point);
+}
+void EngineUtility::RemoveRecentCell()
+{
+	m_pNavigationManager->RemoveRecentCell();
+}
+void EngineUtility::ClearCells()
+{
+	m_pNavigationManager->ClearCells();
+}
+void EngineUtility::SaveCells(const _char* pNavigationDataFile)
+{
+	m_pNavigationManager->SaveCells(pNavigationDataFile);
+}
+void EngineUtility::LoadCells(const _char* pNavigationDataFile)
+{
+	m_pNavigationManager->LoadCells(pNavigationDataFile);
+}
+_bool EngineUtility::IsInCell(_fvector vWorldPos, _int* pOutCellIndex)
+{
+	return m_pNavigationManager->IsInCell(vWorldPos, pOutCellIndex);
+}
+_bool EngineUtility::SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos)
+{
+	return m_pNavigationManager->SetHeightOnCell(vWorldPos, pOutAdjustedPos);
+}
+const vector<class Cell*>& EngineUtility::GetCells() const
+{
+	return m_pNavigationManager->GetCells();
 }

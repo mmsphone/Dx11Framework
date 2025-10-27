@@ -52,7 +52,7 @@
     <ClInclude Include="..\public\Material.h" />
     <ClInclude Include="..\public\Mesh.h" />
     <ClInclude Include="..\public\Model.h" />
-    <ClInclude Include="..\public\Navigation.h" />
+    <ClInclude Include="..\public\NavigationManager.h" />
     <ClInclude Include="..\public\NoAssimpModelStruct.h" />
     <ClInclude Include="..\public\Object.h" />
     <ClInclude Include="..\public\ObjectManager.h" />
@@ -105,7 +105,7 @@
     <ClCompile Include="..\private\Material.cpp" />
     <ClCompile Include="..\private\Mesh.cpp" />
     <ClCompile Include="..\private\Model.cpp" />
-    <ClCompile Include="..\private\Navigation.cpp" />
+    <ClCompile Include="..\private\NavigationManager.cpp" />
     <ClCompile Include="..\private\Object.cpp" />
     <ClCompile Include="..\private\ObjectManager.cpp" />
     <ClCompile Include="..\private\Panel.cpp" />
@@ -264,7 +264,8 @@
       </Command>
     </PostBuildEvent>
     <PreLinkEvent>
-      <Command>call $(SolutionDir)UpdateLib.bat</Command>
+      <Command>
+      </Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

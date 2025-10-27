@@ -178,9 +178,6 @@ void Model::SetModelData(ModelData* pModelData)
     ReadyAnimations();
 
     m_iCurrentAnimIndex = 0;
-    m_isAnimLoop = false;
-    m_isAnimFinished = false;
-    m_isAnimStop = true;
 }
 
 void Model::SetTargetMesh(_int iMeshIndex)
@@ -410,7 +407,8 @@ void Model::ClearModelData()
 ModelData* Model::LoadNoAssimpModel(const _char* path)
 {
     std::ifstream f(path, std::ios::binary);
-    if (!f.is_open())return nullptr;
+    if (!f.is_open())
+        return nullptr;
     auto m = new ModelData();
 
     auto R = [&](auto& v, size_t s) {_uint n; f.read((char*)&n, 4); v.resize(n); if (n)f.read((char*)v.data(), s * n); };

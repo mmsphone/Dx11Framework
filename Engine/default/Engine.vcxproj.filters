@@ -103,9 +103,6 @@
     <Filter Include="05.Component\VertexIndexBuffer\VIBufferTerrrain">
       <UniqueIdentifier>{4040b34a-4716-4df5-a18d-1a0be4a764f9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="03.Utility\GUIManager">
-      <UniqueIdentifier>{5af64c5d-1a87-4276-9443-29556018c079}</UniqueIdentifier>
-    </Filter>
     <Filter Include="04.ForUtility\Panel">
       <UniqueIdentifier>{28558fc7-3cbf-403a-81ad-0d11ca4e6ee8}</UniqueIdentifier>
     </Filter>
@@ -151,12 +148,6 @@
     <Filter Include="06.ForComponent\CollisionBox\Sphere">
       <UniqueIdentifier>{70197429-c96f-4d65-bc71-fdee2640b749}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05.Component\Navigation">
-      <UniqueIdentifier>{7e464491-36a4-40dc-b6fc-ceace3908b9a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.ForComponent\Cell">
-      <UniqueIdentifier>{826b3ab4-0208-421c-826b-2f72a9ced786}</UniqueIdentifier>
-    </Filter>
     <Filter Include="05.Component\VertexIndexBuffer\VIBufferCell">
       <UniqueIdentifier>{f4aee4fd-b7b6-4476-b92a-e32f55bfd170}</UniqueIdentifier>
     </Filter>
@@ -171,6 +162,15 @@
     </Filter>
     <Filter Include="03.Utility\GridManager">
       <UniqueIdentifier>{67152651-e023-45c3-b9b7-10b022b81a3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\IMGUIManager">
+      <UniqueIdentifier>{5af64c5d-1a87-4276-9443-29556018c079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\NavigationManager">
+      <UniqueIdentifier>{7e464491-36a4-40dc-b6fc-ceace3908b9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Cell">
+      <UniqueIdentifier>{826b3ab4-0208-421c-826b-2f72a9ced786}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -301,7 +301,7 @@
       <Filter>06.ForComponent\Channel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\IMGUIManager.h">
-      <Filter>03.Utility\GUIManager</Filter>
+      <Filter>03.Utility\IMGUIManager</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Panel.h">
       <Filter>04.ForUtility\Panel</Filter>
@@ -331,10 +331,10 @@
       <Filter>06.ForComponent\CollisionBox\OBB</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Cell.h">
-      <Filter>06.ForComponent\Cell</Filter>
+      <Filter>04.ForUtility\Cell</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\Navigation.h">
-      <Filter>05.Component\Navigation</Filter>
+    <ClInclude Include="..\public\NavigationManager.h">
+      <Filter>03.Utility\NavigationManager</Filter>
     </ClInclude>
     <ClInclude Include="..\public\VIBufferCell.h">
       <Filter>05.Component\VertexIndexBuffer\VIBufferCell</Filter>
@@ -456,7 +456,7 @@
       <Filter>06.ForComponent\Channel</Filter>
     </ClCompile>
     <ClCompile Include="..\private\IMGUIManager.cpp">
-      <Filter>03.Utility\GUIManager</Filter>
+      <Filter>03.Utility\IMGUIManager</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Panel.cpp">
       <Filter>04.ForUtility\Panel</Filter>
@@ -504,10 +504,10 @@
       <Filter>06.ForComponent\CollisionBox\Sphere</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Cell.cpp">
-      <Filter>06.ForComponent\Cell</Filter>
+      <Filter>04.ForUtility\Cell</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\Navigation.cpp">
-      <Filter>05.Component\Navigation</Filter>
+    <ClCompile Include="..\private\NavigationManager.cpp">
+      <Filter>03.Utility\NavigationManager</Filter>
     </ClCompile>
     <ClCompile Include="..\private\VIBufferCell.cpp">
       <Filter>05.Component\VertexIndexBuffer\VIBufferCell</Filter>

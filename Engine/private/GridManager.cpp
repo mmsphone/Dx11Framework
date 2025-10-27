@@ -174,6 +174,11 @@ void GridManager::ClearMarker()
     m_isMark = false;
 }
 
+_bool GridManager::IsMark() const
+{
+    return m_isMark;
+}
+
 GridManager* GridManager::Create(_uint iNumCells, _float fCellSize)
 {
     GridManager* pInstance = new GridManager();

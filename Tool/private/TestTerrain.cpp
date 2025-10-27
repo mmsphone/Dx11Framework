@@ -41,13 +41,6 @@ void TestTerrain::PriorityUpdate(_float fTimeDelta)
 void TestTerrain::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
-
-    if (m_pEngineUtility->GetMouseState(MOUSEKEYSTATE::LB))
-    {
-        PICK_RESULT pickResult = m_pEngineUtility->Pick();
-        if (pickResult.hit && pickResult.pHitObject == this)
-            m_vBrushPos = _float4(pickResult.hitPos.x, pickResult.hitPos.y, pickResult.hitPos.z, 1.f);
-    }
 }
 
 void TestTerrain::LateUpdate(_float fTimeDelta)
@@ -107,11 +100,12 @@ HRESULT TestTerrain::Render()
     pTerrain->BindBuffers();
     pTerrain->Render();
 
-#ifdef _DEBUG
-    Navigation* pNavigation = dynamic_cast<Navigation*>(FindComponent(TEXT("Navigation")));
-    pNavigation->Render();
-#endif
     return S_OK;
+}
+
+void TestTerrain::SetBrushPos(const _float4& vPos)
+{
+    m_vBrushPos = vPos;
 }
 
 _float4 TestTerrain::GetBrushPos() const
@@ -141,9 +135,7 @@ HRESULT TestTerrain::ReadyComponents()
     /* For.Com_Shader */
     if (FAILED(AddComponent(SCENE::MAP, TEXT("Shader_VtxTerrain"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
-    /* For.Com_Navigation */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Navigation"), TEXT("Navigation"), nullptr, nullptr)))
-        return E_FAIL;
+
     return S_OK;
 }
 

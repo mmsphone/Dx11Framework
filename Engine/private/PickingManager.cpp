@@ -20,7 +20,11 @@ PICK_RESULT PickingManager::Pick()
     RAY ray = GetRay();
 
     if (IsMouseOverUI())
+    {
+        result.hit = true;
+        result.pickType = PICK_UI;
         return result;
+    }
 
     _uint iCurrentSceneId = m_pEngineUtility->GetCurrentSceneId();
     vector<Object*> objectList = m_pEngineUtility->GetAllObjects(iCurrentSceneId);
@@ -48,23 +52,29 @@ PICK_RESULT PickingManager::Pick()
         result.hit = true;
         result.pHitObject = nearestObj;
         result.hitPos = nearestPos;
+        result.pickType = PICK_OBJECT;
         return result;
     }
 
-    // 3️⃣ Terrain 피킹 (오브젝트 실패 시)
-    list<Object*> objects = m_pEngineUtility->FindLayer(iCurrentSceneId, TEXT("Terrain"))->GetAllObjects();
-    for (auto& object : objects)
+    // 3️d Terrain 피킹 (오브젝트 실패 시)
+    Layer* pLayer = m_pEngineUtility->FindLayer(iCurrentSceneId, TEXT("Terrain"));
+    if (pLayer != nullptr)
     {
-        Terrain* pTerrain = dynamic_cast<Terrain*>(object);
-        if (pTerrain)
+        list<Object*> objects = pLayer->GetAllObjects();
+        for (auto& object : objects)
         {
-            _float3 hitPos{};
-            if (RayIntersectTerrain(ray, pTerrain, &hitPos))
+            Terrain* pTerrain = dynamic_cast<Terrain*>(object);
+            if (pTerrain)
             {
-                result.hit = true;
-                result.pHitObject = pTerrain;
-                result.hitPos = hitPos;
-                return result;
+                _float3 hitPos{};
+                if (RayIntersectTerrain(ray, pTerrain, &hitPos))
+                {
+                    result.hit = true;
+                    result.pHitObject = pTerrain;
+                    result.hitPos = hitPos;
+                    result.pickType = PICK_TERRAIN;
+                    return result;
+                }
             }
         }
     }
@@ -85,6 +95,7 @@ PICK_RESULT PickingManager::Pick()
                 XMStoreFloat3(&result.hitPos,rayOrigin + rayDir * distance);
                 result.hit = true;
                 result.pHitObject = nullptr;
+                result.pickType = PICK_GRID;
 
                 m_pEngineUtility->SetMarkerPosition(result.hitPos);
                 

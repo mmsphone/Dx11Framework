@@ -54,8 +54,26 @@ void ObjectPanel::OnRender()
         m_pEngineUtility->SetGizmoState(m_pTargetObject, gizmoOp);
     else
         m_pEngineUtility->ClearGizmoState();
-
     ImGui::Separator();
+
+    Model* pModel = dynamic_cast<Model*>(m_pTargetObject->FindComponent(TEXT("Model")));
+    static _int iTargetAnimIndex = 0;
+    ImGui::Text("--TargetAnimIndex(Default : 0)--");
+    if (ImGui::InputInt("##TargetMeshIndex", &iTargetAnimIndex))
+    {
+        pModel->SetAnimation(iTargetAnimIndex, true);
+    }
+    if (ImGui::Button("PlayAnim"))
+    {
+        pModel->ResumeAnimation();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("StopAnim"))
+    {
+        pModel->StopAnimation();
+    }
+    ImGui::Separator();
+    
     if (ImGui::Button("Delete Object"))
     {
         SetOpen(false);

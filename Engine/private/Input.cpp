@@ -2,8 +2,7 @@
 #include "EngineUtility.h"
 
 Input::Input()
-	:Base{}
-	, m_pEngineUtility{EngineUtility::GetInstance() }
+	: m_pEngineUtility{EngineUtility::GetInstance() }
 {
 	SafeAddRef(m_pEngineUtility);
 }
@@ -36,26 +35,56 @@ HRESULT Input::Initialize(HINSTANCE InstanceHandle, HWND WindowHandle)
 
 void Input::Update()
 {
-	HRESULT hr = m_pKeyboard->GetDeviceState(256, m_byKeyState);
-	if (FAILED(hr))
+	//상태 백업
+	memcpy(m_preKeyState, m_curKeyState, sizeof(m_curKeyState));
+	m_preMouse = m_curMouse;
+
+	//현재 상태
+	HRESULT hrKey = m_pKeyboard->GetDeviceState(256, m_curKeyState);
+	if (FAILED(hrKey))
 	{
-		if(hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED)
+		if(hrKey == DIERR_INPUTLOST || hrKey == DIERR_NOTACQUIRED)
 			m_pKeyboard->Acquire();
 		else
-		ZeroMemory(m_byKeyState, sizeof(m_byKeyState));
+			ZeroMemory(m_curKeyState, sizeof(m_curKeyState));
 	}
-	if (FAILED(m_pMouse->GetDeviceState(sizeof(m_tMouseState), &m_tMouseState)))
+	HRESULT hrMouse = m_pMouse->GetDeviceState(sizeof(m_curMouse), &m_curMouse);
+	if (FAILED(hrMouse))
 	{
-		if (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED)
+		if (hrMouse == DIERR_INPUTLOST || hrMouse == DIERR_NOTACQUIRED)
 			m_pMouse->Acquire();
 		else
-		ZeroMemory(&m_tMouseState, sizeof(m_tMouseState));
+			ZeroMemory(&m_curMouse, sizeof(m_curMouse));
+	}
+
+	//키 비교
+	for (_int i = 0; i < 256; ++i)
+	{
+		_bool wasDown = (m_preKeyState[i] & 0x80);
+		_bool isDown = (m_curKeyState[i] & 0x80);
+
+		if (!wasDown && isDown) m_KeyState[i] = KEY_PRESSED;
+		else if (wasDown && isDown) m_KeyState[i] = KEY_DOWN;
+		else if (wasDown && !isDown) m_KeyState[i] = KEY_RELEASED;
+		else m_KeyState[i] = KEY_UP;
+	}
+
+	// 마우스 버튼 비교
+	for (_int i = 0; i < MOUSEKEYSTATE_END; ++i)
+	{
+		_bool wasDown = (m_preMouse.rgbButtons[i] & 0x80);
+		_bool isDown = (m_curMouse.rgbButtons[i] & 0x80);
+
+		if (!wasDown && isDown) m_MouseState[i] = KEY_PRESSED;
+		else if (wasDown && isDown) m_MouseState[i] = KEY_DOWN;
+		else if (wasDown && !isDown) m_MouseState[i] = KEY_RELEASED;
+		else m_MouseState[i] = KEY_UP;
 	}
 }
 
 _byte Input::GetKeyState(_ubyte byKeyID)
 {
-	return m_byKeyState[byKeyID];
+	return m_curKeyState[byKeyID];
 }
 
 _byte Input::GetMouseState(MOUSEKEYSTATE eMouse)
@@ -63,7 +92,7 @@ _byte Input::GetMouseState(MOUSEKEYSTATE eMouse)
 	if (eMouse < 0 || eMouse >= MOUSEKEYSTATE::MOUSEKEYSTATE_END)
 		return 0;
 
-	return m_tMouseState.rgbButtons[eMouse];
+	return m_curMouse.rgbButtons[eMouse];
 }
 
 _long Input::GetMouseMove(MOUSEMOVESTATE eMouseState)
@@ -71,11 +100,11 @@ _long Input::GetMouseMove(MOUSEMOVESTATE eMouseState)
 	switch (eMouseState)
 	{
 	case MOUSEMOVESTATE::X:
-		return m_tMouseState.lX;
+		return m_curMouse.lX;
 	case MOUSEMOVESTATE::Y:
-		return m_tMouseState.lY;
+		return m_curMouse.lY;
 	case MOUSEMOVESTATE::MOVE_WHEEL:
-		return m_tMouseState.lZ;
+		return m_curMouse.lZ;
 	default:
 		return 0;
 	}
@@ -108,6 +137,46 @@ void Input::SetMouseVisible(_bool bVisible)
 		ShowCursor(bVisible);
 		cursorVisible = bVisible;
 	}
+}
+
+_bool Input::IsKeyDown(_ubyte byKeyID) const
+{
+	return m_KeyState[byKeyID] == KEY_DOWN;
+}
+
+_bool Input::IsKeyPressed(_ubyte byKeyID) const
+{
+	return m_KeyState[byKeyID] == KEY_PRESSED;
+}
+
+_bool Input::IsKeyReleased(_ubyte byKeyID) const
+{
+	return m_KeyState[byKeyID] == KEY_RELEASED;
+}
+
+_bool Input::IsKeyUp(_ubyte byKeyID) const
+{
+	return m_KeyState[byKeyID] == KEY_UP;
+}
+
+_bool Input::IsMouseDown(MOUSEKEYSTATE eMouse) const
+{
+	return m_MouseState[eMouse] == KEY_DOWN;
+}
+
+_bool Input::IsMousePressed(MOUSEKEYSTATE eMouse) const
+{
+	return m_MouseState[eMouse] == KEY_PRESSED;
+}
+
+_bool Input::IsMouseReleased(MOUSEKEYSTATE eMouse) const
+{
+	return m_MouseState[eMouse] == KEY_RELEASED;
+}
+
+_bool Input::IsMouseUp(MOUSEKEYSTATE eMouse) const
+{
+	return m_MouseState[eMouse] == KEY_UP;
 }
 
 Input* Input::Create(HINSTANCE InstanceHandle, HWND WindowHandle)

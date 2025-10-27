@@ -92,4 +92,5 @@ struct ModelData {
     std::vector<AnimationData> animations;
 
     NodeData rootNode;
+    std::string modelDataFilePath;
 };

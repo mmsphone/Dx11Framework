@@ -4,7 +4,7 @@
 
 NS_BEGIN(Engine)
 
-class Light final : public Base
+class ENGINE_DLL Light final : public Base
 {
 private:
 	Light();

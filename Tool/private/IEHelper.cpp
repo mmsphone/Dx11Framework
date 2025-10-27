@@ -302,86 +302,219 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
 
         outModel.animations.push_back(std::move(animData));
     }
+    outModel.modelDataFilePath = filePath;
 
     return true;
 }
 
 bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
 {
-    std::ofstream file(filePath, std::ios::binary);
-    if (!file.is_open()) return false;
-
-    // 1. Meshes
-    _uint numMeshes = (_uint)model.meshes.size();
-    file.write((char*)&numMeshes, 4);
-    for (auto& mesh : model.meshes)
+    // ============= [1] 전체 모델 내보내기 =============
     {
-        _uint len = (_uint)mesh.name.size();
-        file.write((char*)&len, 4);
-        file.write(mesh.name.data(), len);
-        file.write((char*)&mesh.materialIndex, 4);
+        std::ofstream file(filePath, std::ios::binary);
+        if (!file.is_open()) return false;
 
-        auto W = [&](auto& v) { _uint n = (_uint)v.size(); file.write((char*)&n, 4); if (n)file.write((char*)v.data(), sizeof(v[0]) * n); };
-        W(mesh.positions); W(mesh.normals); W(mesh.texcoords); W(mesh.tangents); W(mesh.indices);
+        // Helper 람다
+        auto WriteVector = [&](auto& v) {
+            _uint n = (_uint)v.size();
+            file.write((char*)&n, 4);
+            if (n) file.write((char*)v.data(), sizeof(v[0]) * n);
+            };
 
-        _uint numBones = (_uint)mesh.bones.size();
-        file.write((char*)&numBones, 4);
-        for (auto& b : mesh.bones)
+        // 1. Meshes
+        _uint numMeshes = (_uint)model.meshes.size();
+        file.write((char*)&numMeshes, 4);
+        for (auto& mesh : model.meshes)
+        {
+            _uint len = (_uint)mesh.name.size();
+            file.write((char*)&len, 4); file.write(mesh.name.data(), len);
+            file.write((char*)&mesh.materialIndex, 4);
+            WriteVector(mesh.positions);
+            WriteVector(mesh.normals);
+            WriteVector(mesh.texcoords);
+            WriteVector(mesh.tangents);
+            WriteVector(mesh.indices);
+
+            _uint numBones = (_uint)mesh.bones.size();
+            file.write((char*)&numBones, 4);
+            for (auto& b : mesh.bones)
+            {
+                _uint n = (_uint)b.name.size();
+                file.write((char*)&n, 4); file.write(b.name.data(), n);
+                _uint w = (_uint)b.weights.size();
+                file.write((char*)&w, 4);
+                if (w) file.write((char*)b.weights.data(), sizeof(VertexWeight) * w);
+                file.write((char*)&b.offsetMatrix, sizeof(_float4x4));
+            }
+        }
+
+        // 2. Materials
+        _uint numMat = (_uint)model.materials.size();
+        file.write((char*)&numMat, 4);
+        for (auto& m : model.materials)
+        {
+            _uint n = (_uint)m.name.size(); file.write((char*)&n, 4); file.write(m.name.data(), n);
+            for (int t = 0; t < (int)TextureType::End; ++t)
+            {
+                _uint numTex = (_uint)m.texturePaths[t].size();
+                file.write((char*)&numTex, 4);
+                for (auto& p : m.texturePaths[t])
+                {
+                    _uint l = (_uint)p.size();
+                    file.write((char*)&l, 4);
+                    file.write(p.data(), l);
+                }
+            }
+        }
+
+        // 3. Node
+        std::function<void(const NodeData&)> WNode = [&](const NodeData& n)
+            {
+                _uint l = (_uint)n.name.size();
+                file.write((char*)&l, 4); file.write(n.name.data(), l);
+                file.write((char*)&n.parentIndex, 4);
+                file.write((char*)&n.transform, sizeof(_float4x4));
+                _uint c = (_uint)n.children.size();
+                file.write((char*)&c, 4);
+                for (auto& ch : n.children) WNode(ch);
+            };
+        WNode(model.rootNode);
+
+        // 4. Animations
+        _uint numAnim = (_uint)model.animations.size();
+        file.write((char*)&numAnim, 4);
+        for (auto& a : model.animations)
+        {
+            _uint n = (_uint)a.name.size();
+            file.write((char*)&n, 4); file.write(a.name.data(), n);
+            file.write((char*)&a.duration, 4); file.write((char*)&a.ticksPerSecond, 4);
+            _uint c = (_uint)a.channels.size(); file.write((char*)&c, 4);
+            for (auto& ch : a.channels)
+            {
+                _uint nn = (_uint)ch.nodeName.size(); file.write((char*)&nn, 4); file.write(ch.nodeName.data(), nn);
+                auto WK = [&](auto& v) {_uint n = (_uint)v.size(); file.write((char*)&n, 4); if (n) file.write((char*)v.data(), sizeof(v[0]) * n); };
+                WK(ch.positionKeys); WK(ch.rotationKeys); WK(ch.scalingKeys);
+            }
+        }
+
+        // 5. Global Bones
+        _uint nb = (_uint)model.bones.size();
+        file.write((char*)&nb, 4);
+        for (auto& b : model.bones)
         {
             _uint n = (_uint)b.name.size();
             file.write((char*)&n, 4); file.write(b.name.data(), n);
-            _uint w = (_uint)b.weights.size();
-            file.write((char*)&w, 4);
-            if (w) file.write((char*)b.weights.data(), sizeof(VertexWeight) * w);
             file.write((char*)&b.offsetMatrix, sizeof(_float4x4));
         }
+
+        std::string srcPath = model.modelDataFilePath;
+        _uint len = (_uint)srcPath.size();
+        file.write((char*)&len, 4);
+        if (len > 0)
+            file.write(srcPath.data(), len);
+
+        file.close();
     }
 
-    // 2. Materials
-    _uint numMat = (_uint)model.materials.size();
-    file.write((char*)&numMat, 4);
-    for (auto& m : model.materials)
+    // ============= [2] 각 Mesh별 개별 bin 내보내기 =============
+    std::filesystem::path basePath = std::filesystem::path(filePath).parent_path();
+    std::string baseName = std::filesystem::path(filePath).stem().string();
+
+    for (size_t i = 0; i < model.meshes.size(); ++i)
     {
-        _uint n = (_uint)m.name.size(); file.write((char*)&n, 4); file.write(m.name.data(), n);
-        for (int t = 0; t < (int)TextureType::End; t++) {
-            _uint numTex = (_uint)m.texturePaths[t].size();
-            file.write((char*)&numTex, 4);
-            for (auto& p : m.texturePaths[t]) {
-                _uint l = (_uint)p.size();
-                file.write((char*)&l, 4);
-                file.write(p.data(), l);
+        std::string meshFile = (basePath / (baseName + "_Mesh" + std::to_string(i) + ".bin")).string();
+        std::ofstream mfile(meshFile, std::ios::binary);
+        if (!mfile.is_open()) continue;
+
+        const auto& mesh = model.meshes[i];
+
+        // --- Meshes ---
+        _uint numMeshes = 1;
+        mfile.write((char*)&numMeshes, 4);
+
+        // 단일 메쉬만 작성
+        {
+            _uint len = (_uint)mesh.name.size();
+            mfile.write((char*)&len, 4); mfile.write(mesh.name.data(), len);
+            mfile.write((char*)&mesh.materialIndex, 4);
+
+            auto W = [&](auto& v) {_uint n = (_uint)v.size(); mfile.write((char*)&n, 4); if (n) mfile.write((char*)v.data(), sizeof(v[0]) * n); };
+            W(mesh.positions); W(mesh.normals); W(mesh.texcoords); W(mesh.tangents); W(mesh.indices);
+
+            _uint numBones = (_uint)mesh.bones.size();
+            mfile.write((char*)&numBones, 4);
+            for (auto& b : mesh.bones)
+            {
+                _uint n = (_uint)b.name.size(); mfile.write((char*)&n, 4); mfile.write(b.name.data(), n);
+                _uint w = (_uint)b.weights.size(); mfile.write((char*)&w, 4);
+                if (w) mfile.write((char*)b.weights.data(), sizeof(VertexWeight) * w);
+                mfile.write((char*)&b.offsetMatrix, sizeof(_float4x4));
             }
         }
-    }
 
-    // 3. Node
-    std::function<void(const NodeData&)> WNode = [&](auto& n) {
-        _uint l = (_uint)n.name.size(); file.write((char*)&l, 4); file.write(n.name.data(), l);
-        file.write((char*)&n.parentIndex, 4);
-        file.write((char*)&n.transform, sizeof(_float4x4));
-        _uint c = (_uint)n.children.size(); file.write((char*)&c, 4);
-        for (auto& ch : n.children)WNode(ch);
-    };
-    WNode(model.rootNode);
+        // --- Materials (메쉬에 매핑된 것만 포함) ---
+        _uint numMat = 0;
+        if (mesh.materialIndex < model.materials.size())
+        {
+            numMat = 1;
+            mfile.write((char*)&numMat, 4);
 
-    // 4. Animations
-    _uint numA = (_uint)model.animations.size(); file.write((char*)&numA, 4);
-    for (auto& a : model.animations) {
-        _uint n = (_uint)a.name.size(); file.write((char*)&n, 4); file.write(a.name.data(), n);
-        file.write((char*)&a.duration, 4); file.write((char*)&a.ticksPerSecond, 4);
-        _uint c = (_uint)a.channels.size(); file.write((char*)&c, 4);
-        for (auto& ch : a.channels) {
-            _uint nn = (_uint)ch.nodeName.size(); file.write((char*)&nn, 4); file.write(ch.nodeName.data(), nn);
-            auto WK = [&](auto& v) {_uint n = (_uint)v.size(); file.write((char*)&n, 4); if (n)file.write((char*)v.data(), sizeof(v[0]) * n); };
-            WK(ch.positionKeys); WK(ch.rotationKeys); WK(ch.scalingKeys);
+            const auto& mat = model.materials[mesh.materialIndex];
+            _uint n = (_uint)mat.name.size();
+            mfile.write((char*)&n, 4); mfile.write(mat.name.data(), n);
+
+            for (int t = 0; t < (int)TextureType::End; ++t)
+            {
+                _uint numTex = (_uint)mat.texturePaths[t].size();
+                mfile.write((char*)&numTex, 4);
+                for (auto& p : mat.texturePaths[t])
+                {
+                    _uint l = (_uint)p.size();
+                    mfile.write((char*)&l, 4);
+                    mfile.write(p.data(), l);
+                }
+            }
         }
+        else
+        {
+            mfile.write((char*)&numMat, 4);
+        }
+
+        // --- Node (간단 루트만) ---
+        NodeData root{};
+        root.name = "Root";
+        root.parentIndex = -1;
+        root.transform = IdentityF4x4();
+        _uint c = 0;
+
+        _uint l = (_uint)root.name.size();
+        mfile.write((char*)&l, 4);
+        mfile.write(root.name.data(), l);
+        mfile.write((char*)&root.parentIndex, 4);
+        mfile.write((char*)&root.transform, sizeof(_float4x4));
+        mfile.write((char*)&c, 4); // 자식 0
+
+        // --- Animations ---
+        _uint numAnim = 0;
+        mfile.write((char*)&numAnim, 4);
+
+        // --- Global Bones ---
+        _uint nb = (_uint)mesh.bones.size();
+        mfile.write((char*)&nb, 4);
+        for (auto& b : mesh.bones)
+        {
+            _uint n = (_uint)b.name.size(); mfile.write((char*)&n, 4); mfile.write(b.name.data(), n);
+            mfile.write((char*)&b.offsetMatrix, sizeof(_float4x4));
+        }
+
+        std::string srcPath = model.modelDataFilePath;
+        _uint len = (_uint)srcPath.size();
+        mfile.write((char*)&len, 4);
+        if (len > 0)
+            mfile.write(srcPath.data(), len);
+
+        mfile.close();
     }
 
-    // 5. Global Bones
-    _uint nb = (_uint)model.bones.size(); file.write((char*)&nb, 4);
-    for (auto& b : model.bones) {
-        _uint n = (_uint)b.name.size(); file.write((char*)&n, 4); file.write(b.name.data(), n);
-        file.write((char*)&b.offsetMatrix, sizeof(_float4x4));
-    }
-    file.close(); return true;
+    return true;
 }

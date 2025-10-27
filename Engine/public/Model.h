@@ -22,17 +22,22 @@ public:
 
 	HRESULT BindShaderResource(_uint iMeshIndex, class Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex);
 	HRESULT BindBoneMatrices(_uint iMeshIndex, class Shader* pShader, const _char* pConstantName);
+	void UpdateBoneMatrices();
 
 	void PlayAnimation(_float fTimeDelta);
 	void SetAnimation(_uint iIndex, _bool isLoop = false);
 	void StopAnimation();
 	void ResumeAnimation();
 	_uint GetCurrentAnimIndex();
+	_float GetCurAnimTrackPos() const;
+	_float GetCurAnimDuration() const;
 	_bool isAnimFinished() const;
 
 	ModelData* GetModelData() const;
 	void SetModelData(ModelData* pModelData);
 	void SetTargetMesh(_int iMeshIndex);
+	const string& GetBinPath() const;
+	void SetBinPath(const string& binPath);
 
 	_bool IsMeshVisible(_uint iMeshIndex);
 	void SetMeshVisible(_uint iMeshIndex, _bool bVisible);

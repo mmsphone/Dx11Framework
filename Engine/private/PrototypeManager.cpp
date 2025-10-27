@@ -48,8 +48,9 @@ void PrototypeManager::Clear(_uint iSceneId)
         return;
 
     for (auto& Pair : m_pPrototypes[iSceneId])
+    {
         SafeRelease(Pair.second);
-
+    }
     m_pPrototypes[iSceneId].clear();
 }
 

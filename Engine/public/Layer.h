@@ -4,7 +4,7 @@
 
 NS_BEGIN(Engine)
 
-class Layer final : public Base
+class ENGINE_DLL Layer final : public Base
 {
 private:
 	Layer();

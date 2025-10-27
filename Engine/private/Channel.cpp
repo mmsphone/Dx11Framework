@@ -146,3 +146,102 @@ void Channel::Free()
 {
     __super::Free();
 }
+
+_matrix Channel::CalcInterpolatedTransform(_float fTimeDelta)
+{
+    // --- 위치(Position) ---
+    _float3 vPos{ 0.f, 0.f, 0.f };
+
+    if (!m_ChannelData.positionKeys.empty())
+    {
+        if (m_ChannelData.positionKeys.size() == 1)
+            vPos = m_ChannelData.positionKeys[0].value;
+        else
+        {
+            _uint iNext = 0;
+            for (_uint i = 0; i < m_ChannelData.positionKeys.size() - 1; ++i)
+            {
+                if (fTimeDelta < m_ChannelData.positionKeys[i + 1].time)
+                {
+                    iNext = i + 1;
+                    break;
+                }
+            }
+
+            _uint iPrev = (iNext == 0) ? 0 : iNext - 1;
+            _float t = (fTimeDelta - m_ChannelData.positionKeys[iPrev].time) /
+                (m_ChannelData.positionKeys[iNext].time - m_ChannelData.positionKeys[iPrev].time);
+            XMStoreFloat3(&vPos, XMVectorLerp(
+                XMLoadFloat3(&m_ChannelData.positionKeys[iPrev].value),
+                XMLoadFloat3(&m_ChannelData.positionKeys[iNext].value),
+                t
+            ));
+        }
+    }
+
+    // --- 회전(Rotation) ---
+    _float4 vRot{ 0.f, 0.f, 0.f, 1.f };
+    if (!m_ChannelData.rotationKeys.empty())
+    {
+        if (m_ChannelData.rotationKeys.size() == 1)
+            vRot = m_ChannelData.rotationKeys[0].value;
+        else
+        {
+            _uint iNext = 0;
+            for (_uint i = 0; i < m_ChannelData.rotationKeys.size() - 1; ++i)
+            {
+                if (fTimeDelta < m_ChannelData.rotationKeys[i + 1].time)
+                {
+                    iNext = i + 1;
+                    break;
+                }
+            }
+
+            _uint iPrev = (iNext == 0) ? 0 : iNext - 1;
+            _float t = (fTimeDelta - m_ChannelData.rotationKeys[iPrev].time) /
+                (m_ChannelData.rotationKeys[iNext].time - m_ChannelData.rotationKeys[iPrev].time);
+
+            XMVECTOR q1 = XMLoadFloat4(&m_ChannelData.rotationKeys[iPrev].value);
+            XMVECTOR q2 = XMLoadFloat4(&m_ChannelData.rotationKeys[iNext].value);
+            XMVECTOR q = XMQuaternionSlerp(q1, q2, t);
+            XMStoreFloat4(&vRot, q);
+        }
+    }
+
+    // --- 스케일(Scale) ---
+    _float3 vScale{ 1.f, 1.f, 1.f };
+    if (!m_ChannelData.scalingKeys.empty())
+    {
+        if (m_ChannelData.scalingKeys.size() == 1)
+            vScale = m_ChannelData.scalingKeys[0].value;
+        else
+        {
+            _uint iNext = 0;
+            for (_uint i = 0; i < m_ChannelData.scalingKeys.size() - 1; ++i)
+            {
+                if (fTimeDelta < m_ChannelData.scalingKeys[i + 1].time)
+                {
+                    iNext = i + 1;
+                    break;
+                }
+            }
+
+            _uint iPrev = (iNext == 0) ? 0 : iNext - 1;
+            _float t = (fTimeDelta - m_ChannelData.scalingKeys[iPrev].time) /
+                (m_ChannelData.scalingKeys[iNext].time - m_ChannelData.scalingKeys[iPrev].time);
+
+            XMStoreFloat3(&vScale, XMVectorLerp(
+                XMLoadFloat3(&m_ChannelData.scalingKeys[iPrev].value),
+                XMLoadFloat3(&m_ChannelData.scalingKeys[iNext].value),
+                t
+            ));
+        }
+    }
+
+    // --- 최종 행렬 구성 ---
+    _matrix matScale = XMMatrixScaling(vScale.x, vScale.y, vScale.z);
+    _matrix matRot = XMMatrixRotationQuaternion(XMLoadFloat4(&vRot));
+    _matrix matTrans = XMMatrixTranslation(vPos.x, vPos.y, vPos.z);
+
+    return matScale * matRot * matTrans;
+}

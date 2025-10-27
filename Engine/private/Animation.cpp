@@ -36,16 +36,15 @@ HRESULT Animation::Initialize(const AnimationData& animationData, const vector<B
     return S_OK;
 }
 
-void Animation::UpdateTransformationMatrix(_float fTimeDelta, const vector<Bone*> bones, _bool isLoop, _bool* pFinished)
+void Animation::UpdateTransformationMatrix(
+    _float fTimeDelta,
+    const vector<Bone*> bones,
+    _bool isLoop,
+    _bool* pFinished,
+    ModelData* pModelData /* 🔹추가: 노드용 애니메이션을 적용하기 위함 */
+)
 {
     m_fCurrentTrackPosition += m_fTicksPerSecond * fTimeDelta;
-
-#ifdef _DEBUG
-    char buf[256];
-    sprintf_s(buf, "Animation::Update - CurrentTrack: %f / Duration: %f\n", m_fCurrentTrackPosition, m_fDuration);
-    OutputDebugStringA(buf);
-
-#endif
 
     if (m_fCurrentTrackPosition >= m_fDuration)
     {
@@ -57,24 +56,60 @@ void Animation::UpdateTransformationMatrix(_float fTimeDelta, const vector<Bone*
         m_fCurrentTrackPosition = 0.f;
     }
 
-    _uint       iIndex = {};
+    _uint iIndex = 0;
     for (auto& pChannel : m_Channels)
     {
-        pChannel->UpdateTransformationMatrix(m_fCurrentTrackPosition, bones, &m_CurrentChannelIndex[iIndex++]);
+        // 기존: 본 찾고 적용
+        if (bones.empty() == false)
+        {
+            pChannel->UpdateTransformationMatrix(
+                m_fCurrentTrackPosition,
+                bones,
+                &m_CurrentChannelIndex[iIndex++]
+            );
+            continue;
+        }
 
-#ifdef _DEBUG
-        sprintf_s(buf, "Animation::Update - Channel[%s] CurrentKeyFrameIndex: %u\n",
-            pChannel->GetName(), m_CurrentChannelIndex[iIndex - 1]);
-        OutputDebugStringA(buf);
-#endif
+        // 🔹 추가: 본이 없을 경우 (mNumBones == 0) → NodeData 애니메이션 적용
+        if (pModelData)
+        {
+            // 채널 이름과 동일한 노드 탐색
+            std::function<void(NodeData&)> applyAnim = [&](NodeData& node)
+                {
+                    if (node.name == pChannel->GetName())
+                    {
+                        _float4x4 animTransform;
+                        XMStoreFloat4x4(&animTransform, pChannel->CalcInterpolatedTransform(m_fCurrentTrackPosition));
+
+                        node.transform = animTransform;
+                        return;
+                    }
+
+                    for (auto& child : node.children)
+                        applyAnim(child);
+                };
+
+            applyAnim(pModelData->rootNode);
+        }
+
+        iIndex++;
     }
 }
-
 void Animation::Reset()
 {
     m_fCurrentTrackPosition = 0.f;
     for (auto& idx : m_CurrentChannelIndex)
         idx = 0;
+}
+
+_float Animation::GetCurTrackPos() const
+{
+    return m_fCurrentTrackPosition;
+}
+
+_float Animation::GetDuration() const
+{
+    return m_fDuration;
 }
 
 Animation* Animation::Create(const AnimationData& animationData, const vector<Bone*> bones)

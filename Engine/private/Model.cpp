@@ -72,6 +72,7 @@ HRESULT Model::InitializePrototype(MODELTYPE eType, const _char* pModelFilePath,
 
     if (FAILED(ReadyAnimations()))
         return E_FAIL;
+    UpdateBoneMatrices();
 
     return S_OK;
 }
@@ -108,16 +109,21 @@ HRESULT Model::BindBoneMatrices(_uint iMeshIndex, Shader* pShader, const _char* 
     return m_Meshes[iMeshIndex]->BindBoneMatrices(pShader, pConstantName, m_Bones);
 }
 
-void Model::PlayAnimation(_float fTimeDelta)
+void Model::UpdateBoneMatrices()
 {
-    if (m_isAnimStop == true || m_iCurrentAnimIndex >= m_Animations.size())
-        return;
-    m_Animations[m_iCurrentAnimIndex]->UpdateTransformationMatrix(fTimeDelta, m_Bones, m_isAnimLoop, &m_isAnimFinished);
-
     for (auto& pBone : m_Bones)
     {
         pBone->UpdateCombinedTransformationMatrix(m_Bones, XMLoadFloat4x4(&m_PreTransformMatrix));
     }
+}
+
+void Model::PlayAnimation(_float fTimeDelta)
+{
+    if (m_isAnimStop == true || m_iCurrentAnimIndex >= m_Animations.size())
+        return;
+    m_Animations[m_iCurrentAnimIndex]->UpdateTransformationMatrix(fTimeDelta, m_Bones, m_isAnimLoop, &m_isAnimFinished, m_pModelData);
+
+    UpdateBoneMatrices();
 }
 
 void Model::SetAnimation(_uint iIndex, _bool isLoop)
@@ -147,6 +153,20 @@ void Model::ResumeAnimation()
 _uint Model::GetCurrentAnimIndex()
 {
     return m_iCurrentAnimIndex;
+}
+
+_float Model::GetCurAnimTrackPos() const
+{
+    if(m_Animations.size() > 0)
+        return  m_Animations[m_iCurrentAnimIndex]->GetCurTrackPos();
+    return 0.f;
+}
+
+_float Model::GetCurAnimDuration() const
+{
+    if (m_Animations.size() > 0)
+        return  m_Animations[m_iCurrentAnimIndex]->GetDuration();
+    return 0.f;
 }
 
 _bool Model::isAnimFinished() const
@@ -188,6 +208,19 @@ void Model::SetTargetMesh(_int iMeshIndex)
         else
             m_Meshes[i]->SetVisible(false);
     }
+}
+
+const string& Model::GetBinPath() const
+{
+    static string emptyPath = "";
+    if (m_pModelData)
+        return m_pModelData->modelDataFilePath;
+    return emptyPath;
+}
+
+void Model::SetBinPath(const string& binPath)
+{
+    m_pModelData->modelDataFilePath = binPath;
 }
 
 _bool Model::IsMeshVisible(_uint iMeshIndex)
@@ -474,7 +507,20 @@ ModelData* Model::LoadNoAssimpModel(const _char* path)
         f.read((char*)&b.offsetMatrix, sizeof(_float4x4));
     }
 
-    f.close(); return m;
+    if (!f.eof()) {
+        _uint len = 0;
+        f.read((char*)&len, 4);
+        if (len > 0) {
+            m->modelDataFilePath.resize(len);
+            f.read(m->modelDataFilePath.data(), len);
+        }
+    }
+    else {
+        m->modelDataFilePath = path; // fallback
+    }
+
+    f.close(); 
+    return m;
 }
 
 

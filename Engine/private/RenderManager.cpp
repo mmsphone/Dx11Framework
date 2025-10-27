@@ -53,7 +53,7 @@ void RenderManager::RenderPriority()
 {
     for (auto& pObject : m_RenderObjects[RENDERGROUP::PRIORITY])
     {
-        CHECKPTR(pObject)
+        if(pObject!= nullptr && pObject->IsDead() == false)
             pObject->Render();
         SafeRelease(pObject);
     }
@@ -64,7 +64,7 @@ void RenderManager::RenderNonBlend()
 {
     for (auto& pObject : m_RenderObjects[RENDERGROUP::NONBLEND])
     {
-        CHECKPTR(pObject)
+        if (pObject != nullptr && pObject->IsDead() == false)
             pObject->Render();
         SafeRelease(pObject);
     }
@@ -75,7 +75,7 @@ void RenderManager::RenderBlend()
 {
     for (auto& pObject : m_RenderObjects[RENDERGROUP::BLEND])
     {
-        CHECKPTR(pObject)
+        if (pObject != nullptr && pObject->IsDead() == false)
             pObject->Render();
         SafeRelease(pObject);
     }
@@ -86,7 +86,7 @@ void RenderManager::RenderUI()
 {
     for (auto& pObject : m_RenderObjects[RENDERGROUP::UI])
     {
-        CHECKPTR(pObject)
+        if (pObject != nullptr && pObject->IsDead() == false)
             pObject->Render();
         SafeRelease(pObject);
     }

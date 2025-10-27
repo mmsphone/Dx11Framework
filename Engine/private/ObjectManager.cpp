@@ -54,7 +54,14 @@ Object* ObjectManager::FindObject(_uint iLayerSceneId, const _wstring& strLayerT
 void ObjectManager::Clear(_uint iSceneId)
 {
 	for (auto& Pair : m_pLayers[iSceneId])
+	{
+		auto& objects = Pair.second->GetAllObjects();
+		for (auto& object : objects)
+		{
+			object->SetDead(true);
+		}
 		SafeRelease(Pair.second);
+	}
 	m_pLayers[iSceneId].clear();
 }
 

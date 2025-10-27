@@ -4,7 +4,7 @@
 
 NS_BEGIN(Engine)
 
-class CustomFont final : public Base
+class ENGINE_DLL CustomFont final : public Base
 {
 private:
 	CustomFont();

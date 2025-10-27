@@ -155,7 +155,8 @@ void ModelPanel::OnRender()
     Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
     if (pModel != nullptr)
         currentModel = pModel->GetModelData();
-    if (currentModel == nullptr) return;
+    if (currentModel == nullptr) 
+        return;
     ImGui::Text("--CurrentModel Data--");
     ImGui::Text("iNumBones : %d", currentModel->bones.size());
     ImGui::Text("iNumMeshes : %d", currentModel->meshes.size());
@@ -193,6 +194,21 @@ void ModelPanel::OnRender()
         pModel->StopAnimation();
     }
 
+    _float curTime = {};
+    _float duration = {};
+    if (pModel != nullptr)
+    {
+        curTime = pModel->GetCurAnimTrackPos();
+        duration = pModel->GetCurAnimDuration();
+    }
+    _float progress = (duration > 0.f) ? (curTime / duration) : 0.f;
+    progress = std::clamp(progress, 0.f, 1.f);
+
+    ImGui::Text("Animation Progress");
+    ImGui::ProgressBar(progress, ImVec2(0.0f, 0.0f));
+    ImGui::Text("Time: %.2f / %.2f", curTime, duration);
+
+    ImGui::Separator();
     ImGui::Text("--Model PreTransformRotation--");
     static _float3 rot = pModel->GetPreTransformRotation();
 

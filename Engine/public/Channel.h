@@ -20,6 +20,8 @@ public:
     static Channel* Create(const string& name, const vector<ChannelData>& channelData, const vector<class Bone*>& bones);
     virtual void Free() override;
 
+    _matrix CalcInterpolatedTransform(_float fTimeDelta);
+
 private:
     char                        m_szName[MAX_PATH] = "";
     _uint                       m_iBoneIndex = 0;

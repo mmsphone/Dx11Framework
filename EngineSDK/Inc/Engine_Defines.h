@@ -34,12 +34,15 @@
 #include <functional>
 #include <unordered_map>
 #include <ctime>
-using namespace std;
 #include <string>
+using namespace std;
 
 #include <fstream>
 #include <filesystem>
 #include <memory>
+
+#include <sstream>
+#include <windows.h>
 
 using namespace DirectX;
 #include "Engine_Enum.h"

@@ -124,9 +124,6 @@
     <Filter Include="06.ForComponent\Bone">
       <UniqueIdentifier>{8eaafdc8-3974-4e9b-ba3b-1519c9a32c3f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="06.ForComponent\Mesh">
-      <UniqueIdentifier>{def4d477-554c-4591-913e-0c2e44ced329}</UniqueIdentifier>
-    </Filter>
     <Filter Include="06.ForComponent\Material">
       <UniqueIdentifier>{708465ff-b17d-4cd2-b2dc-c5e10923fb98}</UniqueIdentifier>
     </Filter>
@@ -174,6 +171,9 @@
     </Filter>
     <Filter Include="03.Utility\SaveLoadManager">
       <UniqueIdentifier>{ac908d99-af7a-4b12-a912-61ec61861718}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\VertexIndexBuffer\VIBufferMesh">
+      <UniqueIdentifier>{def4d477-554c-4591-913e-0c2e44ced329}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -292,7 +292,7 @@
       <Filter>06.ForComponent\Bone</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Mesh.h">
-      <Filter>06.ForComponent\Mesh</Filter>
+      <Filter>05.Component\VertexIndexBuffer\VIBufferMesh</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Material.h">
       <Filter>06.ForComponent\Material</Filter>
@@ -450,7 +450,7 @@
       <Filter>06.ForComponent\Bone</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Mesh.cpp">
-      <Filter>06.ForComponent\Mesh</Filter>
+      <Filter>05.Component\VertexIndexBuffer\VIBufferMesh</Filter>
     </ClCompile>
     <ClCompile Include="..\private\Material.cpp">
       <Filter>06.ForComponent\Material</Filter>

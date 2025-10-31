@@ -18,7 +18,9 @@ Collision::Collision(const Collision& Prototype)
 {
 #ifdef _DEBUG
     SafeAddRef(m_pInputLayout);
-#endif
+#endif		
+    std::string str = std::string("AddRef");
+    DEBUG_OUTPUT(str);
 }
 
 HRESULT Collision::InitializePrototype(COLLISIONTYPE eType)

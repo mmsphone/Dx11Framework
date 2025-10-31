@@ -12,6 +12,5 @@ CollisionBox::CollisionBox()
 void CollisionBox::Free()
 {
 	__super::Free();
-
 	SafeRelease(m_pEngineUtility);
 }

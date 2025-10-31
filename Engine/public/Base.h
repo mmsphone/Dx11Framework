@@ -18,7 +18,7 @@ public:
 	virtual void Free();
 
 protected:
-	_uint referenceCount = 0;
+	_uint referenceCount = {};
 };
 
 NS_END

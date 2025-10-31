@@ -99,7 +99,7 @@ void ModelPanel::OnRender()
                 Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
                 if (pModel != nullptr)
                 {
-                    ModelData* loadedModel = pModel->LoadNoAssimpModel(binPath.c_str());
+                    ModelData* loadedModel = m_pEngineUtility->LoadNoAssimpModel(binPath.c_str());
                     if (loadedModel != nullptr)
                     {
                         pModel->SetModelData(loadedModel);

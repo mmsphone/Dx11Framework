@@ -9,18 +9,18 @@ NS_END
 
 NS_BEGIN(Client)
 
-class MainApp final : public Base
+class ClientApp final : public Base
 {
 private:
-	MainApp();
-	virtual ~MainApp() = default;
+	ClientApp();
+	virtual ~ClientApp() = default;
 
 public:
 	HRESULT Initialize();
 	void Update(_float fTimeDelta);
 	HRESULT Render();
 
-	static MainApp* Create();
+	static ClientApp* Create();
 	virtual void Free() override;
 
 private:

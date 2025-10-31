@@ -312,7 +312,8 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
     // ============= [1] 전체 모델 내보내기 =============
     {
         std::ofstream file(filePath, std::ios::binary);
-        if (!file.is_open()) return false;
+        if (!file.is_open()) 
+            return false;
 
         // Helper 람다
         auto WriteVector = [&](auto& v) {
@@ -424,7 +425,8 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
     {
         std::string meshFile = (basePath / (baseName + "_Mesh" + std::to_string(i) + ".bin")).string();
         std::ofstream mfile(meshFile, std::ios::binary);
-        if (!mfile.is_open()) continue;
+        if (!mfile.is_open()) 
+            continue;
 
         const auto& mesh = model.meshes[i];
 
@@ -435,8 +437,10 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
         // 단일 메쉬만 작성
         {
             _uint len = (_uint)mesh.name.size();
-            mfile.write((char*)&len, 4); mfile.write(mesh.name.data(), len);
-            mfile.write((char*)&mesh.materialIndex, 4);
+            mfile.write((char*)&len, 4); 
+            mfile.write(mesh.name.data(), len);
+            _uint fixedMatIdx = 0; //단일 매쉬가 참조할 머터리얼, 0번째
+            mfile.write((char*)&fixedMatIdx, 4);    
 
             auto W = [&](auto& v) {_uint n = (_uint)v.size(); mfile.write((char*)&n, 4); if (n) mfile.write((char*)v.data(), sizeof(v[0]) * n); };
             W(mesh.positions); W(mesh.normals); W(mesh.texcoords); W(mesh.tangents); W(mesh.indices);
@@ -512,7 +516,10 @@ bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
         mfile.write((char*)&len, 4);
         if (len > 0)
             mfile.write(srcPath.data(), len);
-
+        char buf[256];
+        sprintf_s(buf, "[Export] %s : vtx=%zu, idx=%zu, matIdx=%d\n",
+            mesh.name.c_str(), mesh.positions.size(), mesh.indices.size(), mesh.materialIndex);
+        OutputDebugStringA(buf);
         mfile.close();
     }
 

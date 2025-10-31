@@ -81,16 +81,16 @@ HRESULT Background::Render()
 
 HRESULT Background::ReadyComponents()
 {
-    /* For.Com_VIBuffer */
-    if (FAILED(AddComponent(SCENE::LOGO, TEXT("Prototype_Component_VIBufferRect"), TEXT("VIBuffer"), nullptr, nullptr)))
-        return E_FAIL;
-
     /* For.Com_Texture */
-    if (FAILED(AddComponent(SCENE::LOGO, TEXT("Prototype_Component_Texture_BackGround"), TEXT("Texture"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::LOGO, TEXT("Texture_BackGround"), TEXT("Texture"), nullptr, nullptr)))
         return E_FAIL;
 
     /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::LOGO, TEXT("Prototype_Component_Shader_VtxPosTex"), TEXT("Shader"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::LOGO, TEXT("Shader_VtxPosTex"), TEXT("Shader"), nullptr, nullptr)))
+        return E_FAIL;
+
+    /* For.Com_VIBuffer */
+    if (FAILED(AddComponent(SCENE::LOGO, TEXT("VIBuffer_Rect"), TEXT("VIBuffer"), nullptr, nullptr)))
         return E_FAIL;
 
     return S_OK;

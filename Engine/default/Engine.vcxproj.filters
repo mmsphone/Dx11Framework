@@ -172,6 +172,9 @@
     <Filter Include="04.ForUtility\Cell">
       <UniqueIdentifier>{826b3ab4-0208-421c-826b-2f72a9ced786}</UniqueIdentifier>
     </Filter>
+    <Filter Include="03.Utility\SaveLoadManager">
+      <UniqueIdentifier>{ac908d99-af7a-4b12-a912-61ec61861718}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -344,6 +347,9 @@
     </ClInclude>
     <ClInclude Include="..\public\GridManager.h">
       <Filter>03.Utility\GridManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SaveLoadManager.h">
+      <Filter>03.Utility\SaveLoadManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -521,6 +527,9 @@
     <ClCompile Include="..\private\GridManager.cpp">
       <Filter>03.Utility\GridManager</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\SaveLoadManager.cpp">
+      <Filter>03.Utility\SaveLoadManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli">
@@ -544,6 +553,9 @@
       <Filter>07.Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\Shader\Shader_VtxPosTex.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_SphereSky.hlsl">
       <Filter>07.Shaders</Filter>
     </FxCompile>
   </ItemGroup>

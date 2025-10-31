@@ -17,6 +17,14 @@ HRESULT PrototypeManager::Initialize(_uint iNumScenes)
     return S_OK;
 }
 
+_bool PrototypeManager::HasPrototype(_uint iSceneId, const _wstring& strPrototypeTag)
+{
+    Base* prototype = FindPrototype(iSceneId, strPrototypeTag);
+    if (prototype == nullptr)
+        return false;
+    return true;
+}
+
 HRESULT PrototypeManager::AddPrototype(_uint iSceneId, const _wstring& strPrototypeTag, Base* pPrototype)
 {
     if (iSceneId >= m_iNumScenes || FindPrototype(iSceneId, strPrototypeTag) != nullptr)

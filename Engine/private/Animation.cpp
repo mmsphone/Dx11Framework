@@ -29,8 +29,9 @@ HRESULT Animation::Initialize(const AnimationData& animationData, const vector<B
     for (auto& chData : animationData.channels)
     {
         Channel* pChannel = Channel::Create(chData.nodeName, animationData.channels, bones);
-        if (pChannel)
-            m_Channels.push_back(pChannel);
+        if (pChannel == nullptr)
+            continue;
+        m_Channels.push_back(pChannel);
     }
 
     return S_OK;

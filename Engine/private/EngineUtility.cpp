@@ -14,6 +14,7 @@
 #include "PickingManager.h"
 #include "GridManager.h"
 #include "NavigationManager.h"
+#include "SaveLoadManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -64,6 +65,9 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 
 	m_pNavigationManager = NavigationManager::Create();
 	CHECKNULLPTR(m_pNavigationManager) return E_FAIL;
+
+	m_pSaveLoadManager = SaveLoadManager::Create();
+	CHECKNULLPTR(m_pSaveLoadManager) return E_FAIL;
 
 	return S_OK;
 }
@@ -266,6 +270,11 @@ Base* EngineUtility::ClonePrototype(PROTOTYPE eType, _uint iSceneId, const _wstr
 	return m_pPrototypeManager->ClonePrototype(eType, iSceneId, strPrototypeTag, pArg);
 }
 
+_bool EngineUtility::HasPrototype(_uint iSceneId, const _wstring& strPrototypeTag)
+{
+	return m_pPrototypeManager->HasPrototype(iSceneId, strPrototypeTag);
+}
+
 HRESULT EngineUtility::AddObject(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, _uint iLayerSceneId, const _wstring& strLayerTag, void* pArg) 
 {
 	return m_pObjectManager->AddObject(iPrototypeSceneId, strPrototypeTag, iLayerSceneId, strLayerTag, pArg);
@@ -350,6 +359,7 @@ HRESULT EngineUtility::DrawFont(const _wstring& strFontTag, const _wstring& strT
 	return m_pFontManager->DrawFont(strFontTag, strText, vPosition, vColor);
 }
 
+#ifdef _IMGUI
 HRESULT EngineUtility::BeginIMGUI()
 {
 	if (!m_pIMGUIManager)
@@ -418,7 +428,7 @@ void EngineUtility::ClearGizmoState()
 {
 	m_pIMGUIManager->ClearGizmoTarget();
 }
-
+#endif
 RAY EngineUtility::GetRay()
 {
 	return m_pPickingManager->GetRay();
@@ -531,4 +541,19 @@ _bool EngineUtility::SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPo
 const vector<class Cell*>& EngineUtility::GetCells() const
 {
 	return m_pNavigationManager->GetCells();
+}
+
+ModelData* EngineUtility::LoadNoAssimpModel(const _char* pFilePath)
+{
+	return m_pSaveLoadManager->LoadNoAssimpModel(pFilePath);
+}
+
+std::vector<MAP_OBJECTDATA> EngineUtility::LoadMapData(const std::string& path)
+{
+	return m_pSaveLoadManager->LoadMapData(path);
+}
+
+HRESULT EngineUtility::SaveMapData(const std::string& path)
+{
+	return m_pSaveLoadManager->SaveMapData(path);
 }

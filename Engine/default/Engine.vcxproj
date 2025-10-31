@@ -62,6 +62,7 @@
     <ClInclude Include="..\public\Pipeline.h" />
     <ClInclude Include="..\public\PrototypeManager.h" />
     <ClInclude Include="..\public\RenderManager.h" />
+    <ClInclude Include="..\public\SaveLoadManager.h" />
     <ClInclude Include="..\public\Scene.h" />
     <ClInclude Include="..\public\SceneManager.h" />
     <ClInclude Include="..\public\Shader.h" />
@@ -114,6 +115,7 @@
     <ClCompile Include="..\private\Pipeline.cpp" />
     <ClCompile Include="..\private\PrototypeManager.cpp" />
     <ClCompile Include="..\private\RenderManager.cpp" />
+    <ClCompile Include="..\private\SaveLoadManager.cpp" />
     <ClCompile Include="..\private\Scene.cpp" />
     <ClCompile Include="..\private\SceneManager.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
@@ -142,6 +144,7 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\bin\Shader\Shader_Cell.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_SphereSky.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxAnimMesh.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxCube.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxMesh.hlsl" />
@@ -240,7 +243,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;_IMGUI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -274,7 +277,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;_IMGUI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -289,6 +292,12 @@
       <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI</AdditionalLibraryDirectories>
       <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11.lib;DirectXTK.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <FxCompile>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

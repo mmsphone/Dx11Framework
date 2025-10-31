@@ -18,12 +18,12 @@ public:
 
 	HRESULT ReadyLights();
 	HRESULT ReadyLayerCamera(const _tchar* pLayerTag);
-	HRESULT ReadyLayerPlayer(const _tchar* pLayerTag);
-	HRESULT ReadyLayerMonster(const _tchar* pLayerTag);
-	HRESULT ReadyLayerBackGround(const _tchar* pLayerTag);
 
 	static GameScene* Create();
 	virtual void Free() override;
+
+private:
+	HRESULT LoadMapObjects(const std::vector<MAP_OBJECTDATA>& mapData);
 };
 
 NS_END

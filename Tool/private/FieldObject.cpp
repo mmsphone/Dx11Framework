@@ -72,16 +72,30 @@ void FieldObject::LateUpdate(_float fTimeDelta)
 }
 
 HRESULT FieldObject::Render()
-{
+{   
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
     Shader* pShader = dynamic_cast<Shader*>(FindComponent(TEXT("Shader")));
+    Shader* pShader2 = dynamic_cast<Shader*>(FindComponent(TEXT("Shader2")));
+    Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
+    if (!pTransform || !pShader || !pShader2 || !pModel)
+        return E_FAIL;
+
+    {
+        std::ostringstream oss;
+        oss << "[RenderCheck] Sky "
+            << "shader=" << (pShader ? "OK" : "NULL")
+            << "shader2=" << (pShader2 ? "OK" : "NULL")
+            << " model=" << (pModel ? "OK" : "NULL")
+            << "\n";
+        OutputDebugStringA(oss.str().c_str());
+    }
 
     if (FAILED(pTransform->BindShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
 
-    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::VIEW))))
+    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW))))
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::PROJECTION))))
+    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION))))
         return E_FAIL;
     if (FAILED(pShader->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))
         return E_FAIL;
@@ -99,17 +113,51 @@ HRESULT FieldObject::Render()
     if (FAILED(pShader->BindRawValue("g_vLightSpecular", &pLightDesc->vSpecular, sizeof(_float4))))
         return E_FAIL;
 
-    Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    _uint       iNumMeshes = pModel->GetNumMeshes();
+    if (FAILED(pTransform->BindShaderResource(pShader2, "g_WorldMatrix")))
+        return E_FAIL;
+    if (FAILED(pShader2->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW))))
+        return E_FAIL;
+    if (FAILED(pShader2->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION))))
+        return E_FAIL;
+    if (FAILED(pShader2->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))
+        return E_FAIL;
+    if (FAILED(pShader2->BindRawValue("g_vLightDir", &pLightDesc->vDirection, sizeof(_float4))))
+        return E_FAIL;
+    if (FAILED(pShader2->BindRawValue("g_vLightDiffuse", &pLightDesc->vDiffuse, sizeof(_float4))))
+        return E_FAIL;
+    if (FAILED(pShader2->BindRawValue("g_vLightAmbient", &pLightDesc->vAmbient, sizeof(_float4))))
+        return E_FAIL;
+    if (FAILED(pShader2->BindRawValue("g_vLightSpecular", &pLightDesc->vSpecular, sizeof(_float4))))
+        return E_FAIL;
 
+    _uint       iNumMeshes = pModel->GetNumMeshes();
     for (_uint i = 0; i < iNumMeshes; i++)
     {
-        if (FAILED(pModel->BindShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
-            continue;
+        if (pModel->GetModelData()->bones.size() > 0)
+        {
+            if (FAILED(pModel->BindShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
+            {
+                OutputDebugStringA("[RenderCheck] DiffuseTexture bind failed\n");
+                continue;
+            }
+            OutputDebugStringA("[RenderCheck] DiffuseTexture bound OK\n");
 
-        pModel->BindBoneMatrices(i, pShader, "g_BoneMatrices");
-        pShader->Begin(0);
-        pModel->Render(i);
+            pModel->BindBoneMatrices(i, pShader, "g_BoneMatrices"); 
+            pShader->Begin(0);
+            pModel->Render(i);
+        }
+        else
+        {
+            if (FAILED(pModel->BindShaderResource(i, pShader2, "g_DiffuseTexture", TextureType::Diffuse, 0)))
+            {
+                OutputDebugStringA("[RenderCheck] DiffuseTexture bind failed\n");
+                continue;
+            }
+            OutputDebugStringA("[RenderCheck] DiffuseTexture bound OK\n");
+
+            pShader2->Begin(0);
+            pModel->Render(i);
+        }
     }
 #ifdef _DEBUG
     Collision* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision")));
@@ -122,19 +170,21 @@ HRESULT FieldObject::Render()
 
 HRESULT FieldObject::ReadyComponents()
 {
+    /* For.Com_Shader */
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
+        return E_FAIL;
+    if (FAILED(AddComponent(SCENE::MAP, TEXT("Shader_VtxMesh"), TEXT("Shader2"), nullptr, nullptr)))
+        return E_FAIL;
+
     /* For.Com_Model */
     if (FAILED(AddComponent(SCENE::MAP, TEXT("Model_Fiona"), TEXT("Model"), nullptr, nullptr)))
         return E_FAIL;
 
     // For.Com_CollisionAABB
     CollisionBoxAABB::COLLISIONAABB_DESC     AABBDesc{};
-    AABBDesc.vSize = _float3(0.8f, 1.2f, 0.8f);
-    AABBDesc.vCenter = _float3(0.f, AABBDesc.vSize.y * 0.5f, 0.f);
+    AABBDesc.vSize = _float3(2.f, 2.f, 2.f);
+    AABBDesc.vCenter = _float3(0.f, 0.f, 0.f);
     if(FAILED(AddComponent(SCENE::MAP, TEXT("CollisionAABB"), TEXT("Collision"), nullptr, &AABBDesc)))
-        return E_FAIL;
-
-    /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::MAP, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
 
     return S_OK;

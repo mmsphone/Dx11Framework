@@ -62,7 +62,7 @@ HRESULT ModelScene::Initialize()
 	//Light
 	LIGHT_DESC		LightDesc{};
 
-	LightDesc.eType = LIGHT::DIRECTIONAL;
+	LightDesc.eType = LIGHT::LIGHT_DIRECTIONAL;
 	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
 	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
 	LightDesc.vAmbient = _float4(1.f, 1.f, 1.f, 1.f);

@@ -210,12 +210,12 @@ RAY PickingManager::GetRay()
     _vector rayFarView = XMVectorSet(ndcX, ndcY, 1.f, 1.f);
 
     // Viewport -> ViewSpace 
-    _matrix invProjection = m_pEngineUtility->GetTransformMatrixInverse(D3DTS::PROJECTION);
+    _matrix invProjection = m_pEngineUtility->GetTransformMatrixInverse(D3DTS::D3DTS_PROJECTION);
     rayOriginView = XMVector3TransformCoord(rayOriginView, invProjection);
     rayFarView = XMVector3TransformCoord(rayFarView, invProjection);
 
     // ViewSpace -> World
-    _matrix invView = m_pEngineUtility->GetTransformMatrixInverse(D3DTS::VIEW);
+    _matrix invView = m_pEngineUtility->GetTransformMatrixInverse(D3DTS::D3DTS_VIEW);
     _vector rayOriginWorld = XMVector3TransformCoord(rayOriginView, invView);
     _vector rayFarWorld = XMVector3TransformCoord(rayFarView, invView);
 

@@ -108,8 +108,8 @@ void* Collision::GetLocalCollisionBox(COLLISIONTYPE eType)
 HRESULT Collision::Render()
 {
     m_pEffect->SetWorld(XMMatrixIdentity());
-    m_pEffect->SetView(m_pEngineUtility->GetTransformMatrix(D3DTS::VIEW));
-    m_pEffect->SetProjection(m_pEngineUtility->GetTransformMatrix(D3DTS::PROJECTION));
+    m_pEffect->SetView(m_pEngineUtility->GetTransformMatrix(D3DTS::D3DTS_VIEW));
+    m_pEffect->SetProjection(m_pEngineUtility->GetTransformMatrix(D3DTS::D3DTS_PROJECTION));
 
     m_pEffect->Apply(m_pEngineUtility->GetContext());
 

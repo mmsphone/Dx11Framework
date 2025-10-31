@@ -61,7 +61,8 @@ public:
 
 	//PrototypeManager
 	HRESULT AddPrototype(_uint iSceneId, const _wstring& strPrototypeTag, Base* pPrototype);
-	Base* ClonePrototype(PROTOTYPE eType, _uint iSceneId, const _wstring& strPrototypeTag, void* pArg = nullptr);
+	Base* ClonePrototype(PROTOTYPE eType, _uint iSceneId, const _wstring& strPrototypeTag, void* pArg = nullptr); 
+	_bool HasPrototype(_uint iSceneId, const _wstring& strPrototypeTag);
 
 	//ObjectManager
 	HRESULT AddObject(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, _uint iLayerSceneId, const _wstring& strLayerTag, void* pArg = nullptr);
@@ -90,6 +91,7 @@ public:
 	HRESULT AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath);
 	HRESULT DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor = XMVectorSet(1.f, 1.f, 1.f, 1.f));
 
+#ifdef _IMGUI
 	//IMGUIManager
 	HRESULT BeginIMGUI();
 	HRESULT RenderIMGUI();
@@ -105,6 +107,7 @@ public:
 	std::pair<class Object*, ImGuizmo::OPERATION> GetGizmoState() const;
 	bool HasGizmoTarget() const;
 	void ClearGizmoState();
+#endif
 
 	//PickingManager
 	RAY GetRay();
@@ -139,6 +142,11 @@ public:
 	_bool SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos);
 	const vector<class Cell*>& GetCells() const;
 
+	//SaveLoadManager
+	ModelData* LoadNoAssimpModel(const _char* pFilePath);
+	std::vector<MAP_OBJECTDATA> LoadMapData(const std::string& path);
+	HRESULT SaveMapData(const std::string& path);
+
 private:
 	class Graphic* m_pGraphic = { nullptr };
 	class Input* m_pInput = { nullptr };
@@ -154,6 +162,7 @@ private:
 	class PickingManager* m_pPickingManager = { nullptr };
 	class GridManager* m_pGridManager = { nullptr };
 	class NavigationManager* m_pNavigationManager = { nullptr };
+	class SaveLoadManager* m_pSaveLoadManager = { nullptr };
 };
 
 NS_END

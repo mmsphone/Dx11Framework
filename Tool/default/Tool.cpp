@@ -102,8 +102,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    pEngineUtility->DestroyInstance();
-
+    SafeRelease(pEngineUtility);
+    EngineUtility::DestroyInstance();
     SafeRelease(pMainApp);
 
 

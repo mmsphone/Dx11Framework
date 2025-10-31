@@ -3,47 +3,23 @@
 #include "EngineUtility.h"
 
 Sky::Sky()
-    : Object{ }
-{
+    : ObjectTemplate{ }
+{   
 }
 
 Sky::Sky(const Sky& Prototype)
-    : Object{ Prototype }
+    : ObjectTemplate{ Prototype }
 {
-}
-
-HRESULT Sky::InitializePrototype()
-{
-    return S_OK;
-}
-
-HRESULT Sky::Initialize(void* pArg)
-{
-    if (FAILED(__super::Initialize(pArg)))
-        return E_FAIL;
-
-    if (FAILED(ReadyComponents()))
-        return E_FAIL;
-
-    return S_OK;
-}
-
-void Sky::PriorityUpdate(_float fTimeDelta)
-{
-    __super::PriorityUpdate(fTimeDelta);
-}
-
-void Sky::Update(_float fTimeDelta)
-{
-    __super::Update(fTimeDelta);
 }
 
 void Sky::LateUpdate(_float fTimeDelta)
 {
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    pTransform->SetState(STATE::POSITION, XMLoadFloat4(m_pEngineUtility->GetCamPosition()));
-
-    /* 렌더러의 그룹들 중 어떤 순서로 그려져야할지 적절한 위치에 추가해준다. */
+    if (pTransform)
+    {
+        pTransform->SetState(STATE::POSITION, XMLoadFloat4(m_pEngineUtility->GetCamPosition()));
+    }
+    
     m_pEngineUtility->JoinRenderGroup(RENDERGROUP::PRIORITY, this);
 
     __super::LateUpdate(fTimeDelta);
@@ -53,44 +29,39 @@ HRESULT Sky::Render()
 {
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
     Shader* pShader = dynamic_cast<Shader*>(FindComponent(TEXT("Shader")));
-    Texture* pTexture = dynamic_cast<Texture*>(FindComponent(TEXT("Texture")));
-    VIBufferCube* pCube = dynamic_cast<VIBufferCube*>(FindComponent(TEXT("VIBuffer")));
+    Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
+    if (!pModel || !pShader || !pTransform)
+        return E_FAIL;
+
     if (FAILED(pTransform->BindShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
-
-    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::VIEW))))
+    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW))))
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::PROJECTION))))
+    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION))))
         return E_FAIL;
 
-    if (FAILED(pTexture->BindShaderResource(pShader, "g_Texture", 2)))
+    if (FAILED(pModel->BindShaderResource(0, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
         return E_FAIL;
 
     pShader->Begin(0);
-    pCube->BindBuffers();
-    pCube->Render();
+    pModel->Render(0);
 
     return S_OK;
 }
 
 HRESULT Sky::ReadyComponents()
-{
-    /* For.Com_VIBuffer */
-    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Prototype_Component_VIBuffer_Cube"), TEXT("VIBuffer"), nullptr, nullptr)))
-        return E_FAIL;
-
-    /* For.Com_Texture */
-    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Prototype_Component_Texture_Sky"), TEXT("Texture"), nullptr, nullptr)))
-        return E_FAIL;
-
+{   
     /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Prototype_Component_Shader_VtxCube"), TEXT("Shader"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Shader_SphereSky"), TEXT("Shader"), nullptr, nullptr)))
+        return E_FAIL;
+    /* For.Com_Model */
+    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Model_Sky"), TEXT("Model"), nullptr, nullptr)))
         return E_FAIL;
 
     return S_OK;
 }
 
-Object* Sky::Create()
+Sky* Sky::Create()
 {
     Sky* pInstance = new Sky();
 
@@ -115,9 +86,4 @@ Object* Sky::Clone(void* pArg)
     }
 
     return pInstance;
-}
-
-void Sky::Free()
-{
-    __super::Free();
 }

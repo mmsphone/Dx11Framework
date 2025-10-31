@@ -16,10 +16,15 @@ public:
 	virtual void Update(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
-	HRESULT ReadyLayerBackGround(const _tchar* pLayerTag);
+	HRESULT ReadyLights();
+	HRESULT ReadyLayerCamera(const _tchar* pLayerTag);
+	HRESULT ReadyLayerUI();
 
 	static LogoScene* Create();
 	virtual void Free() override;
+
+private:
+	HRESULT LoadMapObjects(const std::vector<MAP_OBJECTDATA>& mapData);
 };
 
 NS_END

@@ -18,13 +18,14 @@
 #ifdef new
 #undef new
 #endif
+#ifdef _IMGUI
 #include "IMGUI/imgui.h"
 #include "IMGUI/backends/imgui_impl_win32.h"
 #include "IMGUI/backends/imgui_impl_dx11.h"
 #include "IMGUI/ImGuizmo.h"
+#endif
 
 #include "d3dcompiler.h"
-
 
 #include <vector>
 #include <list>

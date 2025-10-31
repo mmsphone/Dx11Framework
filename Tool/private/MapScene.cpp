@@ -63,7 +63,7 @@ HRESULT MapScene::Initialize()
 	//Light
 	LIGHT_DESC		LightDesc{};
 
-	LightDesc.eType = LIGHT::DIRECTIONAL;
+	LightDesc.eType = LIGHT::LIGHT_DIRECTIONAL;
 	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
 	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
 	LightDesc.vAmbient = _float4(1.f, 1.f, 1.f, 1.f);
@@ -81,9 +81,9 @@ HRESULT MapScene::Initialize()
 	Desc.vAt = _float3(0.f, 0.f, 0.f);
 	Desc.fFovy = XMConvertToRadians(60.0f);
 	Desc.fNear = 0.1f;
-	Desc.fFar = 500.f;
+	Desc.fFar = 2000.f;
 	Desc.fSensor = 0.1f;
-	Desc.fSpeedPerSec = 10.f;
+	Desc.fSpeedPerSec = 40.f;
 	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
 
 	if (FAILED(m_pEngineUtility->AddObject(SCENE::MAP, TEXT("FreeCam"), SCENE::MAP, TEXT("Cam"), &Desc)))
@@ -129,8 +129,8 @@ HRESULT MapScene::Render()
 	ImGuizmo::SetDrawlist(ImGui::GetForegroundDrawList()); // ✅ 전역 Foreground DrawList에 그림
 
 	// --- [2] 행렬 세팅 ---
-	_float4x4 view = *m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::VIEW);
-	_float4x4 proj = *m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::PROJECTION);
+	_float4x4 view = *m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW);
+	_float4x4 proj = *m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION);
 	_float4x4 world = *pTransform->GetWorldMatrixPtr();
 
 	// DirectX 행렬은 row-major 이므로 transpose 필요 X (보통 그대로 써야 함)
@@ -152,9 +152,9 @@ HRESULT MapScene::Render()
 		XMVECTOR s, r, t;
 		XMMatrixDecompose(&s, &r, &t, xmWorld);
 
-		XMVECTOR right = XMVector3Normalize(xmWorld.r[0]);
-		XMVECTOR up = XMVector3Normalize(xmWorld.r[1]);
-		XMVECTOR look = XMVector3Normalize(xmWorld.r[2]);
+		XMVECTOR right = xmWorld.r[0];
+		XMVECTOR up = xmWorld.r[1];
+		XMVECTOR look = xmWorld.r[2];
 
 		pTransform->SetState(RIGHT, right);
 		pTransform->SetState(UP, up);

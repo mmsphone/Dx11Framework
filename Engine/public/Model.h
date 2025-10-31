@@ -28,7 +28,7 @@ public:
 	void SetAnimation(_uint iIndex, _bool isLoop = false);
 	void StopAnimation();
 	void ResumeAnimation();
-	_uint GetCurrentAnimIndex();
+	_uint GetCurrentAnimIndex() const;
 	_float GetCurAnimTrackPos() const;
 	_float GetCurAnimDuration() const;
 	_bool isAnimFinished() const;
@@ -44,8 +44,6 @@ public:
 
 	void SetPreTransformRotation(const _float3& eulerDeg);
 	_float3 GetPreTransformRotation() const;
-
-	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 
 	static Model* Create(MODELTYPE eType, const _char* pModelFilePath, _fmatrix PreTransformMatrix = XMMatrixIdentity());
 	static Model* Create(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix = XMMatrixIdentity());
@@ -63,6 +61,7 @@ private:
 	ModelData*				m_pModelData = { nullptr };
 	MODELTYPE				m_eType = { };
 	_float4x4				m_PreTransformMatrix = {};
+	const _char*			m_pModelFilePath = {};
 
 	_uint					m_iNumMeshes = {};
 	vector<class Mesh*>	m_Meshes;

@@ -18,8 +18,6 @@ HRESULT LoadingScene::Initialize(SCENE eNextSceneId)
 
 	if (FAILED(ReadyLayerBackGround()))
 		return E_FAIL;
-	if (FAILED(ReadyLayerUI()))
-		return E_FAIL;
 
 	/* 다음 레벨에대한 자원준비를 할 수 있도록 한다. */
 	m_pLoader = Loader::Create(eNextSceneId);
@@ -62,11 +60,6 @@ HRESULT LoadingScene::Render()
 }
 
 HRESULT LoadingScene::ReadyLayerBackGround()
-{
-	return S_OK;
-}
-
-HRESULT LoadingScene::ReadyLayerUI()
 {
 	return S_OK;
 }

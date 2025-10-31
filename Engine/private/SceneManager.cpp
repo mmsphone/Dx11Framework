@@ -1,7 +1,8 @@
 ﻿#include "SceneManager.h"
-#include "Scene.h"
+
 #include "EngineUtility.h"
 
+#include "Scene.h"
 
 SceneManager::SceneManager()
 	:m_pEngineUtility { EngineUtility::GetInstance() }
@@ -51,7 +52,7 @@ void SceneManager::Free()
 {
 	__super::Free();
 
-	m_pEngineUtility->DestroyInstance();
+	SafeRelease(m_pEngineUtility);
 
 	SafeRelease(m_pCurrentScene);
 }

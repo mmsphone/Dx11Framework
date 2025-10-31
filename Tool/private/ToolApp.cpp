@@ -85,7 +85,7 @@ void ToolApp::Free()
 	__super::Free();
 
 	m_pEngineUtility->ReleaseEngine();
-	m_pEngineUtility->DestroyInstance();
+	SafeRelease(m_pEngineUtility);
 }
 
 HRESULT ToolApp::ReadyPrototypeForStatic()

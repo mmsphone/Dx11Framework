@@ -4,7 +4,7 @@
 #include "framework.h"
 #include "Client.h"
 
-#include "MainApp.h"
+#include "ClientApp.h"
 
 #include "EngineUtility.h"
 
@@ -35,7 +35,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: 여기에 코드를 입력합니다.
-    MainApp* pMainApp = { nullptr };
+    ClientApp* pClientApp = { nullptr };
     EngineUtility* pEngineUtility = { nullptr };
 
     // 전역 문자열을 초기화합니다.
@@ -53,8 +53,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    pMainApp = MainApp::Create();
-    if (nullptr == pMainApp)
+    pClientApp = ClientApp::Create();
+    if (nullptr == pClientApp)
         return FALSE;
 
     pEngineUtility = EngineUtility::GetInstance();
@@ -90,8 +90,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             pEngineUtility->UpdateTimeDelta(TEXT("Timer_60"));
 
 
-            pMainApp->Update(pEngineUtility->GetTimeDelta(TEXT("Timer_60")));
-            pMainApp->Render();
+            pClientApp->Update(pEngineUtility->GetTimeDelta(TEXT("Timer_60")));
+            pClientApp->Render();
 
             fTimeAcc = 0.f;
         }
@@ -99,7 +99,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     pEngineUtility->DestroyInstance();
 
-    SafeRelease(pMainApp);
+    SafeRelease(pClientApp);
 
 
     return (int)msg.wParam;

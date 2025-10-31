@@ -1,17 +1,11 @@
 ﻿#pragma once
 
 #include "Client_Defines.h"
-#include "Object.h"
-
-NS_BEGIN(Engine)
-class Shader;
-class Texture;
-class VIBufferCube;
-NS_END
+#include "ObjectTemplate.h"
 
 NS_BEGIN(Client)
 
-class Sky final : public Object
+class Sky final : public ObjectTemplate
 {
 private:
 	Sky();
@@ -19,16 +13,12 @@ private:
 	virtual ~Sky() = default;
 
 public:
-	virtual HRESULT InitializePrototype() override;
-	virtual HRESULT Initialize(void* pArg) override;
-	virtual void PriorityUpdate(_float fTimeDelta) override;
-	virtual void Update(_float fTimeDelta) override;
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
-	static Object* Create();/* 원형생성 */
-	virtual Object* Clone(void* pArg) override;/* 사본생성 */
-	virtual void Free();
+	static Sky* Create();
+	virtual Object* Clone(void* pArg) override;
+
 private:
 	HRESULT ReadyComponents();
 };

@@ -34,37 +34,45 @@ void FreeCam::PriorityUpdate(_float fTimeDelta)
     if (pTransform == nullptr)
         return;
 
-    if (m_pEngineUtility->GetKeyState(DIK_W) & 0x80) pTransform->GoForward(fTimeDelta);
-    if (m_pEngineUtility->GetKeyState(DIK_S) & 0x80) pTransform->GoBackward(fTimeDelta);
-    if (m_pEngineUtility->GetKeyState(DIK_A) & 0x80) pTransform->GoLeft(fTimeDelta);
-    if (m_pEngineUtility->GetKeyState(DIK_D) & 0x80) pTransform->GoRight(fTimeDelta);
-    if (m_pEngineUtility->GetKeyState(DIK_SPACE) & 0x80) pTransform->GoUp(fTimeDelta);    
-    if (m_pEngineUtility->GetKeyState(DIK_LCONTROL) & 0x80) pTransform->GoDown(fTimeDelta);
+    if (m_pEngineUtility->IsKeyDown(DIK_W))
+        pTransform->GoForward(fTimeDelta);
+    if (m_pEngineUtility->IsKeyDown(DIK_S))
+        pTransform->GoBackward(fTimeDelta);
+    if (m_pEngineUtility->IsKeyDown(DIK_A))
+        pTransform->GoLeft(fTimeDelta);
+    if (m_pEngineUtility->IsKeyDown(DIK_D))
+        pTransform->GoRight(fTimeDelta);
+    if (m_pEngineUtility->IsKeyDown(DIK_SPACE))
+        pTransform->GoUp(fTimeDelta);
+    if (m_pEngineUtility->IsKeyDown(DIK_LCONTROL))
+        pTransform->GoDown(fTimeDelta);
 
-    static bool altPressedLastFrame = false;
-    bool altPressed = m_pEngineUtility->GetKeyState(DIK_LALT) & 0x8000;
-
+    _bool altDown = m_pEngineUtility->IsKeyDown(DIK_LALT);
+    _bool altPressed = m_pEngineUtility->IsKeyReleased(DIK_LALT);
     _float2 winSize = m_pEngineUtility->GetWindowSize();
     _float2 center = { winSize.x / 2.f, winSize.y / 2.f };
 
-    if (altPressed == false)
+
+    if (altDown)
+    {
+        m_pEngineUtility->SetMouseVisible(true);
+    }
+    else
     {
         m_pEngineUtility->SetMousePos(center);
         m_pEngineUtility->SetMouseVisible(false);
     }
-    else
-        m_pEngineUtility->SetMouseVisible(true);
 
-    if (altPressedLastFrame == false)
+    if (altDown == false && altPressed == false)
     {
         _long MouseMoveX = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::X);
         if (MouseMoveX != 0)
             pTransform->RotateTimeDelta(XMVectorSet(0.f, 1.f, 0.f, 0.f), MouseMoveX * m_fSensor * fTimeDelta);
 
         _vector vLook = XMVector4Normalize(pTransform->GetState(LOOK));
-        
+
         _float lookAngle = asinf(XMVectorGetY(vLook));
-        constexpr _float limitAngle = XMConvertToRadians(89.f);
+        constexpr _float limitAngle = XMConvertToRadians(85.f);
 
         _long MouseMoveY = m_pEngineUtility->GetMouseMove(MOUSEMOVESTATE::Y);
         if (MouseMoveY != 0)
@@ -72,11 +80,10 @@ void FreeCam::PriorityUpdate(_float fTimeDelta)
             _float moveAngle = MouseMoveY * m_fSensor * fTimeDelta;
             _float nextAngle = lookAngle - moveAngle;
 
-            if(nextAngle < limitAngle && nextAngle > -limitAngle)
+            if (nextAngle < limitAngle && nextAngle > -limitAngle)
                 pTransform->RotateTimeDelta(pTransform->GetState(RIGHT), moveAngle);
         }
     }
-    altPressedLastFrame = altPressed;
 
     UpdatePipeLine();
 }

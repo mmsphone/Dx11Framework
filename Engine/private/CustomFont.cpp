@@ -39,7 +39,7 @@ void CustomFont::Free()
 {
 	__super::Free();
 
-	m_pEngineUtility->DestroyInstance();
+	SafeRelease(m_pEngineUtility);
 	SafeDelete(m_pFont);
 	SafeDelete(m_pBatch);
 }

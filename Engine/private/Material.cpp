@@ -69,6 +69,6 @@ void Material::Free()
 			SafeRelease(pSRV);
 		textures.clear();
 	}
-
-	m_pEngineUtility->DestroyInstance();
+		
+	SafeRelease(m_pEngineUtility);
 }

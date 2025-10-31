@@ -94,7 +94,7 @@ void Object::Free()
 {
 	__super::Free();
 
-	m_pEngineUtility->DestroyInstance();
+	SafeRelease(m_pEngineUtility);
 
 	for (auto& Pair : m_Components)
 		SafeRelease(Pair.second);

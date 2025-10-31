@@ -13,9 +13,6 @@ HRESULT GridManager::Initialize(_uint iNumCells, _float fCellSize)
     m_iNumCells = iNumCells;
     m_fCellSize = fCellSize;
 
-    m_pEngineUtility = EngineUtility::GetInstance();
-    SafeAddRef(m_pEngineUtility);
-
 #ifdef _DEBUG
     auto pDevice = m_pEngineUtility->GetDevice();
     auto pContext = m_pEngineUtility->GetContext();
@@ -49,8 +46,8 @@ void GridManager::Render()
 
     auto pContext = m_pEngineUtility->GetContext();
 
-    XMMATRIX view = XMLoadFloat4x4(m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::VIEW));
-    XMMATRIX proj = XMLoadFloat4x4(m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::PROJECTION));
+    XMMATRIX view = XMLoadFloat4x4(m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW));
+    XMMATRIX proj = XMLoadFloat4x4(m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION));
 
     m_pEffect->SetView(view);
     m_pEffect->SetProjection(proj);

@@ -24,6 +24,7 @@ private:
 
 public:
 	HRESULT Initialize(_uint iNumScenes);
+	_bool HasPrototype(_uint iSceneId, const _wstring& strPrototypeTag);
 	HRESULT AddPrototype(_uint iSceneId, const _wstring& strPrototypeTag, Base* pPrototype);
 	Base* ClonePrototype(PROTOTYPE eType, _uint iSceneId, const _wstring& strPrototypeTag, void* pArg = nullptr);
 	void Clear(_uint iSceneId);

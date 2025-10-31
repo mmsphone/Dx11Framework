@@ -166,7 +166,7 @@ void MapPanel::OnRender()
             Model* pModel = dynamic_cast<Model*>(pObject->FindComponent(TEXT("Model")));
             if (pModel)
             {
-                ModelData* pModelData = pModel->LoadNoAssimpModel(m_SelectedModelDataPath.c_str());
+                ModelData* pModelData = m_pEngineUtility->LoadNoAssimpModel(m_SelectedModelDataPath.c_str());
                 if (pModelData)
                 {
                     pModel->SetModelData(pModelData);
@@ -197,69 +197,16 @@ void MapPanel::OnRender()
         char szFile[MAX_PATH] = {};
         OPENFILENAMEA ofn = {};
         ZeroMemory(&ofn, sizeof(ofn));
-
         ofn.lStructSize = sizeof(ofn);
         ofn.hwndOwner = GetActiveWindow();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = MAX_PATH;
-        ofn.lpstrFilter = "Map Data Files (*.dat)\0*.dat\0All Files\0*.*\0";
+        ofn.lpstrFilter = "Map Data (*.dat)\0*.dat\0All Files\0*.*\0";
         ofn.nFilterIndex = 1;
-        ofn.lpstrDefExt = "dat";
-        ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
+        ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
 
         if (GetSaveFileNameA(&ofn))
-        {
-            std::ofstream f(szFile, std::ios::binary);
-            if (!f.is_open())
-            {
-                MessageBoxA(nullptr, "Failed to open file for writing.", "Save Error", MB_OK);
-                return;
-            }
-
-            // FieldObject 레이어의 오브젝트 전부 저장
-            Layer* pLayer = m_pEngineUtility->FindLayer(SCENE::MAP, TEXT("FieldObject"));
-            if (pLayer != nullptr)
-            {
-                auto& fieldObjects = pLayer->GetAllObjects();
-                _uint count = (_uint)fieldObjects.size();
-                f.write((char*)&count, sizeof(_uint));
-
-                for (auto& pObj : fieldObjects)
-                {
-                    // 1️⃣ 모델 경로 (바이너리 파일)
-                    Model* pModel = dynamic_cast<Model*>(pObj->FindComponent(TEXT("Model")));
-                    if (!pModel)
-                        continue;
-
-                    std::string modelPath = pModel->GetBinPath();
-                    if (modelPath.empty())
-                        modelPath = "UnknownModel.bin"; // fallback
-                        
-                    _uint pathLen = (_uint)modelPath.size();
-                    f.write((char*)&pathLen, sizeof(_uint));
-                    f.write(modelPath.data(), pathLen);
-
-                    // 2️⃣ 월드 행렬
-                    Transform* pTransform = dynamic_cast<Transform*>(pObj->FindComponent(TEXT("Transform")));
-                    if (pTransform)
-                    {
-                        _float4x4 worldMat = *pTransform->GetWorldMatrixPtr();
-                        f.write((char*)&worldMat, sizeof(_float4x4));
-                    }
-                    else
-                    {
-                        _float4x4 identity = {
-                            1,0,0,0,
-                            0,1,0,0,
-                            0,0,1,0,
-                            0,0,0,1
-                        };
-                        f.write((char*)&identity, sizeof(_float4x4));
-                    }
-                }
-                f.close();
-                }
-        }
+            m_pEngineUtility->SaveMapData(szFile);
     }
     ImGui::SameLine();
 
@@ -269,39 +216,22 @@ void MapPanel::OnRender()
         char szFile[MAX_PATH] = {};
         OPENFILENAMEA ofn = {};
         ZeroMemory(&ofn, sizeof(ofn));
-
         ofn.lStructSize = sizeof(ofn);
         ofn.hwndOwner = GetActiveWindow();
         ofn.lpstrFile = szFile;
         ofn.nMaxFile = MAX_PATH;
-        ofn.lpstrFilter = "Map Data Files (*.dat)\0*.dat\0All Files\0*.*\0";
+        ofn.lpstrFilter = "Map Data (*.dat)\0*.dat\0All Files\0*.*\0";
         ofn.nFilterIndex = 1;
         ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
 
         if (GetOpenFileNameA(&ofn))
         {
-            std::ifstream f(szFile, std::ios::binary);
-            if (!f.is_open())
+            std::vector<MAP_OBJECTDATA> mapObjects =
+                m_pEngineUtility->LoadMapData(szFile);
+
+            Layer* pLayer = m_pEngineUtility->FindLayer(SCENE::MAP, TEXT("FieldObject"));
+            for (auto& obj : mapObjects)
             {
-                MessageBoxA(nullptr, "Failed to open file for reading.", "Load Error", MB_OK);
-                return;
-            }
-
-            _uint count = 0;
-            f.read((char*)&count, sizeof(_uint));
-
-            for (_uint i = 0; i < count; ++i)
-            {
-                _uint pathLen = 0;
-                f.read((char*)&pathLen, sizeof(_uint));
-
-                std::string modelPath(pathLen, '\0');
-                f.read(modelPath.data(), pathLen);
-
-                _float4x4 worldMat{};
-                f.read((char*)&worldMat, sizeof(_float4x4));
-
-                // FieldObject 생성
                 _uint iIndex = m_pEngineUtility->GetLayerSize(SCENE::MAP, TEXT("FieldObject"));
                 m_pEngineUtility->AddObject(SCENE::MAP, TEXT("FieldObject"), SCENE::MAP, TEXT("FieldObject"));
                 Object* pObject = m_pEngineUtility->FindObject(SCENE::MAP, TEXT("FieldObject"), iIndex);
@@ -312,31 +242,29 @@ void MapPanel::OnRender()
                 Model* pModel = dynamic_cast<Model*>(pObject->FindComponent(TEXT("Model")));
                 if (pModel)
                 {
-                    ModelData* pModelData = pModel->LoadNoAssimpModel(modelPath.c_str());
+                    ModelData* pModelData = m_pEngineUtility->LoadNoAssimpModel(obj.modelPath.c_str());
                     if (pModelData)
                     {
                         pModel->SetModelData(pModelData);
-                        pModel->SetBinPath(modelPath);
+                        pModel->SetBinPath(obj.modelPath);
                     }
                 }
 
-                // 위치 적용
+                // 위치 세팅
                 Transform* pTransform = dynamic_cast<Transform*>(pObject->FindComponent(TEXT("Transform")));
                 if (pTransform)
                 {
-                    _vector right = XMLoadFloat4((_float4*)&worldMat.m[0]);
-                    _vector up = XMLoadFloat4((_float4*)&worldMat.m[1]);
-                    _vector look = XMLoadFloat4((_float4*)&worldMat.m[2]);
-                    _vector pos = XMLoadFloat4((_float4*)&worldMat.m[3]);
+                    _vector right = XMLoadFloat4((_float4*)&obj.worldMatrix.m[0]);
+                    _vector up = XMLoadFloat4((_float4*)&obj.worldMatrix.m[1]);
+                    _vector look = XMLoadFloat4((_float4*)&obj.worldMatrix.m[2]);
+                    _vector pos = XMLoadFloat4((_float4*)&obj.worldMatrix.m[3]);
 
-                    pTransform->SetState(STATE::RIGHT, right);
-                    pTransform->SetState(STATE::UP, up);
-                    pTransform->SetState(STATE::LOOK, look);
-                    pTransform->SetState(STATE::POSITION, pos);
+                    pTransform->SetState(RIGHT, right);
+                    pTransform->SetState(UP, up);
+                    pTransform->SetState(LOOK, look);
+                    pTransform->SetState(POSITION, pos);
                 }
             }
-
-            f.close();
         }
     }
 }

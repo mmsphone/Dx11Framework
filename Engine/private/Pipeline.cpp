@@ -52,7 +52,7 @@ void Pipeline::Update()
 		XMStoreFloat4x4(&m_TransformationMatrix_Inverse[ENUM_CLASS(i)], XMMatrixInverse(nullptr, XMLoadFloat4x4(&m_TransformationMatrix[ENUM_CLASS(i)])));
 	}
 
-	memcpy(&m_vCamPosition, &m_TransformationMatrix_Inverse[D3DTS::VIEW].m[3], sizeof(_float4));
+	memcpy(&m_vCamPosition, &m_TransformationMatrix_Inverse[D3DTS::D3DTS_VIEW].m[3], sizeof(_float4));
 
 }
 

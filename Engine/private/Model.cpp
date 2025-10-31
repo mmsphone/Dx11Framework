@@ -1,5 +1,7 @@
 ﻿#include "Model.h"
 
+#include "EngineUtility.h"
+
 #include "Mesh.h"
 #include "Bone.h"
 #include "Material.h"
@@ -8,6 +10,11 @@
 Model::Model()
 	: Component{ }
 {
+#ifdef _DEBUG
+    char buf[128];
+    sprintf_s(buf, "Created : %s", typeid(*this).name());
+    OutputDebugStringA(buf);
+#endif
 }
 
 Model::Model(const Model& Prototype)
@@ -32,6 +39,11 @@ Model::Model(const Model& Prototype)
     for (auto& pMaterial : m_Materials)
         SafeAddRef(pMaterial);
 
+#ifdef _DEBUG
+    char buf[128];
+    sprintf_s(buf, "Cloned : %s", typeid(*this).name());
+    OutputDebugStringA(buf);
+#endif
 }
 
 _uint Model::GetNumMeshes() const
@@ -55,7 +67,8 @@ HRESULT Model::InitializePrototype(MODELTYPE eType, const _char* pModelFilePath,
 {
     m_eType = eType;
 
-    m_pModelData = LoadNoAssimpModel(pModelFilePath);
+    m_pModelFilePath = pModelFilePath;
+    m_pModelData = m_pEngineUtility->LoadNoAssimpModel(pModelFilePath);
     if (m_pModelData == nullptr)
         return E_FAIL;
 
@@ -150,7 +163,7 @@ void Model::ResumeAnimation()
     m_isAnimStop = false;
 }
 
-_uint Model::GetCurrentAnimIndex()
+_uint Model::GetCurrentAnimIndex() const
 {
     return m_iCurrentAnimIndex;
 }
@@ -339,6 +352,7 @@ void Model::Free()
     ClearModelData();
     if(m_isCloned == false)
         SafeDelete(m_pModelData);
+
 }
 
 HRESULT Model::ReadyMeshes()
@@ -436,93 +450,6 @@ void Model::ClearModelData()
     m_Animations.clear();
     m_iNumAnimations = 0;
 }
-
-ModelData* Model::LoadNoAssimpModel(const _char* path)
-{
-    std::ifstream f(path, std::ios::binary);
-    if (!f.is_open())
-        return nullptr;
-    auto m = new ModelData();
-
-    auto R = [&](auto& v, size_t s) {_uint n; f.read((char*)&n, 4); v.resize(n); if (n)f.read((char*)v.data(), s * n); };
-
-    // 1. Meshes
-    _uint nm; f.read((char*)&nm, 4); m->meshes.resize(nm);
-    for (auto& mesh : m->meshes) {
-        _uint l; f.read((char*)&l, 4); mesh.name.resize(l); f.read(mesh.name.data(), l);
-        f.read((char*)&mesh.materialIndex, 4);
-        R(mesh.positions, sizeof(_float3)); R(mesh.normals, sizeof(_float3));
-        R(mesh.texcoords, sizeof(_float2)); R(mesh.tangents, sizeof(_float3)); R(mesh.indices, sizeof(_uint));
-
-        _uint nb; f.read((char*)&nb, 4); mesh.bones.resize(nb);
-        for (auto& b : mesh.bones) {
-            _uint ln; f.read((char*)&ln, 4); b.name.resize(ln); f.read(b.name.data(), ln);
-            _uint nw; f.read((char*)&nw, 4); b.weights.resize(nw);
-            if (nw)f.read((char*)b.weights.data(), sizeof(VertexWeight) * nw);
-            f.read((char*)&b.offsetMatrix, sizeof(_float4x4));
-        }
-    }
-
-    // 2. Materials
-    _uint nmat; f.read((char*)&nmat, 4); m->materials.resize(nmat);
-    for (auto& mt : m->materials) {
-        _uint l; f.read((char*)&l, 4); mt.name.resize(l); f.read(mt.name.data(), l);
-        for (int t = 0; t < (int)TextureType::End; t++) {
-            _uint nt; f.read((char*)&nt, 4); mt.texturePaths[t].resize(nt);
-            for (auto& p : mt.texturePaths[t]) {
-                _uint pl; f.read((char*)&pl, 4); p.resize(pl); f.read(p.data(), pl);
-            }
-        }
-    }
-
-    // 3. Node
-    std::function<void(NodeData&)> RN = [&](NodeData& n) {
-        _uint l; f.read((char*)&l, 4); n.name.resize(l); f.read(n.name.data(), l);
-        f.read((char*)&n.parentIndex, 4);
-        f.read((char*)&n.transform, sizeof(_float4x4));
-        _uint c; f.read((char*)&c, 4); n.children.resize(c);
-        for (auto& ch : n.children)RN(ch);
-    };
-    RN(m->rootNode);
-
-    // 4. Animations
-    _uint na; f.read((char*)&na, 4); m->animations.resize(na);
-    for (auto& a : m->animations) {
-        _uint l; f.read((char*)&l, 4); a.name.resize(l); f.read(a.name.data(), l);
-        f.read((char*)&a.duration, 4); f.read((char*)&a.ticksPerSecond, 4);
-        _uint nc; f.read((char*)&nc, 4); a.channels.resize(nc);
-        for (auto& ch : a.channels) {
-            _uint ln; f.read((char*)&ln, 4); ch.nodeName.resize(ln); f.read(ch.nodeName.data(), ln);
-            auto RK = [&](auto& v, size_t s) {_uint n; f.read((char*)&n, 4); v.resize(n); if (n)f.read((char*)v.data(), s * n); };
-            RK(ch.positionKeys, sizeof(KeyVector));
-            RK(ch.rotationKeys, sizeof(KeyQuat));
-            RK(ch.scalingKeys, sizeof(KeyVector));
-        }
-    }
-
-    // 5. Global Bones
-    _uint nb; f.read((char*)&nb, 4); m->bones.resize(nb);
-    for (auto& b : m->bones) {
-        _uint l; f.read((char*)&l, 4); b.name.resize(l); f.read(b.name.data(), l);
-        f.read((char*)&b.offsetMatrix, sizeof(_float4x4));
-    }
-
-    if (!f.eof()) {
-        _uint len = 0;
-        f.read((char*)&len, 4);
-        if (len > 0) {
-            m->modelDataFilePath.resize(len);
-            f.read(m->modelDataFilePath.data(), len);
-        }
-    }
-    else {
-        m->modelDataFilePath = path; // fallback
-    }
-
-    f.close(); 
-    return m;
-}
-
 
 HRESULT Model::InitializePrototype(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix)
 {

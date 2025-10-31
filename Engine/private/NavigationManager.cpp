@@ -24,9 +24,9 @@ HRESULT NavigationManager::Initialize()
 #ifdef _DEBUG
 HRESULT NavigationManager::Render()
 {
-    if (FAILED(m_pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::VIEW))))
+    if (FAILED(m_pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW))))
         return E_FAIL;
-    if (FAILED(m_pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::PROJECTION))))
+    if (FAILED(m_pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION))))
         return E_FAIL;
 
     _float4x4 WorldMatrix{};

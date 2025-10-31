@@ -1,15 +1,15 @@
-﻿#include "MainApp.h"
+﻿#include "ClientApp.h"
 #include "EngineUtility.h"
 
 #include "LoadingScene.h"
 
-MainApp::MainApp()
+ClientApp::ClientApp()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
 {
 	SafeAddRef(m_pEngineUtility);
 }
 
-HRESULT MainApp::Initialize()
+HRESULT ClientApp::Initialize()
 {
 	ENGINE_DESC			EngineDesc{};
 	EngineDesc.hInstance = g_hInstance;
@@ -22,8 +22,8 @@ HRESULT MainApp::Initialize()
 	if (FAILED(m_pEngineUtility->InitializeEngine(EngineDesc)))
 		return E_FAIL;
 	/*MakeSpriteFont "넥슨Lv1고딕 Bold" /FontSize:20 /FastPack /CharacterRegion:0x0020-0x00FF /CharacterRegion:0x3131-0x3163 /CharacterRegion:0xAC00-0xD800 /DefaultCharacter:0xAC00 155ex.spritefont */
-	if (FAILED(m_pEngineUtility->AddFont(TEXT("Font_Default"), TEXT("../bin/Resources/Fonts/default.spritefont"))))
-		return E_FAIL;
+	//if (FAILED(m_pEngineUtility->AddFont(TEXT("Font_Default"), TEXT("../bin/Resources/Fonts/default.spritefont"))))
+	//	return E_FAIL;
 
 	if (FAILED(StartScene(SCENE::LOGO)))
 		return E_FAIL;
@@ -31,12 +31,12 @@ HRESULT MainApp::Initialize()
 	return S_OK;
 }
 
-void MainApp::Update(_float fTimeDelta)
+void ClientApp::Update(_float fTimeDelta)
 {
 	m_pEngineUtility->UpdateEngine(fTimeDelta);
 }
 
-HRESULT MainApp::Render()
+HRESULT ClientApp::Render()
 {
 	_float4		vClearColor = _float4(0.f, 0.f, 1.f, 1.f);
 
@@ -54,20 +54,20 @@ HRESULT MainApp::Render()
 	return S_OK;
 }
 
-MainApp* MainApp::Create()
+ClientApp* ClientApp::Create()
 {
-	MainApp* pInstance = new MainApp();
+	ClientApp* pInstance = new ClientApp();
 
 	if (FAILED(pInstance->Initialize()))
 	{
-		MSG_BOX("Failed to Created : MainApp");
+		MSG_BOX("Failed to Created : ClientApp");
 		SafeRelease(pInstance);
 	}
 
 	return pInstance;
 }
 
-void MainApp::Free()
+void ClientApp::Free()
 {
 	__super::Free();
 
@@ -75,12 +75,12 @@ void MainApp::Free()
 	m_pEngineUtility->DestroyInstance();
 }
 
-HRESULT MainApp::ReadyPrototypeForStatic()
+HRESULT ClientApp::ReadyPrototypeForStatic()
 {
 	return S_OK;
 }
 
-HRESULT MainApp::StartScene(SCENE eStartLevelID)
+HRESULT ClientApp::StartScene(SCENE eStartLevelID)
 {
 	return m_pEngineUtility->ChangeScene(SCENE::LOADING, LoadingScene::Create(eStartLevelID));
 }

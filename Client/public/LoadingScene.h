@@ -24,7 +24,6 @@ public:
 
 private:
 	HRESULT ReadyLayerBackGround();
-	HRESULT ReadyLayerUI();
 
 private:
 	SCENE			m_eNextSceneId = { SCENE::SCENE_END };

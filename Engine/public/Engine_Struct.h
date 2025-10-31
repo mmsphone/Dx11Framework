@@ -124,6 +124,13 @@ namespace Engine
 		XMFLOAT3 hitPos = { 0.f,0.f,0.f };
 		PICKTYPE pickType = PICK_END;
 	}PICK_RESULT;
+
+	typedef struct tagMapObjectData
+	{
+		std::string objectName;
+		std::string modelPath;
+		XMFLOAT4X4   worldMatrix;
+	}MAP_OBJECTDATA;
 }
 
 

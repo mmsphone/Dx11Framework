@@ -54,4 +54,16 @@
 #define CHECKNULLPTR(PTR) if(PTR == nullptr)
 #define CHECKPTR(PTR) if(PTR != nullptr)
 
+#ifdef _DEBUG
+#define DEBUG_OUTPUT(str)											 \
+        do {                                                         \
+            std::ostringstream oss;                                  \
+            oss << "[DEBUG] " << (str)                               \
+                << " (" << __FILE__ << ":" << __LINE__ << ")\n";     \
+            OutputDebugStringA(oss.str().c_str());                   \
+        } while(0)
+#else
+#define DEBUG_OUTPUT(str) ((void)0)
+#endif
+
 #endif // Engine_Macro_h__

@@ -28,6 +28,5 @@ HRESULT Component::Initialize(void* pArg)
 void Component::Free()
 {
     __super::Free();
-
     SafeRelease(m_pEngineUtility);
 }

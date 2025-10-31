@@ -109,20 +109,21 @@ HRESULT EngineUtility::EndDraw()
 
 void EngineUtility::ReleaseEngine()
 {
+	SafeRelease(m_pSaveLoadManager);
+	SafeRelease(m_pNavigationManager);
+	SafeRelease(m_pGridManager);
+	SafeRelease(m_pPickingManager);
+	SafeRelease(m_pIMGUIManager);
 	SafeRelease(m_pFontManager);
 	SafeRelease(m_pLightManager);
 	SafeRelease(m_pPipeLine);
-	SafeRelease(m_pRenderManager);
+	SafeRelease(m_pSceneManager);
 	SafeRelease(m_pObjectManager);
 	SafeRelease(m_pPrototypeManager);
-	SafeRelease(m_pSceneManager);
+	SafeRelease(m_pTimeManager);
+	SafeRelease(m_pRenderManager);
 	SafeRelease(m_pInput);
 	SafeRelease(m_pGraphic);
-	SafeRelease(m_pTimeManager);
-	SafeRelease(m_pIMGUIManager);
-	SafeRelease(m_pPickingManager);
-	SafeRelease(m_pGridManager);
-	SafeRelease(m_pNavigationManager);
 
 	DestroyInstance();
 }

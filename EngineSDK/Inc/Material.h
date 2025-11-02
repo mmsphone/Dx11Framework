@@ -20,6 +20,9 @@ public:
 private:
 	class EngineUtility* m_pEngineUtility = { nullptr };
 	vector<ID3D11ShaderResourceView*>		m_Textures[TextureType::End];
+	_float4 m_vDiffuseColor = { 1.f, 1.f, 1.f, 1.f };
+	_float4 m_vSpecularColor = { 0.f, 0.f, 0.f, 1.f };
+	_float4 m_vEmissiveColor = { 0.f, 0.f, 0.f, 1.f };
 };
 
 NS_END

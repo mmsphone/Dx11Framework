@@ -16,81 +16,156 @@ ModelData* SaveLoadManager::LoadNoAssimpModel(const _char* path)
     std::ifstream f(path, std::ios::binary);
     if (!f.is_open())
         return nullptr;
+
     auto m = new ModelData();
 
-    auto R = [&](auto& v, size_t s) {_uint n; f.read((char*)&n, 4); v.resize(n); if (n)f.read((char*)v.data(), s * n); };
+    auto ReadU32 = [&](uint32_t& v) -> bool { return !!f.read((char*)&v, 4); };
+    auto ReadF4x4 = [&](_float4x4& M) -> bool { return !!f.read((char*)&M, sizeof(_float4x4)); };
+    auto ReadF4 = [&](_float4& v) -> bool { return !!f.read((char*)&v, sizeof(_float4)); };
+    auto ReadStr = [&](std::string& s) -> bool {
+        _uint n = 0; if (!f.read((char*)&n, 4)) return false;
+        s.resize(n); return n ? !!f.read(s.data(), n) : true;
+        };
+    auto ReadVec = [&](auto& v, size_t elemSize) -> bool {
+        _uint n = 0; if (!f.read((char*)&n, 4)) return false;
+        v.resize(n); return n ? !!f.read((char*)v.data(), elemSize * n) : true;
+        };
 
-    // 1. Meshes
-    _uint nm; f.read((char*)&nm, 4); m->meshes.resize(nm);
+    // --- 헤더 감지: "MDL2"(4) + version(4) ---
+    char magic[4] = {};
+    f.read(magic, 4);
+    uint32_t version = 1; // 기본은 v1로 가정
+    bool hasHeader = (f && magic[0] == 'M' && magic[1] == 'D' && magic[2] == 'L' && magic[3] == '2');
+    if (hasHeader) {
+        if (!ReadU32(version)) { delete m; return nullptr; }
+    }
+    else {
+        // 구포맷: 헤더 없으므로 처음으로 되돌림
+        f.clear();
+        f.seekg(0, std::ios::beg);
+        version = 1;
+    }
+
+    // 1) Meshes
+    _uint nm = 0; f.read((char*)&nm, 4);
+    if (!f) { delete m; return nullptr; }
+    m->meshes.resize(nm);
+
     for (auto& mesh : m->meshes) {
-        _uint l; f.read((char*)&l, 4); mesh.name.resize(l); f.read(mesh.name.data(), l);
-        f.read((char*)&mesh.materialIndex, 4);
-        R(mesh.positions, sizeof(_float3)); R(mesh.normals, sizeof(_float3));
-        R(mesh.texcoords, sizeof(_float2)); R(mesh.tangents, sizeof(_float3)); R(mesh.indices, sizeof(_uint));
+        if (!ReadStr(mesh.name)) { delete m; return nullptr; }
+        if (!f.read((char*)&mesh.materialIndex, 4)) { delete m; return nullptr; }
 
-        _uint nb; f.read((char*)&nb, 4); mesh.bones.resize(nb);
+        if (!ReadVec(mesh.positions, sizeof(_float3))) { delete m; return nullptr; }
+        if (!ReadVec(mesh.normals, sizeof(_float3))) { delete m; return nullptr; }
+        if (!ReadVec(mesh.texcoords, sizeof(_float2))) { delete m; return nullptr; }
+        if (!ReadVec(mesh.tangents, sizeof(_float3))) { delete m; return nullptr; }
+        if (!ReadVec(mesh.indices, sizeof(_uint))) { delete m; return nullptr; }
+
+        _uint nb = 0; f.read((char*)&nb, 4);
+        if (!f) { delete m; return nullptr; }
+        mesh.bones.resize(nb);
+
         for (auto& b : mesh.bones) {
-            _uint ln; f.read((char*)&ln, 4); b.name.resize(ln); f.read(b.name.data(), ln);
-            _uint nw; f.read((char*)&nw, 4); b.weights.resize(nw);
-            if (nw)f.read((char*)b.weights.data(), sizeof(VertexWeight) * nw);
-            f.read((char*)&b.offsetMatrix, sizeof(_float4x4));
+            if (!ReadStr(b.name)) { delete m; return nullptr; }
+            _uint nw = 0; f.read((char*)&nw, 4);
+            if (!f) { delete m; return nullptr; }
+            b.weights.resize(nw);
+            if (nw && !f.read((char*)b.weights.data(), sizeof(VertexWeight) * nw)) { delete m; return nullptr; }
+            if (!ReadF4x4(b.offsetMatrix)) { delete m; return nullptr; }
         }
     }
 
-    // 2. Materials
-    _uint nmat; f.read((char*)&nmat, 4); m->materials.resize(nmat);
+    // 2) Materials
+    _uint nmat = 0; f.read((char*)&nmat, 4);
+    if (!f) { delete m; return nullptr; }
+    m->materials.resize(nmat);
+
     for (auto& mt : m->materials) {
-        _uint l; f.read((char*)&l, 4); mt.name.resize(l); f.read(mt.name.data(), l);
-        for (int t = 0; t < (int)TextureType::End; t++) {
-            _uint nt; f.read((char*)&nt, 4); mt.texturePaths[t].resize(nt);
+        if (!ReadStr(mt.name)) { delete m; return nullptr; }
+
+        // (a) 텍스처 경로 블록 (v1/v2 동일)
+        for (int t = 0; t < (int)TextureType::End; ++t) {
+            _uint nt = 0; f.read((char*)&nt, 4);
+            if (!f) { delete m; return nullptr; }
+            mt.texturePaths[t].resize(nt);
             for (auto& p : mt.texturePaths[t]) {
-                _uint pl; f.read((char*)&pl, 4); p.resize(pl); f.read(p.data(), pl);
+                if (!ReadStr(p)) { delete m; return nullptr; }
             }
         }
-    }
 
-    // 3. Node
-    std::function<void(NodeData&)> RN = [&](NodeData& n) {
-        _uint l; f.read((char*)&l, 4); n.name.resize(l); f.read(n.name.data(), l);
-        f.read((char*)&n.parentIndex, 4);
-        f.read((char*)&n.transform, sizeof(_float4x4));
-        _uint c; f.read((char*)&c, 4); n.children.resize(c);
-        for (auto& ch : n.children)RN(ch);
-        };
-    RN(m->rootNode);
-
-    // 4. Animations
-    _uint na; f.read((char*)&na, 4); m->animations.resize(na);
-    for (auto& a : m->animations) {
-        _uint l; f.read((char*)&l, 4); a.name.resize(l); f.read(a.name.data(), l);
-        f.read((char*)&a.duration, 4); f.read((char*)&a.ticksPerSecond, 4);
-        _uint nc; f.read((char*)&nc, 4); a.channels.resize(nc);
-        for (auto& ch : a.channels) {
-            _uint ln; f.read((char*)&ln, 4); ch.nodeName.resize(ln); f.read(ch.nodeName.data(), ln);
-            auto RK = [&](auto& v, size_t s) {_uint n; f.read((char*)&n, 4); v.resize(n); if (n)f.read((char*)v.data(), s * n); };
-            RK(ch.positionKeys, sizeof(KeyVector));
-            RK(ch.rotationKeys, sizeof(KeyQuat));
-            RK(ch.scalingKeys, sizeof(KeyVector));
+        // (b) v2부터 머티리얼 컬러 3종 추가
+        if (version >= 2) {
+            if (!ReadF4(mt.diffuseColor)) { delete m; return nullptr; }
+            if (!ReadF4(mt.specularColor)) { delete m; return nullptr; }
+            if (!ReadF4(mt.emissiveColor)) { delete m; return nullptr; }
+        }
+        else {
+            // v1: 기본값 채움
+            mt.diffuseColor = { 1.f, 1.f, 1.f, 1.f };
+            mt.specularColor = { 0.f, 0.f, 0.f, 1.f };
+            mt.emissiveColor = { 0.f, 0.f, 0.f, 1.f };
         }
     }
 
-    // 5. Global Bones
-    _uint nb; f.read((char*)&nb, 4); m->bones.resize(nb);
-    for (auto& b : m->bones) {
-        _uint l; f.read((char*)&l, 4); b.name.resize(l); f.read(b.name.data(), l);
-        f.read((char*)&b.offsetMatrix, sizeof(_float4x4));
+    // 3) Node
+    std::function<bool(NodeData&)> RN = [&](NodeData& n) -> bool {
+        if (!ReadStr(n.name)) return false;
+        if (!f.read((char*)&n.parentIndex, 4)) return false;
+        if (!ReadF4x4(n.transform)) return false;
+        _uint c = 0; if (!f.read((char*)&c, 4)) return false;
+        n.children.resize(c);
+        for (auto& ch : n.children) { if (!RN(ch)) return false; }
+        return true;
+        };
+    if (!RN(m->rootNode)) { delete m; return nullptr; }
+
+    // 4) Animations
+    _uint na = 0; f.read((char*)&na, 4);
+    if (!f) { delete m; return nullptr; }
+    m->animations.resize(na);
+
+    for (auto& a : m->animations) {
+        if (!ReadStr(a.name)) { delete m; return nullptr; }
+        if (!f.read((char*)&a.duration, 4)) { delete m; return nullptr; }
+        if (!f.read((char*)&a.ticksPerSecond, 4)) { delete m; return nullptr; }
+
+        _uint nc = 0; f.read((char*)&nc, 4);
+        if (!f) { delete m; return nullptr; }
+        a.channels.resize(nc);
+
+        for (auto& ch : a.channels) {
+            if (!ReadStr(ch.nodeName)) { delete m; return nullptr; }
+
+            auto RK = [&](auto& v, size_t s) -> bool {
+                _uint n = 0; if (!f.read((char*)&n, 4)) return false;
+                v.resize(n);
+                return n ? !!f.read((char*)v.data(), s * n) : true;
+                };
+            if (!RK(ch.positionKeys, sizeof(KeyVector))) { delete m; return nullptr; }
+            if (!RK(ch.rotationKeys, sizeof(KeyQuat))) { delete m; return nullptr; }
+            if (!RK(ch.scalingKeys, sizeof(KeyVector))) { delete m; return nullptr; }
+        }
     }
 
-    if (!f.eof()) {
-        _uint len = 0;
-        f.read((char*)&len, 4);
-        if (len > 0) {
-            m->modelDataFilePath.resize(len);
-            f.read(m->modelDataFilePath.data(), len);
+    // 5) Global Bones
+    _uint nb = 0; f.read((char*)&nb, 4);
+    if (!f) { delete m; return nullptr; }
+    m->bones.resize(nb);
+    for (auto& b : m->bones) {
+        if (!ReadStr(b.name)) { delete m; return nullptr; }
+        if (!ReadF4x4(b.offsetMatrix)) { delete m; return nullptr; }
+    }
+
+    // 6) 원본 경로(옵션)
+    if (f.peek() != std::char_traits<char>::eof()) {
+        // 문자열 하나 더 있으면 읽음
+        if (!ReadStr(m->modelDataFilePath)) {
+            // 일부 구파일은 경로가 없을 수 있음
+            m->modelDataFilePath = path;
         }
     }
     else {
-        m->modelDataFilePath = path; // fallback
+        m->modelDataFilePath = path;
     }
 
     f.close();

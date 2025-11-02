@@ -11,6 +11,10 @@ Material::Material()
 
 HRESULT Material::Initialize(const MaterialData& material)
 {
+	m_vDiffuseColor = material.diffuseColor;
+	m_vSpecularColor = material.specularColor;
+	m_vEmissiveColor = material.emissiveColor;
+
 	for (int i = 0; i < (int)TextureType::End; ++i)
 	{
 		for (auto& texPath : material.texturePaths[i])
@@ -40,10 +44,18 @@ HRESULT Material::Initialize(const MaterialData& material)
 
 HRESULT Material::BindShaderResource(Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex)
 {
-	if (iIndex >= m_Textures[(int)eType].size())
-		return E_FAIL;
+	if (iIndex < m_Textures[(int)eType].size() && m_Textures[(int)eType][iIndex])
+	{
+		_int bUseTex = 1;
+		pShader->BindRawValue("g_bUseTexture", &bUseTex, sizeof(_int));
+		return pShader->BindShaderResource(pConstantName, m_Textures[(_int)eType][iIndex]);
+	}
 
-	return pShader->BindShaderResource(pConstantName, m_Textures[(int)eType][iIndex]);
+	_int bUseTex = 0;
+	pShader->BindRawValue("g_bUseTexture", &bUseTex, sizeof(_int));
+	pShader->BindRawValue("g_vDiffuseColor", &m_vDiffuseColor, sizeof(_float4));
+
+	return S_OK;	
 }
 
 Material* Material::Create(const MaterialData& material)

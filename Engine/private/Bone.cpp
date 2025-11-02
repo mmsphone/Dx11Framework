@@ -14,6 +14,11 @@ const _float4x4* Bone::GetCombinedTransformationMatrixPtr()
     return &m_CombinedTransformationMatrix;
 }
 
+const _float4x4* Bone::GetLocalTransformationMatrixPtr() const
+{
+    return &m_TransformationMatrix;
+}
+
 void Bone::SetTransformationMatrix(_fmatrix TransformationMatrix)
 {
     XMStoreFloat4x4(&m_TransformationMatrix, TransformationMatrix);

@@ -136,20 +136,77 @@ void Model::PlayAnimation(_float fTimeDelta)
         return;
     m_Animations[m_iCurrentAnimIndex]->UpdateTransformationMatrix(fTimeDelta, m_Bones, m_isAnimLoop, &m_isAnimFinished, m_pModelData);
 
+    if (m_IsBlending)
+    {
+        m_BlendElapsed += fTimeDelta;
+        float alpha = (m_BlendDuration > 0.f) ? (m_BlendElapsed / m_BlendDuration) : 1.f;
+        alpha = std::clamp(alpha, 0.f, 1.f);
+
+        // ■■■ 강제 가시화 디버그: 처음 0.2초 동안 alpha를 0.5로 고정해보자
+        // (보간이 ‘전혀’ 안 보이면 이걸로 경로가 타는지부터 확인)
+        // if (m_BlendElapsed < 0.2f) alpha = 0.5f;
+
+        const size_t N = m_Bones.size();
+        const size_t M = min(N, m_BlendFromLocal.size());
+        for (size_t i = 0; i < M; ++i)
+        {
+            const _float4x4& fromLocal = m_BlendFromLocal[i];
+
+            _float4x4 toLocal{};
+            if (auto pTo = m_Bones[i]->GetLocalTransformationMatrixPtr())
+                toLocal = *pTo;
+            else
+                XMStoreFloat4x4(&toLocal, XMMatrixIdentity());
+
+            _float4x4 blendedLocal = LerpSRT_Local(fromLocal, toLocal, alpha);
+            m_Bones[i]->SetTransformationMatrix(XMLoadFloat4x4(&blendedLocal));
+        }
+
+        if (alpha >= 1.f) {
+            m_IsBlending = false;
+            m_BlendFromLocal.clear();
+            m_BlendFromLocal.shrink_to_fit();
+        }
+    }
+
     UpdateBoneMatrices();
+
 }
 
 void Model::SetAnimation(_uint iIndex, _bool isLoop)
 {
+    SetAnimation(iIndex, isLoop, 0.1f);
+}
+
+void Model::SetAnimation(_uint iIndex, _bool isLoop, _float blendTimeSec)
+{
     if (iIndex >= m_Animations.size())
         return;
-    
+
     if (m_iCurrentAnimIndex == iIndex && m_isAnimLoop == isLoop)
         return;
 
+    // 1) 이전 로컬 포즈 캡처
+    m_BlendFromLocal.clear();
+    m_BlendFromLocal.reserve(m_Bones.size());
+    for (auto* pBone : m_Bones)
+    {
+        _float4x4 cur{};
+        if (auto p = pBone->GetLocalTransformationMatrixPtr())
+            cur = *p;
+        else
+            XMStoreFloat4x4(&cur, XMMatrixIdentity());
+        m_BlendFromLocal.push_back(cur);
+    }
+
+    // 2) 블렌딩 타이머 초기화
+    m_IsBlending = (blendTimeSec > 0.f);
+    m_BlendElapsed = 0.f;
+    m_BlendDuration = max(0.f, blendTimeSec);
+
+    // 3) 대상 애니로 전환
     m_iCurrentAnimIndex = iIndex;
     m_isAnimLoop = isLoop;
-
     m_Animations[iIndex]->Reset();
 }
 
@@ -475,4 +532,38 @@ HRESULT Model::InitializePrototype(MODELTYPE eType, ModelData* pModelData, _fmat
         return E_FAIL;
 
     return S_OK;
+}
+
+void Model::DecomposeSRT(const _float4x4& M, XMVECTOR& S, XMVECTOR& R, XMVECTOR& T)
+{
+    _matrix mm = XMLoadFloat4x4(&M);
+    XMMatrixDecompose(&S, &R, &T, mm);
+    R = XMQuaternionNormalize(R);
+}
+
+_float4x4 Model::ComposeSRT(const XMVECTOR& S, const XMVECTOR& R, const XMVECTOR& T)
+{
+    _matrix M = XMMatrixScalingFromVector(S)
+        * XMMatrixRotationQuaternion(R)
+        * XMMatrixTranslationFromVector(T);
+    _float4x4 out{};
+    XMStoreFloat4x4(&out, M);
+    return out;
+}
+
+_float4x4 Model::LerpSRT_Local(const _float4x4& fromM, const _float4x4& toM, float alpha)
+{
+    alpha = std::clamp(alpha, 0.f, 1.f);
+
+    XMVECTOR Sf, Rf, Tf;
+    XMVECTOR St, Rt, Tt;
+    DecomposeSRT(fromM, Sf, Rf, Tf);
+    DecomposeSRT(toM, St, Rt, Tt);
+
+    // 위치/스케일은 선형, 회전은 쿼터니언 SLERP
+    XMVECTOR S = XMVectorLerp(Sf, St, alpha);
+    XMVECTOR T = XMVectorLerp(Tf, Tt, alpha);
+    XMVECTOR R = XMQuaternionSlerp(Rf, Rt, alpha);
+
+    return ComposeSRT(S, R, T);
 }

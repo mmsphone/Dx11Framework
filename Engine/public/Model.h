@@ -26,6 +26,7 @@ public:
 
 	void PlayAnimation(_float fTimeDelta);
 	void SetAnimation(_uint iIndex, _bool isLoop = false);
+	void SetAnimation(_uint iIndex, _bool isLoop, _float blendTimeSec);
 	void StopAnimation();
 	void ResumeAnimation();
 	_uint GetCurrentAnimIndex() const;
@@ -57,6 +58,11 @@ private:
 	void ClearModelData();
 
 	HRESULT InitializePrototype(MODELTYPE eType, ModelData* pModelData, _fmatrix PreTransformMatrix);
+	
+	static void DecomposeSRT(const _float4x4& M, XMVECTOR& S, XMVECTOR& R, XMVECTOR& T);
+	static _float4x4 ComposeSRT(const XMVECTOR& S, const XMVECTOR& R, const XMVECTOR& T);
+	static _float4x4 LerpSRT_Local(const _float4x4& fromM, const _float4x4& toM, float alpha);
+
 private:
 	ModelData*				m_pModelData = { nullptr };
 	MODELTYPE				m_eType = { };
@@ -77,6 +83,11 @@ private:
 	_uint						m_iCurrentAnimIndex = {};
 	_uint						m_iNumAnimations = {};
 	vector<class Animation*>	m_Animations;
+
+	_bool  m_IsBlending = false;
+	_float m_BlendElapsed = 0.f;
+	_float m_BlendDuration = 0.f;
+	vector<_float4x4> m_BlendFromLocal;
 };
 
 NS_END

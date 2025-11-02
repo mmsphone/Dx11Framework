@@ -41,6 +41,9 @@ struct MeshData {
 struct MaterialData {
     std::string name;
     std::vector<std::string> texturePaths[(int)TextureType::End];
+    _float4 diffuseColor = { 1.f, 1.f, 1.f, 1.f };
+    _float4 specularColor = { 0.f, 0.f, 0.f, 1.f };
+    _float4 emissiveColor = { 0.f, 0.f, 0.f, 1.f };
 };
 
 // 🔹 본(스켈레톤) 데이터

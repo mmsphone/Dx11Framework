@@ -32,6 +32,9 @@ public:
 	HWND GetWindowHandle() const;
 	_float2 GetWindowSize() const;
 
+	void SnapDepthForPicking();
+	_bool ReadDepthAtPixel(_int px, _int py, _float* outDepth01);
+
 	static Graphic* Create(HWND windowHandle, WINMODE isWindowMode, _uint iWindowSizeX, _uint iWindowSizeY);
 	virtual void Free() override;
 
@@ -53,7 +56,10 @@ private:
 	//Depth Stencil Buffer
 	ID3D11DepthStencilView* m_pDepthStencilView = nullptr;
 
-	HWND m_WindowHandle;
+	ID3D11Texture2D* m_pDepthStencilTex = nullptr;
+	ID3D11Texture2D* m_pDepthReadback = nullptr;
+
+	HWND m_WindowHandle = nullptr;
 	_float2 m_WindowSize = {};
 };
 

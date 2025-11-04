@@ -27,6 +27,8 @@ void RenderManager::Draw()
     RenderNonBlend();
     RenderBlend();
     RenderUI();
+
+    m_pEngineUtility->SnapDepthForPicking();
 }
 
 RenderManager* RenderManager::Create()

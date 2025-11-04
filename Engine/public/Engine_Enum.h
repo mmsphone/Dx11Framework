@@ -19,6 +19,6 @@ namespace Engine
 
 	enum POINTTYPE : int { A, B, C, POINT_END };
 	enum LINETYPE : int { AB, BC, CA, LINE_END };
-	enum PICKTYPE : int {PICK_UI, PICK_OBJECT, PICK_TERRAIN, PICK_GRID, PICK_END };
+	enum PICKTYPE : int {PICK_UI, PICK_OBJECT, PICK_TERRAIN, PICK_GRID, PICK_PIXEL, PICK_END };
 }
 #endif // Engine_Enum_h__

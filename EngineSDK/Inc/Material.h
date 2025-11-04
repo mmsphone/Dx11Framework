@@ -17,6 +17,11 @@ public:
 
 	static Material* Create(const MaterialData& material);
 	virtual void Free() override;
+
+private:
+	ID3D11ShaderResourceView* CreateSolidColorSRV(ID3D11Device* dev, _float r, _float g, _float b, _float a);
+
+
 private:
 	class EngineUtility* m_pEngineUtility = { nullptr };
 	vector<ID3D11ShaderResourceView*>		m_Textures[TextureType::End];

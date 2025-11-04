@@ -21,6 +21,10 @@ public:
     virtual void Free() override;
     
 private:
+    _float3 Unproject(_float depth01, _float mouseX, _float mouseY, _float winW, _float winH, const _float4x4& invViewProj);
+
+
+private:
     class EngineUtility* m_pEngineUtility = nullptr;
 };
 

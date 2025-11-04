@@ -14,6 +14,7 @@ private:
 public:
     _matrix GetCombinedTransformationMatrix();
     const _float4x4* GetCombinedTransformationMatrixPtr();
+    const _float4x4* GetLocalTransformationMatrixPtr() const;
 
     void SetTransformationMatrix(_fmatrix TransformationMatrix);
 

@@ -168,6 +168,16 @@ _float2 EngineUtility::GetWindowSize()
 	return m_pGraphic->GetWindowSize();
 }
 
+void EngineUtility::SnapDepthForPicking()
+{
+	m_pGraphic->SnapDepthForPicking();
+}
+
+_bool EngineUtility::ReadDepthAtPixel(_int px, _int py, _float* outDepth01)
+{
+	return m_pGraphic->ReadDepthAtPixel(px, py, outDepth01);
+}
+
 _byte EngineUtility::GetKeyState(_ubyte byKeyID)
 {
 	return m_pInput->GetKeyState(byKeyID);
@@ -507,13 +517,13 @@ HRESULT EngineUtility::RenderNavigation()
 	return m_pNavigationManager->Render();
 }
 #endif
-void EngineUtility::AddCell(_float3* pPoints)
-{
-	m_pNavigationManager->AddCell(pPoints);
-}
 void EngineUtility::AddTempPoint(const _float3& point)
 {
 	m_pNavigationManager->AddTempPoint(point);
+}
+void EngineUtility::ClearTempPoints()
+{
+	m_pNavigationManager->ClearTempPoints();
 }
 void EngineUtility::RemoveRecentCell()
 {
@@ -542,6 +552,21 @@ _bool EngineUtility::SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPo
 const vector<class Cell*>& EngineUtility::GetCells() const
 {
 	return m_pNavigationManager->GetCells();
+}
+
+_bool EngineUtility::Edit_AddTriangleOnEdge(_int cellId, _fvector pickedPoint, _float weldEps)
+{
+	return m_pNavigationManager->Edit_AddTriangleOnEdge(cellId, pickedPoint, weldEps);
+}
+
+_bool EngineUtility::Edit_AddTriangleAtSharedVertex(_int cellA, _int cellB, _float weldEps)
+{
+	return m_pNavigationManager->Edit_AddTriangleAtSharedVertex(cellA, cellB, weldEps);
+}
+
+_bool EngineUtility::RandomPointAround(_fvector center, _float radius, _float3* outPos, _uint maxTrials)
+{
+	return m_pNavigationManager->RandomPointAround(center, radius, outPos, maxTrials);
 }
 
 ModelData* EngineUtility::LoadNoAssimpModel(const _char* pFilePath)

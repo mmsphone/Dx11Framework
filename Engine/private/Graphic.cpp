@@ -100,6 +100,54 @@ _float2 Graphic::GetWindowSize() const
 {
     return m_WindowSize;
 }
+void Graphic::SnapDepthForPicking()
+{
+    if (!m_pContext || !m_pDepthStencilTex || !m_pDepthReadback)
+        return;
+
+    // DSV는 부분복사 불가 → 전체 서브리소스 복사
+    m_pContext->CopySubresourceRegion(
+        m_pDepthReadback, 0, 0, 0, 0,
+        m_pDepthStencilTex, 0, nullptr
+    );
+}
+
+_bool Graphic::ReadDepthAtPixel(_int px, _int py, _float* outDepth01)
+{
+    if (!m_pContext || !m_pDepthReadback || !outDepth01)
+        return false;
+
+    // ★ 여기서는 복사하지 않음! (렌더 끝에서 SnapDepthForPicking 호출을 가정)
+
+    D3D11_MAPPED_SUBRESOURCE m{};
+    if (FAILED(m_pContext->Map(m_pDepthReadback, 0, D3D11_MAP_READ, 0, &m)))
+        return false;
+
+    // ★ RS Viewport 기준으로 좌표 클램프 (창 크기와 다를 수 있음)
+    D3D11_VIEWPORT vp{}; UINT vpCount = 1;
+    m_pContext->RSGetViewports(&vpCount, &vp);
+    int w = (int)vp.Width;
+    int h = (int)vp.Height;
+
+    int ix = px; if (ix < 0) ix = 0; else if (ix >= w) ix = w - 1;
+    int iy = py; if (iy < 0) iy = 0; else if (iy >= h) iy = h - 1;
+
+    const uint8_t* row = (const uint8_t*)m.pData + iy * m.RowPitch;
+    uint32_t packed = *(const uint32_t*)(row + ix * 4);
+
+    m_pContext->Unmap(m_pDepthReadback, 0);
+
+    // 하위 24비트 = depth
+    uint32_t depth24 = packed & 0x00FFFFFFu;           // [0, 2^24-1]
+    float    depth01 = float(depth24) / 16777215.0f;   // 2^24-1
+
+    if (depth01 <= 1e-7f || depth01 >= 0.9999999f)     // 클리어/미스 보호
+        return false;
+
+    *outDepth01 = depth01;
+    return true;
+}
+
 
 Graphic* Graphic::Create(HWND windowHandle, WINMODE isWindowMode, _uint iWindowSizeX, _uint iWindowSizeY)
 {
@@ -121,6 +169,8 @@ void Graphic::Free()
     SafeRelease(m_pDepthStencilView);
     SafeRelease(m_pBackBuffer);
     SafeRelease(m_pContext);
+    SafeRelease(m_pDepthStencilTex);
+    SafeRelease(m_pDepthReadback);
 
 #ifdef _DEBUG
     ID3D11Debug* d3dDebug;
@@ -212,44 +262,49 @@ HRESULT Graphic::ReadyBackBuffer()
 
     return S_OK;
 }
-
 HRESULT Graphic::ReadyDepthStencilView(_uint iWindowSizeX, _uint iWindowSizeY)
 {
     CHECKNULLPTR(m_pDevice)
         return E_FAIL;
 
-    //임시변수
-    ID3D11Texture2D* pDepthStencilTexture = nullptr;
+    SafeRelease(m_pDepthStencilView);
+    SafeRelease(m_pDepthStencilTex);
+    SafeRelease(m_pDepthReadback);
 
-    //텍스처 세팅
-    D3D11_TEXTURE2D_DESC	TextureDescriptor;
-    ZeroMemory(&TextureDescriptor, sizeof(D3D11_TEXTURE2D_DESC));
-    //DepthStencilBuffer 크기(BackBuffer 크기와 같게)
-    TextureDescriptor.Width = iWindowSizeX;
-    TextureDescriptor.Height = iWindowSizeY;
-    //DepthStencilBuffer 옵션
-    TextureDescriptor.MipLevels = 1;
-    TextureDescriptor.ArraySize = 1;
-    TextureDescriptor.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    TextureDescriptor.SampleDesc.Quality = 0;
-    TextureDescriptor.SampleDesc.Count = 1;
+    // ★ Typeless로 만들고
+    D3D11_TEXTURE2D_DESC td{};
+    td.Width = iWindowSizeX;
+    td.Height = iWindowSizeY;
+    td.MipLevels = 1;
+    td.ArraySize = 1;
+    td.Format = DXGI_FORMAT_R24G8_TYPELESS;
+    td.SampleDesc.Count = 1;                 // ★ MSAA off (Count=1)
+    td.SampleDesc.Quality = 0;
+    td.Usage = D3D11_USAGE_DEFAULT;
+    td.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    td.CPUAccessFlags = 0;
+    td.MiscFlags = 0;
 
-    // 정적 or 동적 바인딩 옵션
-    TextureDescriptor.Usage = D3D11_USAGE_DEFAULT;
-    // 텍스처 사용 목적에 맞게 설정
-    TextureDescriptor.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    TextureDescriptor.CPUAccessFlags = 0;
-    TextureDescriptor.MiscFlags = 0;
-
-    // 세팅한 값으로 텍스처 생성
-    if (FAILED(m_pDevice->CreateTexture2D(&TextureDescriptor, nullptr, &pDepthStencilTexture)))
+    if (FAILED(m_pDevice->CreateTexture2D(&td, nullptr, &m_pDepthStencilTex)))
         return E_FAIL;
 
-    // DepthStencilView 생성
-    if (FAILED(m_pDevice->CreateDepthStencilView(pDepthStencilTexture, nullptr, &m_pDepthStencilView)))
+    // ★ DSV는 D24로 명시
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvd{};
+    dsvd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    dsvd.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    dsvd.Texture2D.MipSlice = 0;
+
+    if (FAILED(m_pDevice->CreateDepthStencilView(m_pDepthStencilTex, &dsvd, &m_pDepthStencilView)))
         return E_FAIL;
 
-    SafeRelease(pDepthStencilTexture);
+    // ★ Readback용 1:1 staging 텍스처(Count=1)
+    D3D11_TEXTURE2D_DESC rd = td;
+    rd.BindFlags = 0;
+    rd.Usage = D3D11_USAGE_STAGING;
+    rd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+
+    if (FAILED(m_pDevice->CreateTexture2D(&rd, nullptr, &m_pDepthReadback)))
+        return E_FAIL;
 
     return S_OK;
 }

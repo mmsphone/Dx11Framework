@@ -20,7 +20,6 @@ public:
     virtual void OnRender() override;
 
     void SetSelectedBinPath(const string& path);
-    void SetNavigationDataPath(const string& path);
 
     static MapPanel* Create(const string& PanelName, bool open = true);
     virtual void		Free() override;
@@ -30,8 +29,9 @@ private:
     class ObjectPanel* m_pObjectPanel = nullptr;
 
     _bool m_CellMode = false;
+    _int   m_SelectedCellIndex = -1;
+
     string m_SelectedModelDataPath = {};
-    string m_NavigationDataPath = {};
 };
 
 NS_END

@@ -12,7 +12,6 @@ PickingManager::PickingManager()
 {
     SafeAddRef(m_pEngineUtility);
 }
-
 PICK_RESULT PickingManager::Pick()
 {
     PICK_RESULT result{};
@@ -26,8 +25,9 @@ PICK_RESULT PickingManager::Pick()
         return result;
     }
 
-    _uint iCurrentSceneId = m_pEngineUtility->GetCurrentSceneId();
-    vector<Object*> objectList = m_pEngineUtility->GetAllObjects(iCurrentSceneId);
+    // --- [A] 기존 레이 기반 피킹 (오브젝트) ---
+    _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+    vector<Object*> objectList = m_pEngineUtility->GetAllObjects(sceneId);
     float nearestDist = FLT_MAX;
     Object* nearestObj = nullptr;
     _float3 nearestPos{};
@@ -38,67 +38,80 @@ PICK_RESULT PickingManager::Pick()
         if (RayIntersectObject(ray, obj, &hitPos))
         {
             float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&hitPos) - XMLoadFloat3(&ray.origin)));
-            if (dist < nearestDist)
-            {
-                nearestDist = dist;
-                nearestObj = obj;
-                nearestPos = hitPos;
-            }
+            if (dist < nearestDist) { nearestDist = dist; nearestObj = obj; nearestPos = hitPos; }
         }
     }
 
-    if (nearestObj)
-    {
-        result.hit = true;
-        result.pHitObject = nearestObj;
-        result.hitPos = nearestPos;
-        result.pickType = PICK_OBJECT;
+    if (nearestObj) {
+        result.hit = true; result.pHitObject = nearestObj; result.hitPos = nearestPos; result.pickType = PICK_OBJECT;
         return result;
     }
 
-    // 3️d Terrain 피킹 (오브젝트 실패 시)
-    Layer* pLayer = m_pEngineUtility->FindLayer(iCurrentSceneId, TEXT("Terrain"));
-    if (pLayer != nullptr)
+    // --- [B] Terrain 피킹 ---
+    if (Layer* pLayer = m_pEngineUtility->FindLayer(sceneId, TEXT("Terrain")))
     {
-        list<Object*> objects = pLayer->GetAllObjects();
-        for (auto& object : objects)
+        for (auto& object : pLayer->GetAllObjects())
         {
-            Terrain* pTerrain = dynamic_cast<Terrain*>(object);
-            if (pTerrain)
-            {
+            if (auto* pTerrain = dynamic_cast<Terrain*>(object)) {
                 _float3 hitPos{};
-                if (RayIntersectTerrain(ray, pTerrain, &hitPos))
-                {
-                    result.hit = true;
-                    result.pHitObject = pTerrain;
-                    result.hitPos = hitPos;
-                    result.pickType = PICK_TERRAIN;
+                if (RayIntersectTerrain(ray, pTerrain, &hitPos)) {
+                    result.hit = true; result.pHitObject = pTerrain; result.hitPos = hitPos; result.pickType = PICK_TERRAIN;
                     return result;
                 }
             }
         }
     }
-    
-    //Grid 피킹
+
+    // --- [C] 픽셀 깊이 기반 피킹 ---
     {
-        _vector rayOrigin = XMLoadFloat3(&ray.origin);
-        _vector rayDir = XMLoadFloat3(&ray.direction);
+        _float2 mouse = m_pEngineUtility->GetMousePos();
+        float d01 = 1.f;
 
-        _vector gridPlaneNormal = XMVectorSet(0.f, 1.f, 0.f, 0.f);
-        _float fDot = XMVectorGetX(XMVector3Dot(gridPlaneNormal, rayDir));
+        if (m_pEngineUtility->ReadDepthAtPixel((int)mouse.x, (int)mouse.y, &d01))
+        {
+            // RS Viewport 가져오기
+            ID3D11DeviceContext* ctx = m_pEngineUtility->GetContext();
+            D3D11_VIEWPORT vp{}; UINT vpCount = 1;
+            ctx->RSGetViewports(&vpCount, &vp);
 
-        if (fabs(fDot) > 1e-6f)//평행 체크
-        { 
-            _float distance = -XMVectorGetX(XMVector3Dot(gridPlaneNormal, rayOrigin)) / fDot;
-            if (distance > 0.f)//카메라 앞뒤체크
-            {
-                XMStoreFloat3(&result.hitPos,rayOrigin + rayDir * distance);
-                result.hit = true;
-                result.pHitObject = nullptr;
-                result.pickType = PICK_GRID;
+            // 픽셀센터
+            float sx = std::clamp(mouse.x, 0.0f, vp.Width - 1.0f) + 0.5f;
+            float sy = std::clamp(mouse.y, 0.0f, vp.Height - 1.0f) + 0.5f;
 
+            // (현재 사용 중인 행렬 사용 — 필요시 LastVP로 교체 가능)
+            _matrix V = m_pEngineUtility->GetTransformMatrix(D3DTS_VIEW);
+            _matrix P = m_pEngineUtility->GetTransformMatrix(D3DTS_PROJECTION);
+
+            XMVECTOR screen = XMVectorSet(sx, sy, d01, 1.f);
+            XMVECTOR wpos = XMVector3Unproject(
+                screen,
+                vp.TopLeftX, vp.TopLeftY, vp.Width, vp.Height,
+                0.0f, 1.0f,
+                P, V, XMMatrixIdentity()
+            );
+
+            XMStoreFloat3(&result.hitPos, wpos);
+            result.hit = true;
+            result.pHitObject = nullptr;
+            result.pickType = PICK_PIXEL;
+
+            m_pEngineUtility->SetMarkerPosition(result.hitPos);
+            return result;
+        }
+    }
+
+    // --- [D] Grid(Y=0 평면) 폴백 ---
+    {
+        _vector o = XMLoadFloat3(&ray.origin);
+        _vector d = XMLoadFloat3(&ray.direction);
+        _vector n = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+        float   fdot = XMVectorGetX(XMVector3Dot(n, d));
+        if (fabs(fdot) > 1e-6f) {
+            float t = -XMVectorGetX(XMVector3Dot(n, o)) / fdot;
+            if (t > 0.f) {
+                XMStoreFloat3(&result.hitPos, o + d * t);
+                result.hit = true; result.pHitObject = nullptr; result.pickType = PICK_GRID;
                 m_pEngineUtility->SetMarkerPosition(result.hitPos);
-                
                 return result;
             }
         }
@@ -234,4 +247,19 @@ void PickingManager::Free()
 {
     __super::Free();
     SafeRelease(m_pEngineUtility);
+}
+
+_float3 PickingManager::Unproject(_float depth01, _float mouseX, _float mouseY, _float winW, _float winH, const _float4x4& invViewProj)
+{
+    _float ndcX = 2.f * (mouseX / winW) - 1.f;
+    _float ndcY = -2.f * (mouseY / winH) + 1.f;
+    _float clipZ = depth01 * 2.f - 1.f;
+
+    _vector clip = XMVectorSet(ndcX, ndcY, clipZ, 1.f);
+    _matrix inv = XMLoadFloat4x4(&invViewProj);
+    _vector wpos = XMVector4Transform(clip, inv);
+    wpos = XMVectorScale(wpos, 1.f / XMVectorGetW(wpos));
+
+    _float3 out; XMStoreFloat3(&out, wpos);
+    return out;
 }

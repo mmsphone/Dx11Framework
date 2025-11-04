@@ -15,9 +15,19 @@ _uint Cell::GetIndex() const
     return m_iIndex;
 }
 
-void Cell::SetNeighbor(LINETYPE eLine, Cell* pNeighbor)
+_uint Cell::GetNeighborIndex(LINETYPE eLine)
 {
-    m_iNeighborIndices[eLine] = pNeighbor->m_iIndex;
+    return m_iNeighborIndices[eLine];
+}
+
+void Cell::SetNeighborIndex(LINETYPE eLine, _uint iNeighborIndex)
+{
+    if (iNeighborIndex == -1) {
+        m_iNeighborIndices[eLine] = -1;
+        return;
+    }
+
+    m_iNeighborIndices[eLine] = iNeighborIndex;
 }
 
 HRESULT Cell::Initialize(const _float3* pPoints, _uint iIndex)
@@ -41,18 +51,20 @@ HRESULT Cell::Initialize(const _float3* pPoints, _uint iIndex)
 
 _bool Cell::isIn(_fvector vResultPos, _int* pNeighborIndex)
 {
+    const POINTTYPE anchor[LINE_END] = { POINTTYPE::A, POINTTYPE::B, POINTTYPE::C };
+
     for (size_t i = 0; i < LINE_END; i++)
     {
         _vector vNormal = XMVector3Normalize(XMLoadFloat3(&m_vNormals[i]));
-        _vector vDir = XMVector3Normalize(vResultPos - XMLoadFloat3(&m_vPoints[i]));
+        _vector vDir = XMVector3Normalize(vResultPos - XMLoadFloat3(&m_vPoints[anchor[i]]));
 
-        if (0 < XMVectorGetX(XMVector3Dot(vNormal, vDir)))
+        if (XMVectorGetX(XMVector3Dot(vNormal, vDir)) > 0.f)
         {
-            *pNeighborIndex = m_iNeighborIndices[i];
-            return false;
+            if (pNeighborIndex) *pNeighborIndex = m_iNeighborIndices[i];
+            return false; // 밖
         }
     }
-    return true;
+    return true; // 안
 }
 
 _bool Cell::ComparePoints(_fvector vSour, _fvector vDest)
@@ -84,25 +96,54 @@ _bool Cell::ComparePoints(_fvector vSour, _fvector vDest)
     return false;
 }
 
+_bool Cell::ComparePointsEps(_fvector vSour, _fvector vDest, _float eps)
+{
+    _float3 s, d;
+    XMStoreFloat3(&s, vSour);
+    XMStoreFloat3(&d, vDest);
+
+    const _float3 pa = m_vPoints[POINTTYPE::A];
+    const _float3 pb = m_vPoints[POINTTYPE::B];
+    const _float3 pc = m_vPoints[POINTTYPE::C];
+
+    auto sameEdge = [&](const _float3& e0, const _float3& e1)->_bool {
+        // (s,d) == (e0,e1) or (e1,e0)
+        return (AlmostEqual3D(s, e0, eps) && AlmostEqual3D(d, e1, eps)) ||
+            (AlmostEqual3D(s, e1, eps) && AlmostEqual3D(d, e0, eps));
+        };
+
+    if (sameEdge(pa, pb)) return true;
+    if (sameEdge(pb, pc)) return true;
+    if (sameEdge(pc, pa)) return true;
+    return false;
+}
+
 _float Cell::ComputeHeight(_fvector vResultPos)
 {
-    _float4 vPlane = {};
-
-    XMStoreFloat4(&vPlane, XMPlaneFromPoints(
+    _float4 pl{};
+    XMStoreFloat4(&pl, XMPlaneFromPoints(
         XMLoadFloat3(&m_vPoints[POINTTYPE::A]),
         XMLoadFloat3(&m_vPoints[POINTTYPE::B]),
-        XMLoadFloat3(&m_vPoints[POINTTYPE::C])
-    ));
+        XMLoadFloat3(&m_vPoints[POINTTYPE::C])));
 
-    /*
-    ax + by + cz + d = 0;
-    y = (-ax - cz - d) / b;
-    */
+    const float EPS = 1e-6f;
 
-    float   fy = (-vPlane.x * XMVectorGetX(vResultPos) - vPlane.z * XMVectorGetZ(vResultPos) - vPlane.w) / vPlane.y;
+    // 일반 케이스: y = (-ax - cz - d) / b
+    if (fabsf(pl.y) > EPS)
+    {
+        return (-pl.x * XMVectorGetX(vResultPos)
+            - pl.z * XMVectorGetZ(vResultPos)
+            - pl.w) / pl.y;
+    }
 
-    return fy;
+    // 특수 케이스: b ~= 0 → y고정 평면이 아니거나 수직에 가까움.
+    // 평면과 수직(0,1,0) 광선 교차 이용:
+    // 점 P0 = (x, any, z); 평면 n·X + d = 0
+    // y를 직접 풀 수 없으니, (x,z)는 유지, y는 A,B,C의 평균 높이로 fallback
+    // (실제론 평면 방정식과 최소제곱 투영 등을 쓰지만 여기선 안전한 근사)
+    return (m_vPoints[0].y + m_vPoints[1].y + m_vPoints[2].y) / 3.f;
 }
+
 
 #ifdef _DEBUG
 HRESULT Cell::Render()
@@ -113,6 +154,14 @@ HRESULT Cell::Render()
     return S_OK;
 }
 #endif
+
+_bool Cell::AlmostEqual3D(const _float3& a, const _float3& b, float eps)
+{
+    const float dx = a.x - b.x;
+    const float dy = a.y - b.y;
+    const float dz = a.z - b.z;
+    return (dx * dx + dy * dy + dz * dz) <= (eps * eps);
+}
 
 Cell* Cell::Create( const _float3* pPoints, _uint iIndex)
 {

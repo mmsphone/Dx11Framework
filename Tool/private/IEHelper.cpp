@@ -648,8 +648,6 @@ static std::string FuzzyFindTexture(const std::filesystem::path& dir, const std:
     }
     return (bestSc >= 0) ? best.string() : std::string{};
 }
-
-// ===== IMPORT FBX =====
 bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
 {
     Assimp::Importer importer;
@@ -657,56 +655,130 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
     importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
     importer.SetPropertyInteger(AI_CONFIG_PP_LBW_MAX_WEIGHTS, 4);
 
-    unsigned int flags = aiProcess_ConvertToLeftHanded | aiProcessPreset_TargetRealtime_MaxQuality;
+    const unsigned flags = aiProcess_ConvertToLeftHanded | aiProcessPreset_TargetRealtime_MaxQuality;
     const aiScene* scene = importer.ReadFile(filePath, flags);
     if (!scene || !scene->mRootNode) return false;
 
-    outModel.meshes.clear();
-    outModel.materials.clear();
-    outModel.animations.clear();
-    outModel.bones.clear();
+    // === 초기화 ===
+    outModel = {};
+    outModel.modelDataFilePath = filePath;
 
-    const std::filesystem::path fbxFolder = std::filesystem::path(filePath).parent_path();
+    // === 헬퍼 ===
+    auto SanitizeLower = [&](std::string s)->std::string {
+        s = SanitizeName(s.c_str());
+        std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+        return s;
+        };
 
-    // --- Meshes ---
-    for (unsigned int m = 0; m < scene->mNumMeshes; ++m) {
+    auto TryLoadAllTextureTypes = [&](const aiMaterial* mat, MaterialData& dst)
+        {
+            struct Map { aiTextureType src; TextureType dst; };
+            const Map table[] = {
+                { aiTextureType_BASE_COLOR,        TextureType::Diffuse },
+                { aiTextureType_DIFFUSE,           TextureType::Diffuse },
+                { aiTextureType_NORMAL_CAMERA,     TextureType::Normal },
+                { aiTextureType_HEIGHT,            TextureType::Normal },
+                { aiTextureType_METALNESS,         TextureType::Specular },      // 현 구조 유지
+                { aiTextureType_DIFFUSE_ROUGHNESS, TextureType::Specular },      // (필요시 PBR 분리로 갈 수 있음)
+                { aiTextureType_LIGHTMAP,          TextureType::Specular },
+                { aiTextureType_SPECULAR,          TextureType::Specular },
+                { aiTextureType_EMISSIVE,          TextureType::Emissive },
+                { aiTextureType_EMISSION_COLOR,    TextureType::Emissive },
+            };
+
+            auto addTex = [&](aiTextureType tt, TextureType et)
+                {
+                    const unsigned cnt = mat->GetTextureCount(tt);
+                    for (unsigned t = 0; t < cnt; ++t) {
+                        aiString s; if (mat->GetTexture(tt, t, &s) != AI_SUCCESS) continue;
+                        std::string fixed = FixTexturePath_FBX(s.C_Str(), std::filesystem::path(filePath), et);
+                        if (!fixed.empty()) dst.texturePaths[et].push_back(fixed);
+                    }
+                };
+            for (auto& m : table) addTex(m.src, m.dst);
+
+            // 아무것도 못 찾았으면 파일명 추론(최소보조)
+            bool any = false; for (int et = 0; et < (int)TextureType::End; ++et) any |= !dst.texturePaths[et].empty();
+            if (!any) {
+                for (int tt = (int)aiTextureType_NONE + 1; tt <= (int)aiTextureType_UNKNOWN; ++tt) {
+                    const unsigned cnt = mat->GetTextureCount((aiTextureType)tt);
+                    for (unsigned t = 0; t < cnt; ++t) {
+                        aiString s; if (mat->GetTexture((aiTextureType)tt, t, &s) != AI_SUCCESS) continue;
+                        std::string path = s.C_Str(), lower = path;
+                        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+                        TextureType guess = TextureType::Diffuse;
+                        if (lower.find("normal") != std::string::npos || lower.find("_n") != std::string::npos) guess = TextureType::Normal;
+                        else if (lower.find("rough") != std::string::npos || lower.find("metal") != std::string::npos || lower.find("spec") != std::string::npos || lower.find("orm") != std::string::npos) guess = TextureType::Specular;
+                        else if (lower.find("emis") != std::string::npos || lower.find("glow") != std::string::npos) guess = TextureType::Emissive;
+                        std::string fixed = FixTexturePath_FBX(path, std::filesystem::path(filePath), guess);
+                        if (!fixed.empty()) dst.texturePaths[guess].push_back(fixed);
+                    }
+                }
+            }
+        };
+
+    auto OldMatName = [&](uint32_t oldIdx)->std::string {
+        if (oldIdx >= scene->mNumMaterials) return {};
+        return SanitizeName(scene->mMaterials[oldIdx]->GetName().C_Str());
+        };
+
+    // ============================================================
+    // [1] 메쉬 먼저 파싱: geometry + (oldMatIdx, oldMatName) 기록
+    // ============================================================
+    outModel.meshes.reserve(scene->mNumMeshes);
+    std::vector<uint32_t>   meshOldMatIdx(scene->mNumMeshes, 0);
+    std::vector<std::string> meshOldMatName(scene->mNumMeshes);
+
+    for (unsigned m = 0; m < scene->mNumMeshes; ++m)
+    {
         const aiMesh* mesh = scene->mMeshes[m];
-        MeshData md;
-        md.name = SanitizeName(mesh->mName.C_Str());
-        md.materialIndex = (mesh->mMaterialIndex < scene->mNumMaterials) ? mesh->mMaterialIndex : 0;
 
+        MeshData md{};
+        md.name = SanitizeName(mesh->mName.C_Str());
+
+        const uint32_t oldMat = (mesh->mMaterialIndex < scene->mNumMaterials) ? mesh->mMaterialIndex : 0;
+        md.materialIndex = oldMat; // ★ 임시: oldMatIdx로 채워두고 나중에 교정
+        meshOldMatIdx[m] = oldMat;
+        meshOldMatName[m] = OldMatName(oldMat);
+
+        // 정점
         md.positions.reserve(mesh->mNumVertices);
-        if (mesh->HasNormals()) md.normals.reserve(mesh->mNumVertices);
-        if (mesh->HasTextureCoords(0)) md.texcoords.reserve(mesh->mNumVertices);
+        if (mesh->HasNormals())               md.normals.reserve(mesh->mNumVertices);
+        if (mesh->HasTextureCoords(0))        md.texcoords.reserve(mesh->mNumVertices);
         if (mesh->HasTangentsAndBitangents()) md.tangents.reserve(mesh->mNumVertices);
 
-        for (unsigned int i = 0; i < mesh->mNumVertices; ++i) {
+        for (unsigned i = 0; i < mesh->mNumVertices; ++i) {
             md.positions.push_back({ _float(mesh->mVertices[i].x), _float(mesh->mVertices[i].y), _float(mesh->mVertices[i].z) });
-            md.normals.push_back(mesh->HasNormals() ? _float3{ _float(mesh->mNormals[i].x), _float(mesh->mNormals[i].y), _float(mesh->mNormals[i].z) } : _float3{ 0.f,1.f,0.f });
-            md.texcoords.push_back(mesh->HasTextureCoords(0) ? _float2{ _float(mesh->mTextureCoords[0][i].x), _float(mesh->mTextureCoords[0][i].y) } : _float2{ 0.f,0.f });
+            md.normals.push_back(mesh->HasNormals() ? _float3{ _float(mesh->mNormals[i].x), _float(mesh->mNormals[i].y), _float(mesh->mNormals[i].z) } : _float3{ 0,1,0 });
+            md.texcoords.push_back(mesh->HasTextureCoords(0) ? _float2{ _float(mesh->mTextureCoords[0][i].x), _float(mesh->mTextureCoords[0][i].y) } : _float2{ 0,0 });
             if (mesh->HasTangentsAndBitangents())
                 md.tangents.push_back({ _float(mesh->mTangents[i].x), _float(mesh->mTangents[i].y), _float(mesh->mTangents[i].z) });
         }
 
+        // 인덱스
         md.indices.reserve(mesh->mNumFaces * 3);
-        for (unsigned int f = 0; f < mesh->mNumFaces; ++f) {
+        for (unsigned f = 0; f < mesh->mNumFaces; ++f) {
             const aiFace& face = mesh->mFaces[f];
-            for (unsigned int idx = 0; idx < face.mNumIndices; ++idx) md.indices.push_back(face.mIndices[idx]);
+            for (unsigned k = 0; k < face.mNumIndices; ++k)
+                md.indices.push_back(face.mIndices[k]);
         }
 
-        for (unsigned int b = 0; b < mesh->mNumBones; ++b) {
+        // 본
+        for (unsigned b = 0; b < mesh->mNumBones; ++b) {
             const aiBone* bone = mesh->mBones[b];
-            MeshBone mb;
+            MeshBone mb{};
             mb.name = SanitizeName(bone->mName.C_Str());
             mb.offsetMatrix = ToF4x4(bone->mOffsetMatrix);
             mb.weights.reserve(bone->mNumWeights);
-            for (unsigned int w = 0; w < bone->mNumWeights; ++w) {
+            for (unsigned w = 0; w < bone->mNumWeights; ++w)
                 mb.weights.push_back(VertexWeight{ bone->mWeights[w].mVertexId, bone->mWeights[w].mWeight });
-            }
             md.bones.push_back(std::move(mb));
 
-            if (std::none_of(outModel.bones.begin(), outModel.bones.end(), [&](const BoneData& bd) {return bd.name == bone->mName.C_Str(); })) {
-                BoneData bd; bd.name = SanitizeName(bone->mName.C_Str()); bd.offsetMatrix = ToF4x4(bone->mOffsetMatrix);
+            if (std::none_of(outModel.bones.begin(), outModel.bones.end(),
+                [&](const BoneData& bd) { return bd.name == SanitizeName(bone->mName.C_Str()); })) {
+                BoneData bd{};
+                bd.name = SanitizeName(bone->mName.C_Str());
+                bd.offsetMatrix = ToF4x4(bone->mOffsetMatrix);
                 outModel.bones.push_back(std::move(bd));
             }
         }
@@ -714,162 +786,176 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
         outModel.meshes.push_back(std::move(md));
     }
 
-    // --- Materials ---
-    auto TryLoadAllTextureTypes = [&](const aiMaterial* mat, MaterialData& dst) {
-        struct Map { aiTextureType src; TextureType dst; };
-        const Map table[] = {
-            { aiTextureType_BASE_COLOR,        TextureType::Diffuse },
-            { aiTextureType_DIFFUSE,           TextureType::Diffuse },
+    // ============================================================
+    // [2] 머티리얼 파싱: 벡터 생성 + 이름→인덱스 맵 구성
+    // ============================================================
+    outModel.materials.reserve(scene->mNumMaterials);
+    for (unsigned i = 0; i < scene->mNumMaterials; ++i)
+    {
+        const aiMaterial* src = scene->mMaterials[i];
 
-            { aiTextureType_NORMAL_CAMERA,     TextureType::Normal },
-            { aiTextureType_HEIGHT,            TextureType::Normal },
+        MaterialData m{};
+        m.name = SanitizeName(src->GetName().C_Str());
+        if (m.name.empty()) m.name = "Mat_" + std::to_string(i);
 
-            { aiTextureType_METALNESS,         TextureType::Specular },
-            { aiTextureType_DIFFUSE_ROUGHNESS, TextureType::Specular },
-            { aiTextureType_LIGHTMAP,          TextureType::Specular },
-            { aiTextureType_SPECULAR,          TextureType::Specular },
+        TryLoadAllTextureTypes(src, m);
 
-            { aiTextureType_EMISSIVE,          TextureType::Emissive },
-            { aiTextureType_EMISSION_COLOR,    TextureType::Emissive },
-        };
-        auto addTex = [&](aiTextureType tt, TextureType et) {
-            const unsigned cnt = mat->GetTextureCount(tt);
-            for (unsigned t = 0; t < cnt; ++t) {
-                aiString s; if (mat->GetTexture(tt, t, &s) != AI_SUCCESS) continue;
-                std::string fixed = FixTexturePath_FBX(s.C_Str(), std::filesystem::path(filePath), et);
-                if (!fixed.empty())
-                    dst.texturePaths[et].push_back(fixed);
-            }
-            };
-        for (auto& m : table) addTex(m.src, m.dst);
-
-        bool any = false;
-        for (int et = 0; et < (int)TextureType::End; ++et)
-            any = any || !dst.texturePaths[et].empty();
-
-        if (!any) {
-            for (int tt = (int)aiTextureType_NONE + 1; tt <= (int)aiTextureType_UNKNOWN; ++tt) {
-                const unsigned cnt = mat->GetTextureCount((aiTextureType)tt);
-                for (unsigned t = 0; t < cnt; ++t) {
-                    aiString s; if (mat->GetTexture((aiTextureType)tt, t, &s) != AI_SUCCESS) continue;
-                    std::string path = s.C_Str(), lower = path;
-                    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-                    TextureType guess = TextureType::Diffuse;
-                    if (lower.find("normal") != std::string::npos || lower.find("_n") != std::string::npos) guess = TextureType::Normal;
-                    else if (lower.find("rough") != std::string::npos || lower.find("metal") != std::string::npos || lower.find("spec") != std::string::npos || lower.find("orm") != std::string::npos) guess = TextureType::Specular;
-                    else if (lower.find("emis") != std::string::npos || lower.find("glow") != std::string::npos) guess = TextureType::Emissive;
-                    std::string fixed = FixTexturePath_FBX(path, std::filesystem::path(filePath), guess);
-                    if (!fixed.empty()) dst.texturePaths[guess].push_back(fixed);
-                }
-            }
-        }
-        };
-
-    std::vector<std::string> assimpMatNames;  // material index 재정렬용 (선택)
-    assimpMatNames.reserve(scene->mNumMaterials);
-
-    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-        const aiMaterial* mat = scene->mMaterials[i];
-        MaterialData m;
-        m.name = SanitizeName(mat->GetName().C_Str());
-
-        // 1) Assimp에서 주는 텍스처들 먼저 시도
-        TryLoadAllTextureTypes(mat, m);
-
-        // 2) 없으면 textures/ 밑에서 재질명 기반으로 찾아 붙이기 (Diffuse만)
-        const std::filesystem::path texRoot = std::filesystem::path(filePath).parent_path() / "textures";
-        auto ensureByName = [&](TextureType tt) {
-            if (!m.texturePaths[tt].empty()) return; // 이미 있으면 스킵
-
-            // (a) 정확 스템(case-insensitive) 매칭
-            if (auto s = FindByStemCaseInsensitiveRecursive(texRoot, m.name); !s.empty()) {
-                m.texturePaths[tt].push_back(s);
-                OutputDebugStringA(("[MatNameMatch] " + m.name + " -> " + s + "\n").c_str());
-                return;
-            }
-            // (b) 퍼지 매칭(재질명 일부 + 타입 키워드)
-            if (auto s = FuzzyFindTexture(texRoot, m.name, tt); !s.empty()) {
-                m.texturePaths[tt].push_back(s);
-                OutputDebugStringA(("[MatFuzzyMatch] " + m.name + " -> " + s + "\n").c_str());
-                return;
-            }
-            };
-        ensureByName(TextureType::Diffuse);
-
-        // 3) 색상 파라미터
         aiColor3D kd(1, 1, 1), ks(0, 0, 0), ke(0, 0, 0);
-        mat->Get(AI_MATKEY_COLOR_DIFFUSE, kd);
-        mat->Get(AI_MATKEY_COLOR_SPECULAR, ks);
-        mat->Get(AI_MATKEY_COLOR_EMISSIVE, ke);
-        m.diffuseColor = { _float(kd.r), _float(kd.g), _float(kd.b), 1.0f };
-        m.specularColor = { _float(ks.r), _float(ks.g), _float(ks.b), 1.0f };
-        m.emissiveColor = { _float(ke.r), _float(ke.g), _float(ke.b), 1.0f };
-
-        if (m.texturePaths[TextureType::Diffuse].empty()) {
-            char buf[256];
-            sprintf_s(buf, "[ImportFBX] Material '%s' uses diffuse color (%.2f, %.2f, %.2f)\n",
-                m.name.c_str(), kd.r, kd.g, kd.b);
-            OutputDebugStringA(buf);
-        }
-
-        // 디버그: 결정된 경로들
-        for (int t = 0; t < (int)TextureType::End; ++t) {
-            for (auto& p : m.texturePaths[t]) {
-                OutputDebugStringA(("[Tex] " + std::to_string(t) + " : " + p + "\n").c_str());
-            }
-        }
+        src->Get(AI_MATKEY_COLOR_DIFFUSE, kd);
+        src->Get(AI_MATKEY_COLOR_SPECULAR, ks);
+        src->Get(AI_MATKEY_COLOR_EMISSIVE, ke);
+        m.diffuseColor = { (_float)kd.r, (_float)kd.g, (_float)kd.b, 1.0f };
+        m.specularColor = { (_float)ks.r, (_float)ks.g, (_float)ks.b, 1.0f };
+        m.emissiveColor = { (_float)ke.r, (_float)ke.g, (_float)ke.b, 1.0f };
 
         outModel.materials.push_back(std::move(m));
-        assimpMatNames.push_back(std::string(mat->GetName().C_Str())); // (선택) 재매핑용
     }
 
+    // 이름 → 인덱스 매핑 (정규화 키)
+    std::unordered_map<std::string, uint32_t> nameToIdx;
+    nameToIdx.reserve(outModel.materials.size());
+    for (uint32_t i = 0; i < (uint32_t)outModel.materials.size(); ++i) {
+        nameToIdx[SanitizeLower(outModel.materials[i].name)] = i;
+    }
 
-    // --- Node Hierarchy ---
+    // ============================================================
+    // [3] 매쉬의 최종 머티리얼 인덱스 교정 (이름 우선, 인덱스 보조, 최후수단 append)
+    // ============================================================
+    auto AppendMaterialFromOld = [&](uint32_t oldIdx)->uint32_t {
+        const aiMaterial* miss = (oldIdx < scene->mNumMaterials) ? scene->mMaterials[oldIdx] : nullptr;
+        if (!miss) return 0;
+
+        MaterialData fix{};
+        fix.name = OldMatName(oldIdx);
+        if (fix.name.empty()) fix.name = "Mat_" + std::to_string(oldIdx);
+
+        TryLoadAllTextureTypes(miss, fix);
+        aiColor3D kd(1, 1, 1), ks(0, 0, 0), ke(0, 0, 0);
+        miss->Get(AI_MATKEY_COLOR_DIFFUSE, kd);
+        miss->Get(AI_MATKEY_COLOR_SPECULAR, ks);
+        miss->Get(AI_MATKEY_COLOR_EMISSIVE, ke);
+        fix.diffuseColor = { (_float)kd.r, (_float)kd.g, (_float)kd.b, 1.0f };
+        fix.specularColor = { (_float)ks.r, (_float)ks.g, (_float)ks.b, 1.0f };
+        fix.emissiveColor = { (_float)ke.r, (_float)ke.g, (_float)ke.b, 1.0f };
+
+        uint32_t forced = (uint32_t)outModel.materials.size();
+        outModel.materials.push_back(std::move(fix));
+        nameToIdx[SanitizeLower(outModel.materials.back().name)] = forced;
+        return forced;
+        };
+
+    for (size_t i = 0; i < outModel.meshes.size(); ++i)
+    {
+        auto& md = outModel.meshes[i];
+        const uint32_t oldIdx = meshOldMatIdx[i];
+        const std::string want = meshOldMatName[i];           // FBX가 의도한 이름(정규화 전)
+        const std::string wantK = SanitizeLower(want);
+
+        // 1) 이름으로 정확 매칭 → 최우선
+        auto it = nameToIdx.find(wantK);
+        if (it != nameToIdx.end()) {
+            md.materialIndex = it->second;
+            goto VERIFIED;
+        }
+
+        // 2) 이름 매칭 실패 → oldIdx로 보조 매칭
+        if (oldIdx < outModel.materials.size()) {
+            const std::string have = outModel.materials[oldIdx].name;
+            if (!want.empty() && SanitizeLower(have) == wantK) {
+                md.materialIndex = oldIdx;
+                goto VERIFIED;
+            }
+        }
+
+        // 3) 최후수단 → 해당 aiMaterial로 새 머티리얼을 즉시 append 후 교정
+        {
+            const uint32_t forced = AppendMaterialFromOld(oldIdx);
+            md.materialIndex = forced;
+            OutputDebugStringA(("[MatFix-ForcedAppend] mesh=" + md.name + " : appended '" + want + "'\n").c_str());
+        }
+
+    VERIFIED:
+        // 방어
+        if (!(md.materialIndex < outModel.materials.size())) {
+            // 절대 오면 안 됨: 마지막 방어
+            const uint32_t forced = AppendMaterialFromOld(oldIdx);
+            md.materialIndex = forced;
+        }
+
+        // (선택) 검증 로그
+        {
+            char buf[512];
+            sprintf_s(buf, "[MeshMatFinal] mesh=%s want='%s' -> newIdx=%u('%s')\n",
+                md.name.c_str(), want.c_str(), md.materialIndex, outModel.materials[md.materialIndex].name.c_str());
+            OutputDebugStringA(buf);
+        }
+    }
+
+    // ============================================================
+    // [4] 노드 트리
+    // ============================================================
     int nodeCounter = 0;
     std::function<void(const aiNode*, NodeData&, int)> processNode;
-    processNode = [&](const aiNode* node, NodeData& outNode, int parentIdx) {
-        const int myIdx = nodeCounter++;
-        outNode.name = (node->mName.length > 0) ? SanitizeName(node->mName.C_Str()) : "Root";
-        outNode.parentIndex = parentIdx;
-        outNode.transform = ToF4x4(node->mTransformation);
-        if (!(outNode.transform._11 || outNode.transform._22 || outNode.transform._33)) outNode.transform = IdentityF4x4();
-        outNode.children.resize(node->mNumChildren);
-        for (unsigned int c = 0; c < node->mNumChildren; ++c) processNode(node->mChildren[c], outNode.children[c], myIdx);
+    processNode = [&](const aiNode* node, NodeData& outNode, int parentIdx)
+        {
+            const int myIdx = nodeCounter++;
+            outNode.name = (node->mName.length > 0) ? SanitizeName(node->mName.C_Str()) : "Root";
+            outNode.parentIndex = parentIdx;
+            outNode.transform = ToF4x4(node->mTransformation);
+            if (!(outNode.transform._11 || outNode.transform._22 || outNode.transform._33))
+                outNode.transform = IdentityF4x4();
+
+            outNode.children.resize(node->mNumChildren);
+            for (unsigned c = 0; c < node->mNumChildren; ++c)
+                processNode(node->mChildren[c], outNode.children[c], myIdx);
         };
-    outModel.rootNode = {};
     processNode(scene->mRootNode, outModel.rootNode, -1);
 
-    // --- Animations (있으면) ---
-    for (unsigned int a = 0; a < scene->mNumAnimations; ++a) {
+    // ============================================================
+    // [5] 애니메이션
+    // ============================================================
+    for (unsigned a = 0; a < scene->mNumAnimations; ++a)
+    {
         const aiAnimation* anim = scene->mAnimations[a];
-        AnimationData ad;
+
+        AnimationData ad{};
         ad.name = (anim->mName.length > 0) ? SanitizeName(anim->mName.C_Str()) : "Anim_" + std::to_string(a);
-        double tps = (anim->mTicksPerSecond != 0.0) ? anim->mTicksPerSecond : 30.0; if (tps > 480.0) tps = 30.0;
+
+        double tps = (anim->mTicksPerSecond != 0.0) ? anim->mTicksPerSecond : 30.0;
+        if (tps > 480.0) tps = 30.0;
         ad.ticksPerSecond = (float)tps;
         ad.duration = (float)anim->mDuration;
 
-        for (unsigned int c = 0; c < anim->mNumChannels; ++c) {
+        ad.channels.reserve(anim->mNumChannels);
+        for (unsigned c = 0; c < anim->mNumChannels; ++c)
+        {
             const aiNodeAnim* ch = anim->mChannels[c];
-            ChannelData cd; cd.nodeName = SanitizeName(ch->mNodeName.C_Str());
-            for (unsigned int k = 0; k < ch->mNumPositionKeys; ++k)
-                cd.positionKeys.push_back({ (float)ch->mPositionKeys[k].mTime, { (float)ch->mPositionKeys[k].mValue.x, (float)ch->mPositionKeys[k].mValue.y, (float)ch->mPositionKeys[k].mValue.z } });
-            for (unsigned int k = 0; k < ch->mNumRotationKeys; ++k) {
+            ChannelData cd{}; cd.nodeName = SanitizeName(ch->mNodeName.C_Str());
+
+            for (unsigned k = 0; k < ch->mNumPositionKeys; ++k)
+                cd.positionKeys.push_back({ (float)ch->mPositionKeys[k].mTime,
+                    { (float)ch->mPositionKeys[k].mValue.x, (float)ch->mPositionKeys[k].mValue.y, (float)ch->mPositionKeys[k].mValue.z } });
+
+            for (unsigned k = 0; k < ch->mNumRotationKeys; ++k) {
                 _float4 q{ (float)ch->mRotationKeys[k].mValue.x, (float)ch->mRotationKeys[k].mValue.y, (float)ch->mRotationKeys[k].mValue.z, (float)ch->mRotationKeys[k].mValue.w };
                 NormalizeQuat(q);
                 cd.rotationKeys.push_back({ (float)ch->mRotationKeys[k].mTime, q });
             }
-            for (unsigned int k = 0; k < ch->mNumScalingKeys; ++k)
-                cd.scalingKeys.push_back({ (float)ch->mScalingKeys[k].mTime, { (float)ch->mScalingKeys[k].mValue.x, (float)ch->mScalingKeys[k].mValue.y, (float)ch->mScalingKeys[k].mValue.z } });
+
+            for (unsigned k = 0; k < ch->mNumScalingKeys; ++k)
+                cd.scalingKeys.push_back({ (float)ch->mScalingKeys[k].mTime,
+                    { (float)ch->mScalingKeys[k].mValue.x, (float)ch->mScalingKeys[k].mValue.y, (float)ch->mScalingKeys[k].mValue.z } });
+
             ad.channels.push_back(std::move(cd));
         }
+
         outModel.animations.push_back(std::move(ad));
     }
 
-    // 필요시: 정적 애니/본 프루닝은 기존 함수 호출 유지
-
-    outModel.modelDataFilePath = filePath;
     return true;
 }
+
+
 bool IEHelper::ExportModel(const std::string& filePath, const ModelData& model)
 {
     // ============= [1] 전체 모델 내보내기 =============

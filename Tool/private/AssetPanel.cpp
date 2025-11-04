@@ -64,15 +64,6 @@ void AssetPanel::OnRender()
                         pMapPanel->SetSelectedBinPath(path.string());
                     }
                 }
-                else if (ext == ".dat")
-                {
-                    MapPanel* pMapPanel = dynamic_cast<MapPanel*>(m_pEngineUtility->FindPanel("MapPanel"));
-                    if (pMapPanel)
-                    {
-                        pMapPanel->SetNavigationDataPath(path.string());
-                    }
-                }
-
             }
         }
     }

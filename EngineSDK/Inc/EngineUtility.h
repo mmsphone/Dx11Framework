@@ -32,6 +32,8 @@ public:
 	ID3D11DeviceContext* GetContext();
 	HWND GetWindowHandle();
 	_float2 GetWindowSize();
+	void SnapDepthForPicking();
+	_bool ReadDepthAtPixel(_int px, _int py, _float* outDepth01);
 
 	//Input
 	_byte	GetKeyState(_ubyte byKeyID);
@@ -132,8 +134,8 @@ public:
 #ifdef _DEBUG
 	HRESULT RenderNavigation();
 #endif
-	void AddCell(_float3* pPoints);
 	void AddTempPoint(const _float3& point);
+	void ClearTempPoints();
 	void RemoveRecentCell();
 	void ClearCells();
 	void SaveCells(const _char* pNavigationDataFile);
@@ -141,6 +143,10 @@ public:
 	_bool IsInCell(_fvector vWorldPos, _int* pOutCellIndex = nullptr);
 	_bool SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos);
 	const vector<class Cell*>& GetCells() const;
+	_bool Edit_AddTriangleOnEdge(_int cellId, _fvector pickedPoint, _float weldEps);
+	_bool Edit_AddTriangleAtSharedVertex(_int cellA, _int cellB, _float weldEps);
+	_bool RandomPointAround(_fvector center, _float radius, _float3* outPos, _uint maxTrials = 64);
+
 
 	//SaveLoadManager
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);

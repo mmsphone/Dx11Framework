@@ -320,6 +320,20 @@ void MapPanel::OnRender()
         ofn.nFilterIndex = 1;
         ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
 
+        auto DumpBasis = [&](Transform* t)
+            {
+                XMVECTOR R = XMVector3Normalize(t->GetState(RIGHT));
+                XMVECTOR U = XMVector3Normalize(t->GetState(UP));
+                XMVECTOR L = XMVector3Normalize(t->GetState(LOOK));
+
+                XMVECTOR C = XMVector3Cross(R, U);                // LH면 C(=R×U)가 L과 같아야 함
+                float dotRUx = XMVectorGetX(XMVector3Dot(C, L));  // ≈ +1이면 정상(LH), ≈ -1이면 축이 반대로 들어옴(미러/뒤집힘)
+
+                _float3 r, u, l;
+                XMStoreFloat3(&r, R); XMStoreFloat3(&u, U); XMStoreFloat3(&l, L);
+
+            };
+
         if (GetOpenFileNameA(&ofn))
         {
             std::vector<MAP_OBJECTDATA> mapObjects =
@@ -359,6 +373,9 @@ void MapPanel::OnRender()
                     pTransform->SetState(UP, up);
                     pTransform->SetState(LOOK, look);
                     pTransform->SetState(POSITION, pos);
+
+
+                    DumpBasis(pTransform);
                 }
             }
         }
@@ -379,6 +396,60 @@ void MapPanel::OnRender()
 
         if (GetSaveFileNameA(&ofn))
             m_pEngineUtility->SaveMapData(szFile);
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Scene Objects:");
+
+    Layer* pLayer = m_pEngineUtility->FindLayer(SCENE::MAP, TEXT("FieldObject"));
+    if (pLayer)
+    {
+        const auto& objectList = pLayer->GetAllObjects();
+
+        if (objectList.empty())
+        {
+            ImGui::TextDisabled("No objects in FieldObject layer.");
+        }
+        else
+        {
+            // 리스트 UI
+            ImGui::BeginChild("ObjectList", ImVec2(0, 150), true, ImGuiWindowFlags_HorizontalScrollbar);
+
+            int index = 0;
+            for (auto* pObj : objectList)
+            {
+                std::string objName{};
+                objName = "Object_" + std::to_string(index);
+
+                bool isSelected = (m_pSelectedObject == pObj);
+
+                if (ImGui::Selectable(objName.c_str(), isSelected))
+                {
+                    // ✅ 선택된 오브젝트 변경
+                    m_pSelectedObject = pObj;
+
+                    // 기존 패널 제거
+                    if (m_pObjectPanel)
+                    {
+                        m_pEngineUtility->RemovePanel(m_pObjectPanel->GetPanelName());
+                        SafeRelease(m_pObjectPanel);
+                        m_pObjectPanel = nullptr;
+                    }
+
+                    // 새 ObjectPanel 생성
+                    std::string objPanelName = "ObjectPanel";
+                    m_pObjectPanel = ObjectPanel::Create(objPanelName, true, m_pSelectedObject);
+                    m_pEngineUtility->AddPanel(objPanelName, m_pObjectPanel);
+                }
+                ++index;
+            }
+
+            ImGui::EndChild();
+        }
+    }
+    else
+    {
+        ImGui::TextDisabled("Layer 'FieldObject' not found.");
     }
 }
 

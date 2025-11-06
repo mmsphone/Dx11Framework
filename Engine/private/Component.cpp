@@ -1,5 +1,6 @@
 ﻿#include "Component.h"
 #include "EngineUtility.h"
+#include "object.h"
 
 Component::Component()
     : m_pEngineUtility{ EngineUtility::GetInstance() }
@@ -25,8 +26,19 @@ HRESULT Component::Initialize(void* pArg)
     return S_OK;
 }
 
+void Component::SetOwner(Object* pOwner)
+{
+    m_pOwner = pOwner;
+}
+
+Object* Component::GetOwner()
+{
+    return m_pOwner;
+}
+
 void Component::Free()
 {
     __super::Free();
     SafeRelease(m_pEngineUtility);
+    m_pOwner = nullptr;
 }

@@ -1,25 +1,25 @@
-﻿#include "CageCamera.h"
+﻿#include "GameScene1_Map.h"
 
 #include "EngineUtility.h"
 
-CageCamera::CageCamera()
+GameScene1_Map::GameScene1_Map()
     : ObjectTemplate{ }
 {
 }
 
-CageCamera::CageCamera(const CageCamera& Prototype)
+GameScene1_Map::GameScene1_Map(const GameScene1_Map& Prototype)
     : ObjectTemplate{ Prototype }
 {
 }
 
-void CageCamera::LateUpdate(_float fTimeDelta)
+void GameScene1_Map::LateUpdate(_float fTimeDelta)
 {
     m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this);
 
     __super::LateUpdate(fTimeDelta);
 }
 
-HRESULT CageCamera::Render()
+HRESULT GameScene1_Map::Render()
 {
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
     Shader* pShader = dynamic_cast<Shader*>(FindComponent(TEXT("Shader")));
@@ -48,35 +48,40 @@ HRESULT CageCamera::Render()
     if (FAILED(pShader->BindRawValue("g_vLightSpecular", &pLightDesc->vSpecular, sizeof(_float4))))
         return E_FAIL;
 
-    if (FAILED(pModel->BindShaderResource(0, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
-        return E_FAIL;
+    _uint       iNumMeshes = pModel->GetNumMeshes();
 
-    pShader->Begin(0);
-    pModel->Render(0);
+    for (_uint i = 0; i < iNumMeshes; i++)
+    {
+        if (FAILED(pModel->BindShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
+            continue;
+
+        pShader->Begin(0);
+        pModel->Render(i);
+    }
 
     return S_OK;
 }
 
-HRESULT CageCamera::ReadyComponents()
+HRESULT GameScene1_Map::ReadyComponents()
 {
     /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::LOGO, TEXT("Shader_VtxMesh"), TEXT("Shader"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Shader_VtxMesh"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
 
     /* For.Com_Model */
-    if (FAILED(AddComponent(SCENE::LOGO, TEXT("Model_CageCamera"), TEXT("Model"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Model_GameScene1_Map"), TEXT("Model"), nullptr, nullptr)))
         return E_FAIL;
 
     return S_OK;
 }
 
-CageCamera* CageCamera::Create()
+GameScene1_Map* GameScene1_Map::Create()
 {
-    CageCamera* pInstance = new CageCamera();
+    GameScene1_Map* pInstance = new GameScene1_Map();
 
     if (FAILED(pInstance->InitializePrototype()))
     {
-        MSG_BOX("Failed to Created : CageCamera");
+        MSG_BOX("Failed to Created : GameScene1_Map");
         SafeRelease(pInstance);
     }
 
@@ -84,15 +89,20 @@ CageCamera* CageCamera::Create()
 }
 
 
-Object* CageCamera::Clone(void* pArg)
+Object* GameScene1_Map::Clone(void* pArg)
 {
-    CageCamera* pInstance = new CageCamera(*this);
+    GameScene1_Map* pInstance = new GameScene1_Map(*this);
 
     if (FAILED(pInstance->Initialize(pArg)))
     {
-        MSG_BOX("Failed to Cloned : CageCamera");
+        MSG_BOX("Failed to Cloned : GameScene1_Map");
         SafeRelease(pInstance);
     }
 
     return pInstance;
+}
+
+void GameScene1_Map::Free()
+{
+    __super::Free();
 }

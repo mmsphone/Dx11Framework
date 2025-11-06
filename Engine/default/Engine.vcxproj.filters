@@ -175,6 +175,12 @@
     <Filter Include="05.Component\VertexIndexBuffer\VIBufferMesh">
       <UniqueIdentifier>{def4d477-554c-4591-913e-0c2e44ced329}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05.Component\StateMachine">
+      <UniqueIdentifier>{7f5eaa5b-a6f0-46b1-97fc-41c4a382560d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\AIController">
+      <UniqueIdentifier>{bfafdafb-364b-4250-adf7-ed88f0a0f298}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -350,6 +356,12 @@
     </ClInclude>
     <ClInclude Include="..\public\SaveLoadManager.h">
       <Filter>03.Utility\SaveLoadManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\StateMachine.h">
+      <Filter>05.Component\StateMachine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\AIController.h">
+      <Filter>05.Component\AIController</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -529,6 +541,12 @@
     </ClCompile>
     <ClCompile Include="..\private\SaveLoadManager.cpp">
       <Filter>03.Utility\SaveLoadManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\StateMachine.cpp">
+      <Filter>05.Component\StateMachine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\AIController.cpp">
+      <Filter>05.Component\AIController</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

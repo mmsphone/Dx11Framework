@@ -18,9 +18,7 @@ Collision::Collision(const Collision& Prototype)
 {
 #ifdef _DEBUG
     SafeAddRef(m_pInputLayout);
-#endif		
-    std::string str = std::string("AddRef");
-    DEBUG_OUTPUT(str);
+#endif
 }
 
 HRESULT Collision::InitializePrototype(COLLISIONTYPE eType)
@@ -153,8 +151,6 @@ Component* Collision::Clone(void* pArg)
 
 void Collision::Free()
 {
-    __super::Free();
-
     SafeRelease(m_pCollisionBox);
 
 #ifdef _DEBUG
@@ -165,4 +161,5 @@ void Collision::Free()
     }
     SafeRelease(m_pInputLayout);
 #endif
+    __super::Free();
 }

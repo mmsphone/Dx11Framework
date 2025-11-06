@@ -148,7 +148,7 @@ _float Cell::ComputeHeight(_fvector vResultPos)
 #ifdef _DEBUG
 HRESULT Cell::Render()
 {
-    m_pDebugBuffer->BindBuffers();
+     m_pDebugBuffer->BindBuffers();
     m_pDebugBuffer->Render();
 
     return S_OK;

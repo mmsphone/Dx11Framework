@@ -5,19 +5,20 @@
 
 NS_BEGIN(Client)
 
-class CageCamera final : public ObjectTemplate
+class GameScene1_Map final : public ObjectTemplate
 {
 private:
-	CageCamera();
-	CageCamera(const CageCamera& Prototype);
-	virtual ~CageCamera() = default;
+	GameScene1_Map();
+	GameScene1_Map(const GameScene1_Map& Prototype);
+	virtual ~GameScene1_Map() = default;
 
 public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
-	static CageCamera* Create();
+	static GameScene1_Map* Create();
 	virtual Object* Clone(void* pArg) override;
+	virtual void Free() override;
 
 private:
 	HRESULT ReadyComponents();

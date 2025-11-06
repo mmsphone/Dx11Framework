@@ -39,6 +39,7 @@ HRESULT Shader::InitializePrototype(const _tchar* pShaderFilePath, const D3D11_I
 			const char* errorMsg = (const char*)pErrorMsg->GetBufferPointer();
 			OutputDebugStringA(errorMsg); // 디버그 창에 출력
 			MessageBoxA(nullptr, errorMsg, "Shader Compile Error", MB_OK); // 팝업창으로도 확인 가능
+			pErrorMsg->Release();
 		}
 		return E_FAIL;
 	}
@@ -182,7 +183,6 @@ void Shader::Free()
 
 	for (auto& pInputLayout : m_InputLayouts)
 		SafeRelease(pInputLayout);
-
 	m_InputLayouts.clear();
 
 	SafeRelease(m_pEffect);

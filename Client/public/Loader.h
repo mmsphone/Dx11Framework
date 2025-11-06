@@ -27,6 +27,8 @@ public:
 private:
 	HRESULT LoadingForLogo();
 	HRESULT LoadingForGamePlay();
+	HRESULT LoadMapObjects(SCENE sceneId, const std::vector<MAP_OBJECTDATA>& mapData, const std::unordered_map<std::string, std::pair<std::wstring, std::wstring>>& nameMap);
+
 private:
 	EngineUtility* m_pEngineUtility = { nullptr };
 

@@ -2,6 +2,7 @@
 
 #include "EngineUtility.h"
 #include "Panel.h"
+#include "Object.h"
 
 IMGUIManager::IMGUIManager()
     : m_pEngineUtility( EngineUtility::GetInstance() )
@@ -84,7 +85,6 @@ HRESULT IMGUIManager::AddPanel(const string& PanelName, Panel* pPanel)
     if (m_Panels.find(PanelName) != m_Panels.end())
         return E_FAIL; // 이미 존재하는 이름
 
-    SafeAddRef(pPanel);
     m_Panels.emplace(PanelName, pPanel);
     return S_OK;
 }
@@ -144,7 +144,11 @@ void IMGUIManager::DrawPanels()
 
 void IMGUIManager::SetGizmoTarget(Object* pTarget, ImGuizmo::OPERATION eOperation)
 {
+    if (m_pGizmoTarget)
+        SafeRelease(m_pGizmoTarget);
     m_pGizmoTarget = pTarget;
+    SafeAddRef(m_pGizmoTarget);
+
     m_eGizmoOperation = eOperation;
 }
 
@@ -155,7 +159,7 @@ std::pair<class Object*, ImGuizmo::OPERATION> IMGUIManager::GetGizmoTarget() con
 
 void IMGUIManager::ClearGizmoTarget()
 {
-    m_pGizmoTarget = nullptr;
+    SafeRelease(m_pGizmoTarget);
 }
 
 bool IMGUIManager::HasGizmoTarget() const
@@ -167,7 +171,13 @@ void IMGUIManager::Free()
 {
     __super::Free();
 
+    Shutdown();
+
+    m_pEngineUtility->GetContext()->ClearState();
+    m_pEngineUtility->GetContext()->Flush();
+
     ClearPanels();
 
     SafeRelease(m_pEngineUtility);
+    SafeRelease(m_pGizmoTarget);
 }

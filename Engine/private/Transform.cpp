@@ -208,6 +208,23 @@ void Transform::RotateTimeDelta(_fvector vAxis, _float fTimeDelta)
 	SetState(STATE::LOOK, vLook);
 }
 
+void Transform::Turn(_fvector vAxis, _float fTimeDelta)
+{
+	_vector vRight = GetState(STATE::RIGHT);
+	_vector vUp = GetState(STATE::UP);
+	_vector vLook = GetState(STATE::LOOK);
+
+	_matrix RotationMatrix = XMMatrixRotationAxis(vAxis, m_fRotationPerSec * fTimeDelta);
+
+	vRight = XMVector3TransformNormal(vRight, RotationMatrix);
+	vUp = XMVector3TransformNormal(vUp, RotationMatrix);
+	vLook = XMVector3TransformNormal(vLook, RotationMatrix);
+
+	SetState(STATE::RIGHT, vRight);
+	SetState(STATE::UP, vUp);
+	SetState(STATE::LOOK, vLook);
+}
+
 void Transform::LookAt(_fvector vFocus)
 {
 	//목표 좌표 - 현재 좌표 -> Look 벡터
@@ -242,6 +259,14 @@ void Transform::Chase(_fvector vDest, _float fTimeDelta, _float fLimitDistance)
 	vPosition += XMVector3Normalize(vMoveDir) * m_fSpeedPerSec * fTimeDelta;
 
 	//위치 상태 재설정
+	SetState(STATE::POSITION, vPosition);
+}
+
+void Transform::Translate(_fvector vTranslateDir, _float fTimeDelta)
+{
+	_vector     vPosition = GetState(STATE::POSITION);
+	vPosition += XMVector3Normalize(vTranslateDir) * m_fSpeedPerSec * fTimeDelta;
+
 	SetState(STATE::POSITION, vPosition);
 }
 

@@ -106,10 +106,7 @@ _bool AssetPanel::LoadPreviewTexture(const std::filesystem::path& path)
     if (!std::filesystem::exists(path))
         return false;
 
-    ID3D11Device* device = m_pEngineUtility->GetDevice();
-    ID3D11DeviceContext* context = m_pEngineUtility->GetContext();
-
-    if (!device || !context)
+    if (!m_pEngineUtility->GetDevice() || !m_pEngineUtility->GetContext())
         return false;
 
     // 이전 리소스 해제
@@ -124,12 +121,12 @@ _bool AssetPanel::LoadPreviewTexture(const std::filesystem::path& path)
     // DDS
     if (ext == L".dds")
     {
-        hr = CreateDDSTextureFromFile(device, context, path.c_str(), nullptr, &m_pPreviewShaderResourceView);
+        hr = CreateDDSTextureFromFile(m_pEngineUtility->GetDevice(), m_pEngineUtility->GetContext(), path.c_str(), nullptr, &m_pPreviewShaderResourceView);
     }
     // 그 외 (PNG, JPG, BMP, TGA 등)
     else
     {
-        hr = CreateWICTextureFromFile(device, context, path.c_str(), nullptr, &m_pPreviewShaderResourceView);
+        hr = CreateWICTextureFromFile(m_pEngineUtility->GetDevice(), m_pEngineUtility->GetContext(), path.c_str(), nullptr, &m_pPreviewShaderResourceView);
     }
 
     if (FAILED(hr))

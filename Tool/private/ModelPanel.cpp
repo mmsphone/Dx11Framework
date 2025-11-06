@@ -94,8 +94,6 @@ void ModelPanel::OnRender()
 
             if (filesystem::exists(binPath))
             {
-                ModelData* model = new ModelData();
-
                 Model* pModel = dynamic_cast<Model*>(m_pModelObject->FindComponent(TEXT("Model")));
                 if (pModel != nullptr)
                 {

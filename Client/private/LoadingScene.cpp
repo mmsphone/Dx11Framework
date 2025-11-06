@@ -29,8 +29,7 @@ HRESULT LoadingScene::Initialize(SCENE eNextSceneId)
 
 void LoadingScene::Update(_float fTimeDelta)
 {
-	if (true == m_pLoader->isFinished() &&
-		GetKeyState(VK_SPACE) & 0x8000)
+ 	if (true == m_pLoader->isFinished() && m_pEngineUtility->IsKeyPressed(DIK_SPACE))
 	{
 		Scene* pNextScene = { nullptr };
 

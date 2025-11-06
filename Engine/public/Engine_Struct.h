@@ -131,6 +131,38 @@ namespace Engine
 		std::string modelPath;
 		XMFLOAT4X4   worldMatrix;
 	}MAP_OBJECTDATA;
+
+	struct EventData {
+		std::string name;
+		float fParam{ 0.f };
+		void* pParam{ nullptr };	
+	};
+
+	struct StateProc {
+		std::function<void(class Object*, class StateMachine*)>                      enter;
+		std::function<void(class Object*, class StateMachine*, float)>               update;
+		std::function<void(class Object*, class StateMachine*)>                      exit;
+		std::function<bool(class Object*, class StateMachine*, const EventData&)>    onEvent;
+	};
+
+	struct Transition {
+		std::function<bool(class Object* pOwner, class StateMachine* stateMachine)> condition;
+		std::string nextState;
+		unsigned int priority = 0;
+	};
+
+	typedef struct tagAIControllerBlackBoardDesc
+	{
+		bool   hasTarget = false;		// 플레이어를 찾았는가
+		bool   hasLOS = false;			// 시야가림 없는가
+		bool   inFOV = false;			// 시야각 안에 있는가
+		bool   inAttackRange = false;   // 공격 사거리 이내인가
+		float  distance = 0.f;			// 소유자-타겟 거리
+		float  cosHalfFov = 0.f;		// cos(FOV/2)
+		XMFLOAT4 ownerPos = {};			// 소유자 월드 위치
+		XMFLOAT4 ownerLook = {};		// 소유자 정규화된 LOOK
+		XMFLOAT4 targetPos = {};		// 타겟(플레이어) 월드 위치
+	}AIBLACKBOARD_DESC;
 }
 
 

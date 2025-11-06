@@ -49,6 +49,12 @@ void RenderManager::Free()
     __super::Free();
     
     SafeRelease(m_pEngineUtility);
+
+    for(_uint i = RENDERGROUP::PRIORITY; i<RENDERGROUP::RENDERGROUP_END; ++i)
+        for (auto& pObject : m_RenderObjects[i])
+        {
+            SafeRelease(pObject);
+        }
 }
 
 void RenderManager::RenderPriority()

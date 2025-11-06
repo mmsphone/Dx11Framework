@@ -111,18 +111,23 @@ void EngineUtility::ReleaseEngine()
 {
 	SafeRelease(m_pSaveLoadManager);
 	SafeRelease(m_pNavigationManager);
-	SafeRelease(m_pGridManager);
 	SafeRelease(m_pPickingManager);
+
 	SafeRelease(m_pIMGUIManager);
+	SafeRelease(m_pGridManager);
 	SafeRelease(m_pFontManager);
+	
 	SafeRelease(m_pLightManager);
 	SafeRelease(m_pPipeLine);
+
 	SafeRelease(m_pSceneManager);
+	SafeRelease(m_pRenderManager);
 	SafeRelease(m_pObjectManager);
 	SafeRelease(m_pPrototypeManager);
+
 	SafeRelease(m_pTimeManager);
-	SafeRelease(m_pRenderManager);
 	SafeRelease(m_pInput);
+
 	SafeRelease(m_pGraphic);
 
 	DestroyInstance();
@@ -537,9 +542,9 @@ void EngineUtility::SaveCells(const _char* pNavigationDataFile)
 {
 	m_pNavigationManager->SaveCells(pNavigationDataFile);
 }
-void EngineUtility::LoadCells(const _char* pNavigationDataFile)
+void EngineUtility::LoadCells(const _char* pNavigationDataFilePath)
 {
-	m_pNavigationManager->LoadCells(pNavigationDataFile);
+	m_pNavigationManager->LoadCells(pNavigationDataFilePath);
 }
 _bool EngineUtility::IsInCell(_fvector vWorldPos, _int* pOutCellIndex)
 {

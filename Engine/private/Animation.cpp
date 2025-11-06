@@ -1,6 +1,7 @@
 ﻿#include "Animation.h"
 
 #include "Channel.h"
+#include "Bone.h"
 
 Animation::Animation()
 {
@@ -42,7 +43,7 @@ void Animation::UpdateTransformationMatrix(
     const vector<Bone*> bones,
     _bool isLoop,
     _bool* pFinished,
-    ModelData* pModelData /* 🔹추가: 노드용 애니메이션을 적용하기 위함 */
+    ModelData* pModelData
 )
 {
     m_fCurrentTrackPosition += m_fTicksPerSecond * fTimeDelta;
@@ -68,13 +69,12 @@ void Animation::UpdateTransformationMatrix(
                 bones,
                 &m_CurrentChannelIndex[iIndex++]
             );
+
             continue;
         }
 
-        // 🔹 추가: 본이 없을 경우 (mNumBones == 0) → NodeData 애니메이션 적용
         if (pModelData)
         {
-            // 채널 이름과 동일한 노드 탐색
             std::function<void(NodeData&)> applyAnim = [&](NodeData& node)
                 {
                     if (node.name == pChannel->GetName())
@@ -88,7 +88,7 @@ void Animation::UpdateTransformationMatrix(
 
                     for (auto& child : node.children)
                         applyAnim(child);
-                };
+            };
 
             applyAnim(pModelData->rootNode);
         }
@@ -96,6 +96,7 @@ void Animation::UpdateTransformationMatrix(
         iIndex++;
     }
 }
+
 void Animation::Reset()
 {
     m_fCurrentTrackPosition = 0.f;

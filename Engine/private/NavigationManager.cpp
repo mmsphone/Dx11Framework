@@ -126,9 +126,9 @@ void NavigationManager::SaveCells(const _char* pNavigationDataFile)
 
     CloseHandle(hFile);
 }
-void NavigationManager::LoadCells(const _char* pNavigationDataFile)
+void NavigationManager::LoadCells(const _char* pNavigationDataFilePath)
 {
-    HANDLE hFile = CreateFileA(pNavigationDataFile, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE hFile = CreateFileA(pNavigationDataFilePath, GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     if (hFile == INVALID_HANDLE_VALUE)
         return;
 

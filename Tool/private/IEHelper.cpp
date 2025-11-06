@@ -466,7 +466,7 @@ static void PruneStaticAnimations(ModelData& model,
             sprintf_s(buf, "[Prune] drop anim '%s' (static%s)\n",
                 a.name.c_str(), onlyOne ? "/oneKey" : "");
             OutputDebugStringA(buf);
-            continue; // drop
+            continue;
         }
         filtered.push_back(a);
     }
@@ -951,6 +951,14 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
 
         outModel.animations.push_back(std::move(ad));
     }
+
+    PruneModelBonesToAnimSet(outModel, "root", false, 4);
+
+    // 🔹 정적인(변화 없는) 애니메이션도 필터링
+    AnimPruneThreshold th{};
+    th.requireRootMotion = false;
+    th.rootName = "root";
+    PruneStaticAnimations(outModel, th);
 
     return true;
 }

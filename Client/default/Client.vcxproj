@@ -152,32 +152,26 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Background.h" />
-    <ClInclude Include="..\public\CageCamera.h" />
+    <ClInclude Include="..\public\ChaseCam.h" />
+    <ClInclude Include="..\public\Drone.h" />
+    <ClInclude Include="..\public\GameScene1_Map.h" />
     <ClInclude Include="..\public\CarBody.h" />
     <ClInclude Include="..\public\CarTopStuff.h" />
-    <ClInclude Include="..\public\CarTrunk.h" />
-    <ClInclude Include="..\public\CarTrunkHandle.h" />
-    <ClInclude Include="..\public\CarWheel.h" />
     <ClInclude Include="..\public\Client_Defines.h" />
     <ClInclude Include="..\public\ContainerTemplate.h" />
     <ClInclude Include="..\public\FixedCam.h" />
     <ClInclude Include="..\public\FreeCam.h" />
     <ClInclude Include="..\public\GameScene.h" />
-    <ClInclude Include="..\public\HouseDoor.h" />
-    <ClInclude Include="..\public\HouseDoorHandle.h" />
     <ClInclude Include="..\public\Loader.h" />
     <ClInclude Include="..\public\LoadingScene.h" />
     <ClInclude Include="..\public\LogoScene.h" />
     <ClInclude Include="..\public\ClientApp.h" />
-    <ClInclude Include="..\public\Ground.h" />
     <ClInclude Include="..\public\ObjectTemplate.h" />
     <ClInclude Include="..\public\PartTemplate.h" />
-    <ClInclude Include="..\public\Plant.h" />
-    <ClInclude Include="..\public\Sky.h" />
-    <ClInclude Include="..\public\TreeHead.h" />
-    <ClInclude Include="..\public\UIStart.h" />
+    <ClInclude Include="..\public\Player.h" />
+    <ClInclude Include="..\public\Shieldbug.h" />
     <ClInclude Include="..\public\UITemplate.h" />
-    <ClInclude Include="..\public\WoodenFence.h" />
+    <ClInclude Include="..\public\Worm.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
@@ -185,31 +179,25 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Background.cpp" />
-    <ClCompile Include="..\private\CageCamera.cpp" />
+    <ClCompile Include="..\private\ChaseCam.cpp" />
+    <ClCompile Include="..\private\Drone.cpp" />
+    <ClCompile Include="..\private\GameScene1_Map.cpp" />
     <ClCompile Include="..\private\CarBody.cpp" />
     <ClCompile Include="..\private\CarTopStuff.cpp" />
-    <ClCompile Include="..\private\CarTrunk.cpp" />
-    <ClCompile Include="..\private\CarTrunkHandle.cpp" />
-    <ClCompile Include="..\private\CarWheel.cpp" />
     <ClCompile Include="..\private\ContainerTemplate.cpp" />
     <ClCompile Include="..\private\FixedCam.cpp" />
     <ClCompile Include="..\private\FreeCam.cpp" />
     <ClCompile Include="..\private\GameScene.cpp" />
-    <ClCompile Include="..\private\HouseDoor.cpp" />
-    <ClCompile Include="..\private\HouseDoorHandle.cpp" />
     <ClCompile Include="..\private\Loader.cpp" />
     <ClCompile Include="..\private\LoadingScene.cpp" />
     <ClCompile Include="..\private\LogoScene.cpp" />
     <ClCompile Include="..\private\ClientApp.cpp" />
-    <ClCompile Include="..\private\Ground.cpp" />
     <ClCompile Include="..\private\ObjectTemplate.cpp" />
     <ClCompile Include="..\private\PartTemplate.cpp" />
-    <ClCompile Include="..\private\Plant.cpp" />
-    <ClCompile Include="..\private\Sky.cpp" />
-    <ClCompile Include="..\private\TreeHead.cpp" />
-    <ClCompile Include="..\private\UIStart.cpp" />
+    <ClCompile Include="..\private\Player.cpp" />
+    <ClCompile Include="..\private\Shieldbug.cpp" />
     <ClCompile Include="..\private\UITemplate.cpp" />
-    <ClCompile Include="..\private\WoodenFence.cpp" />
+    <ClCompile Include="..\private\Worm.cpp" />
     <ClCompile Include="Client.cpp" />
   </ItemGroup>
   <ItemGroup>

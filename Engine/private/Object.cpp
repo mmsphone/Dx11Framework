@@ -70,12 +70,12 @@ HRESULT Object::AddComponent(_uint iPrototypeSceneId, const _wstring& strPrototy
 	if (nullptr == pComponent)
 		return E_FAIL;
 
+	pComponent->SetOwner(this);
 	m_Components.emplace(strComponentTag, pComponent);
 
 	if (ppOut != nullptr)
 	{
 		*ppOut = pComponent;
-		SafeAddRef(pComponent);
 	}
 
 	return S_OK;

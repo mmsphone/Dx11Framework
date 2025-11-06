@@ -38,8 +38,7 @@ CustomFont* CustomFont::Create(const _tchar* pFontFilePath)
 void CustomFont::Free()
 {
 	__super::Free();
-
-	SafeRelease(m_pEngineUtility);
 	SafeDelete(m_pFont);
 	SafeDelete(m_pBatch);
+	SafeRelease(m_pEngineUtility);
 }

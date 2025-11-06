@@ -38,7 +38,6 @@ HRESULT PrototypeManager::AddPrototype(_uint iSceneId, const _wstring& strProtot
 Base* PrototypeManager::ClonePrototype(PROTOTYPE eType, _uint iSceneId, const _wstring& strPrototypeTag, void* pArg)
 {
     Base* pPrototype = FindPrototype(iSceneId, strPrototypeTag);
-
     if (pPrototype == nullptr)
         return nullptr;
 

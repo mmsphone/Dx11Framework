@@ -97,9 +97,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    pEngineUtility->DestroyInstance();
-
+    SafeRelease(pEngineUtility);
     SafeRelease(pClientApp);
+
 
 
     return (int)msg.wParam;

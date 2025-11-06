@@ -42,9 +42,12 @@ public:
 
 	void RotateRadian(_fvector vAxis, _float fRadian);
 	void RotateTimeDelta(_fvector vAxis, _float fTimeDelta);
+	void Turn(_fvector vAxis, _float fTimeDelta);
 
 	void LookAt(_fvector vFocus);
 	void Chase(_fvector vDest, _float fTimeDelta, _float fLimitDistance = 0.f);
+
+	void Translate(_fvector vTranslateDir, _float fTimeDelta);
 
 	HRESULT BindShaderResource(class Shader* pShader, const _char* pConstantName);
 

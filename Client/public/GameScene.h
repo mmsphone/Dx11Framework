@@ -17,13 +17,10 @@ public:
 	virtual HRESULT Render() override;
 
 	HRESULT ReadyLights();
-	HRESULT ReadyLayerCamera(const _tchar* pLayerTag);
+	HRESULT ReadyLayerCamera();
 
 	static GameScene* Create();
 	virtual void Free() override;
-
-private:
-	HRESULT LoadMapObjects(const std::vector<MAP_OBJECTDATA>& mapData);
 };
 
 NS_END

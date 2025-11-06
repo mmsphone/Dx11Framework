@@ -70,9 +70,9 @@ PICK_RESULT PickingManager::Pick()
         if (m_pEngineUtility->ReadDepthAtPixel((int)mouse.x, (int)mouse.y, &d01))
         {
             // RS Viewport 가져오기
-            ID3D11DeviceContext* ctx = m_pEngineUtility->GetContext();
-            D3D11_VIEWPORT vp{}; UINT vpCount = 1;
-            ctx->RSGetViewports(&vpCount, &vp);
+            D3D11_VIEWPORT vp{}; 
+            UINT vpCount = 1;
+            m_pEngineUtility->GetContext()->RSGetViewports(&vpCount, &vp);
 
             // 픽셀센터
             float sx = std::clamp(mouse.x, 0.0f, vp.Width - 1.0f) + 0.5f;

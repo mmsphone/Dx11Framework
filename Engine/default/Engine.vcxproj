@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\public\AIController.h" />
     <ClInclude Include="..\public\Animation.h" />
     <ClInclude Include="..\public\Base.h" />
     <ClInclude Include="..\public\Bone.h" />
@@ -66,6 +67,7 @@
     <ClInclude Include="..\public\Scene.h" />
     <ClInclude Include="..\public\SceneManager.h" />
     <ClInclude Include="..\public\Shader.h" />
+    <ClInclude Include="..\public\StateMachine.h" />
     <ClInclude Include="..\public\Terrain.h" />
     <ClInclude Include="..\public\Texture.h" />
     <ClInclude Include="..\public\TimeManager.h" />
@@ -79,6 +81,7 @@
     <ClInclude Include="..\public\VIBufferTerrain.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\private\AIController.cpp" />
     <ClCompile Include="..\private\Animation.cpp" />
     <ClCompile Include="..\private\Base.cpp" />
     <ClCompile Include="..\private\Bone.cpp" />
@@ -119,6 +122,7 @@
     <ClCompile Include="..\private\Scene.cpp" />
     <ClCompile Include="..\private\SceneManager.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
+    <ClCompile Include="..\private\StateMachine.cpp" />
     <ClCompile Include="..\private\Terrain.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
     <ClCompile Include="..\private\TimeManager.cpp" />

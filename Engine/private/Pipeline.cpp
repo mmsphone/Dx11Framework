@@ -1,5 +1,7 @@
 ﻿#include "Pipeline.h"
 
+#include "Camera.h"
+
 Pipeline::Pipeline()
 {
 }

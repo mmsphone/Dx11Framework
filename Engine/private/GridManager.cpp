@@ -14,17 +14,14 @@ HRESULT GridManager::Initialize(_uint iNumCells, _float fCellSize)
     m_fCellSize = fCellSize;
 
 #ifdef _DEBUG
-    auto pDevice = m_pEngineUtility->GetDevice();
-    auto pContext = m_pEngineUtility->GetContext();
-
-    m_pBatch = new PrimitiveBatch<VertexPositionColor>(pContext);
-    m_pEffect = new BasicEffect(pDevice);
+    m_pBatch = new PrimitiveBatch<VertexPositionColor>(m_pEngineUtility->GetContext());
+    m_pEffect = new BasicEffect(m_pEngineUtility->GetDevice());
     m_pEffect->SetVertexColorEnabled(true);
 
     const void* pShaderCode = nullptr;
     size_t length = 0;
     m_pEffect->GetVertexShaderBytecode(&pShaderCode, &length);
-    HRESULT hr = pDevice->CreateInputLayout(
+    HRESULT hr = m_pEngineUtility->GetDevice()->CreateInputLayout(
         VertexPositionColor::InputElements,
         VertexPositionColor::InputElementCount,
         pShaderCode,
@@ -44,15 +41,13 @@ void GridManager::Render()
     if (!m_GridVisible)
         return;
 
-    auto pContext = m_pEngineUtility->GetContext();
-
     XMMATRIX view = XMLoadFloat4x4(m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW));
     XMMATRIX proj = XMLoadFloat4x4(m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION));
 
     m_pEffect->SetView(view);
     m_pEffect->SetProjection(proj);
-    m_pEffect->Apply(pContext);
-    pContext->IASetInputLayout(m_pInputLayout);
+    m_pEffect->Apply(m_pEngineUtility->GetContext());
+    m_pEngineUtility->GetContext()->IASetInputLayout(m_pInputLayout);
     m_pBatch->Begin();
 
     float half = (m_iNumCells * m_fCellSize) * 0.5f;
@@ -190,11 +185,13 @@ GridManager* GridManager::Create(_uint iNumCells, _float fCellSize)
 void GridManager::Free()
 {
     __super::Free();
-    SafeRelease(m_pEngineUtility);
 
 #ifdef _DEBUG
     SafeDelete(m_pBatch);
     SafeDelete(m_pEffect);
+    m_pEngineUtility->GetContext()->ClearState();
+    m_pEngineUtility->GetContext()->Flush();
     SafeRelease(m_pInputLayout);
 #endif
+    SafeRelease(m_pEngineUtility);
 }

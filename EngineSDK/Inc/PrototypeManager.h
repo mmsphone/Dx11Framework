@@ -7,6 +7,8 @@
 #include "Texture.h"
 #include "Transform.h"
 #include "Collision.h"
+#include "StateMachine.h"
+#include "AIController.h"
 
 #include "VIBufferRect.h"
 #include "VIBufferCube.h"

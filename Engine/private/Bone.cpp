@@ -62,6 +62,11 @@ void Bone::UpdateCombinedTransformationMatrix(const vector<Bone*>& Bones, _fmatr
     }
 }
 
+_int Bone::GetParentBoneIndex()
+{
+    return m_iParentBoneIndex;
+}
+
 Bone* Bone::Create(const NodeData* pNode, _int iParentIndex)
 {
     Bone* pInstance = new Bone();

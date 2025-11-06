@@ -78,7 +78,7 @@ HRESULT Graphic::Present()
     CHECKNULLPTR(m_pSwapChain)
         return E_FAIL;
 
-    return m_pSwapChain->Present(0,0);
+    return m_pSwapChain->Present(0, 0);
 }
 
 ID3D11Device* Graphic::GetDevice() const
@@ -165,12 +165,27 @@ Graphic* Graphic::Create(HWND windowHandle, WINMODE isWindowMode, _uint iWindowS
 void Graphic::Free()
 {
     __super::Free();
-    SafeRelease(m_pSwapChain);
-    SafeRelease(m_pDepthStencilView);
+        
+    if (m_pContext)
+    {
+        m_pContext->ClearState();
+        m_pContext->Flush();
+    }
+
     SafeRelease(m_pBackBuffer);
-    SafeRelease(m_pContext);
+    SafeRelease(m_pDepthStencilView);
     SafeRelease(m_pDepthStencilTex);
     SafeRelease(m_pDepthReadback);
+
+    if (m_pSwapChain)
+    {
+        ID3D11Texture2D* backBuffer = nullptr;
+        m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+        SafeRelease(backBuffer);
+    }
+    SafeRelease(m_pSwapChain);
+
+    SafeRelease(m_pContext);
 
 #ifdef _DEBUG
     ID3D11Debug* d3dDebug;

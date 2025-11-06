@@ -42,10 +42,10 @@ HRESULT ModelScene::Initialize()
 	//Object
 	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("TestObject"), TestObject::Create());
 	m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("TestObject"), SCENE::MODEL, TEXT("TestObject"));
-
+	
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("FreeCam"), FreeCam::Create())))
 		return E_FAIL;
-
+	
 	FreeCam::FREECAM_DESC			Desc{};
 	Desc.vEye = _float3(0.f, 0.f, 0.f);
 	Desc.vAt = _float3(0.f, 0.f, 1.f);
@@ -55,19 +55,19 @@ HRESULT ModelScene::Initialize()
 	Desc.fSensor = 0.1f;
 	Desc.fSpeedPerSec = 40.f;
 	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
-
+	
 	if (FAILED(m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("FreeCam"), SCENE::MODEL, TEXT("Cam"), &Desc)))
 		return E_FAIL;
-
+	
 	//Light
 	LIGHT_DESC		LightDesc{};
-
+	
 	LightDesc.eType = LIGHT::LIGHT_DIRECTIONAL;
 	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
 	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
 	LightDesc.vAmbient = _float4(1.f, 1.f, 1.f, 1.f);
 	LightDesc.vSpecular = _float4(1.f, 1.f, 1.f, 1.f);
-
+	
 	if (FAILED(m_pEngineUtility->AddLight(LightDesc)))
 		return E_FAIL;
 
@@ -75,7 +75,7 @@ HRESULT ModelScene::Initialize()
 	string strModelPanel = "ModelPanel";
 	ModelPanel* pModelPanel = ModelPanel::Create(strModelPanel);
 	m_pEngineUtility->AddPanel(pModelPanel->GetPanelName(), pModelPanel);
-
+	
 	string strCamPanel = "ModelCamPanel";
 	CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MODEL);
 	m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);

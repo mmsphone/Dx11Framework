@@ -22,6 +22,8 @@ public:
     _bool CompareName(const _char* pName);
     void UpdateCombinedTransformationMatrix(const vector<Bone*>& Bones, _fmatrix PreTransformationMatrix);
 
+    _int GetParentBoneIndex();
+
     static Bone* Create(const NodeData* pNode, _int iParentIndex);
     Bone* Clone();
     virtual void Free() override;

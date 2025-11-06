@@ -19,14 +19,18 @@ HRESULT Container::InitializePrototype()
 
 HRESULT Container::Initialize(void* pArg)
 {
+    if (FAILED(__super::Initialize(pArg)))
+        return E_FAIL;
+
+    if (pArg == nullptr)
+        return S_OK;
+
     CONTAINER_DESC* pDesc = static_cast<CONTAINER_DESC*>(pArg);
 
     m_iNumParts = pDesc->iNumParts;
 
     m_Parts.resize(m_iNumParts);
 
-    if (FAILED(__super::Initialize(pArg)))
-        return E_FAIL;
 
     return S_OK;
 }

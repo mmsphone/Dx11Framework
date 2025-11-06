@@ -10,11 +10,6 @@
 Model::Model()
 	: Component{ }
 {
-#ifdef _DEBUG
-    char buf[128];
-    sprintf_s(buf, "Created : %s", typeid(*this).name());
-    OutputDebugStringA(buf);
-#endif
 }
 
 Model::Model(const Model& Prototype)
@@ -23,9 +18,9 @@ Model::Model(const Model& Prototype)
     , m_Meshes{ Prototype.m_Meshes }
     , m_iNumMaterials{ Prototype.m_iNumMaterials }
     , m_Materials{ Prototype.m_Materials }
+    , m_pModelData{ Prototype.m_pModelData }
     , m_PreTransformMatrix{ Prototype.m_PreTransformMatrix }
     , m_iNumAnimations{ Prototype.m_iNumAnimations }
-    , m_pModelData{ Prototype.m_pModelData }
 {
     for (auto& pPrototypeAnim : Prototype.m_Animations)
         m_Animations.push_back(pPrototypeAnim->Clone());
@@ -35,15 +30,9 @@ Model::Model(const Model& Prototype)
 
     for (auto& pMesh : m_Meshes)
         SafeAddRef(pMesh);
-
+    
     for (auto& pMaterial : m_Materials)
         SafeAddRef(pMaterial);
-
-#ifdef _DEBUG
-    char buf[128];
-    sprintf_s(buf, "Cloned : %s", typeid(*this).name());
-    OutputDebugStringA(buf);
-#endif
 }
 
 _uint Model::GetNumMeshes() const
@@ -407,9 +396,7 @@ void Model::Free()
     __super::Free();
 
     ClearModelData();
-    if(m_isCloned == false)
-        SafeDelete(m_pModelData);
-
+    SafeDelete(m_pModelData);
 }
 
 HRESULT Model::ReadyMeshes()

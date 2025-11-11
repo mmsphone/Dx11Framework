@@ -40,12 +40,6 @@
     <Filter Include="05.Template\ContainerTemplate">
       <UniqueIdentifier>{2d1dfebb-f54b-4bea-86bf-7633bed8400f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="06.Object\CarBody">
-      <UniqueIdentifier>{aeecff56-9488-4c24-856a-a9642a51af27}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.Object\CarTopStuff">
-      <UniqueIdentifier>{046b87ea-e468-4b92-a5e2-85d2b0e868fe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="05.Template\UITemplate">
       <UniqueIdentifier>{3777f9ff-04f3-4f9d-a73d-99a1a744a632}</UniqueIdentifier>
     </Filter>
@@ -84,6 +78,12 @@
     </Filter>
     <Filter Include="06.Object\Camera\ChaseCam">
       <UniqueIdentifier>{4ef685cd-d4cc-44f7-946c-7008909534f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Projectile">
+      <UniqueIdentifier>{87464bdb-893e-4e71-8d1c-03d62583edc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Object\Weapon_AR">
+      <UniqueIdentifier>{8c2a9aa6-d007-4f7b-9cc8-3b58cb3f2438}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -132,12 +132,6 @@
     <ClInclude Include="..\public\ContainerTemplate.h">
       <Filter>05.Template\ContainerTemplate</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\CarBody.h">
-      <Filter>06.Object\CarBody</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\CarTopStuff.h">
-      <Filter>06.Object\CarTopStuff</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\GameScene1_Map.h">
       <Filter>06.Object\Object\GameScene1_Map</Filter>
     </ClInclude>
@@ -146,9 +140,6 @@
     </ClInclude>
     <ClInclude Include="..\public\FixedCam.h">
       <Filter>06.Object\Camera\FixedCam</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\Drone.h">
-      <Filter>06.Object\Object\Drone</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Worm.h">
       <Filter>06.Object\Object\Worm</Filter>
@@ -161,6 +152,15 @@
     </ClInclude>
     <ClInclude Include="..\public\ChaseCam.h">
       <Filter>06.Object\Camera\ChaseCam</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Drone.h">
+      <Filter>06.Object\Object\Drone</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SMG_Projectile.h">
+      <Filter>06.Object\Projectile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Weapon_AR.h">
+      <Filter>06.Object\Object\Weapon_AR</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -210,12 +210,6 @@
     <ClCompile Include="..\private\PartTemplate.cpp">
       <Filter>05.Template\PartTemplate</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\CarBody.cpp">
-      <Filter>06.Object\CarBody</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\CarTopStuff.cpp">
-      <Filter>06.Object\CarTopStuff</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\GameScene1_Map.cpp">
       <Filter>06.Object\Object\GameScene1_Map</Filter>
     </ClCompile>
@@ -239,6 +233,12 @@
     </ClCompile>
     <ClCompile Include="..\private\ChaseCam.cpp">
       <Filter>06.Object\Camera\ChaseCam</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SMG_Projectile.cpp">
+      <Filter>06.Object\Projectile</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Weapon_AR.cpp">
+      <Filter>06.Object\Object\Weapon_AR</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

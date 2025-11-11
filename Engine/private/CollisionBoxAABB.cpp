@@ -49,14 +49,14 @@ _bool CollisionBoxAABB::Intersect(Collision* pCollision)
 
     return isIntersected;
 }
-
+#ifdef _DEBUG
 HRESULT CollisionBoxAABB::Render(PrimitiveBatch<VertexPositionColor>* pBatch, _fvector vColor)
 {
     DX::Draw(pBatch, *m_pDesc, vColor);
 
     return S_OK;
 }
-
+#endif
 BoundingBox* CollisionBoxAABB::GetLocalBox() const
 {
     return m_pOriginalDesc;

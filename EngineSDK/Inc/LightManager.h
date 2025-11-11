@@ -14,6 +14,7 @@ public:
 	HRESULT AddLight(const LIGHT_DESC& lightDesc);
 	HRESULT RemoveLight(_uint iIndex);
 	void ClearLights();
+	HRESULT RenderLights(class Shader* pShader, class VIBufferRect* pVIBuffer);
 
 	static LightManager* Create();
 	virtual void Free() override;

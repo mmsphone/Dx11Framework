@@ -29,7 +29,7 @@ HRESULT LoadingScene::Initialize(SCENE eNextSceneId)
 
 void LoadingScene::Update(_float fTimeDelta)
 {
- 	if (true == m_pLoader->isFinished() && m_pEngineUtility->IsKeyPressed(DIK_SPACE))
+ 	if (true == m_pLoader->isFinished())
 	{
 		Scene* pNextScene = { nullptr };
 
@@ -42,8 +42,6 @@ void LoadingScene::Update(_float fTimeDelta)
 			pNextScene = GameScene::Create();
 			break;
 		}
-
-
 		if (FAILED(m_pEngineUtility->ChangeScene(m_eNextSceneId, pNextScene)))
 			return;
 

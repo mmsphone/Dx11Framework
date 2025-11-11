@@ -9,10 +9,13 @@
 #include "Collision.h"
 #include "StateMachine.h"
 #include "AIController.h"
+#include "Info.h"
 
 #include "VIBufferRect.h"
 #include "VIBufferCube.h"
 #include "VIBufferTerrain.h"
+#include "VIBufferInstancingPoint.h"
+#include "VIBufferInstancingRect.h"
 
 NS_BEGIN(Engine)
 

@@ -13,10 +13,10 @@ public:
     HRESULT Initialize(_uint iNumCells = 200, _float fCellSize = 2.0f);
 #ifdef _DEBUG
     void Render();
-#endif 
 
     void SetVisible(_bool bGridVisible);
     _bool IsVisible() const;
+#endif 
     _float GetGridCellSize() const;
     void SetGridCellSize(_float cellSize);
     _uint GetNumGridCells() const;

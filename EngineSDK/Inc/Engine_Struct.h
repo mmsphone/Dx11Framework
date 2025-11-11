@@ -13,6 +13,31 @@ namespace Engine
 		unsigned int	iNumLevels;
 	}ENGINE_DESC;
 
+	typedef struct tagShadowDesc
+	{
+		XMFLOAT3 vEye;
+		XMFLOAT3 vAt;
+
+		float fFovy;
+		float fNear;
+		float fFar;
+		float fAspect;
+	} SHADOW_DESC;
+
+	typedef struct tagLightDesc
+	{
+		LIGHT			eType;
+
+		XMFLOAT4		vDiffuse;
+		XMFLOAT4		vAmbient;
+		XMFLOAT4		vSpecular;
+
+		XMFLOAT4		vDirection;
+		XMFLOAT4		vPosition;
+		float			fRange;
+
+	}LIGHT_DESC;
+
 	typedef struct tagVertexPostion
 	{
 		XMFLOAT3		vPosition;
@@ -33,6 +58,18 @@ namespace Engine
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
 	}VTXPOSTEX;
+
+	typedef struct tagVertexCube
+	{
+		XMFLOAT3		vPosition;
+		XMFLOAT3		vTexcoord;
+
+		static const unsigned int					iNumElements = { 2 };
+		static constexpr D3D11_INPUT_ELEMENT_DESC		Elements[iNumElements] = {
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		};
+	}VTXCUBE;
 
 	typedef struct tagVertexPostionNormalTexcoord
 	{
@@ -85,31 +122,46 @@ namespace Engine
 		};
 	}VTXSKINMESH;
 
-	typedef struct tagVertexCube
+	typedef struct tagVertexInstanceParticle
 	{
-		XMFLOAT3		vPosition;
-		XMFLOAT3		vTexcoord;
+		XMFLOAT4			vRight, vUp, vLook, vTranslation;
+		XMFLOAT2			vLifeTime;
+	}VTXINSTANCEPARTICLE;
 
-		static const unsigned int					iNumElements = { 2 };
+	typedef struct tagVertexPosTexInstanceParticle
+	{
+		static const unsigned int					iNumElements = { 7 };
 		static constexpr D3D11_INPUT_ELEMENT_DESC		Elements[iNumElements] = {
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+			{ "TEXCOORD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "TEXCOORD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "TEXCOORD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "TEXCOORD", 4, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "TEXCOORD", 5, DXGI_FORMAT_R32G32_FLOAT, 1, 64, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
 		};
-	}VTXCUBE;
+	}VTXPOSTEX_INSTANCEPARTICLE;
 
-	typedef struct tagLightDesc
+	typedef struct tagVertexPosInstanceParticle
 	{
-		LIGHT			eType;
+		static const unsigned int					iNumElements = { 6 };
+		static constexpr D3D11_INPUT_ELEMENT_DESC		Elements[iNumElements] = {
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 
-		XMFLOAT4		vDiffuse;
-		XMFLOAT4		vAmbient;
-		XMFLOAT4		vSpecular;
+			{ "WORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 
-		XMFLOAT4		vDirection;
-		XMFLOAT4		vPosition;
-		float			fRange;
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 1, 64, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+		};
+	}VTXPOS_INSTANCEPARTICLE;
 
-	}LIGHT_DESC;
+	typedef struct tagVertexInstanceMesh
+	{
+		XMFLOAT4			vRight, vUp, vLook, vTranslation;
+	}VTXINSTANCEMESH;
 
 	typedef struct tagRay
 	{
@@ -149,20 +201,16 @@ namespace Engine
 		std::function<bool(class Object* pOwner, class StateMachine* stateMachine)> condition;
 		std::string nextState;
 		unsigned int priority = 0;
+		bool restartFlag = false;
 	};
 
-	typedef struct tagAIControllerBlackBoardDesc
-	{
-		bool   hasTarget = false;		// 플레이어를 찾았는가
-		bool   hasLOS = false;			// 시야가림 없는가
-		bool   inFOV = false;			// 시야각 안에 있는가
-		bool   inAttackRange = false;   // 공격 사거리 이내인가
-		float  distance = 0.f;			// 소유자-타겟 거리
-		float  cosHalfFov = 0.f;		// cos(FOV/2)
-		XMFLOAT4 ownerPos = {};			// 소유자 월드 위치
-		XMFLOAT4 ownerLook = {};		// 소유자 정규화된 LOOK
-		XMFLOAT4 targetPos = {};		// 타겟(플레이어) 월드 위치
-	}AIBLACKBOARD_DESC;
+	struct DamageDesc {
+		float      amount = 0.f;            // 피해량
+		FACTION     sourceFaction = FACTION_NEUTRAL;
+		class Object* pSource = nullptr;       // 타격 오브젝트
+		XMVECTOR     hitPos = XMVectorZero(); // 피격 위치
+		XMVECTOR     hitDir = XMVectorZero(); // 피격 시 방향
+	};
 }
 
 

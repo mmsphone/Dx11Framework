@@ -49,7 +49,7 @@ public:
 
 	void Translate(_fvector vTranslateDir, _float fTimeDelta);
 
-	HRESULT BindShaderResource(class Shader* pShader, const _char* pConstantName);
+	HRESULT BindRenderTargetShaderResource(class Shader* pShader, const _char* pConstantName);
 
 	static Transform* Create();
 	virtual Component* Clone(void* pArg);

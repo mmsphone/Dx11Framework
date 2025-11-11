@@ -83,11 +83,14 @@ public:
 	const _float4x4* GetTransformFloat4x4InversePtr(D3DTS eState);
 	_matrix GetTransformMatrixInverse(D3DTS eState);
 	const _float4* GetCamPosition();
-	void SetTransform(D3DTS eState, _fmatrix TransformMatrix);
+	void SetPipelineTransform(D3DTS eState, _fmatrix TransformMatrix);
+	const _float* GetPipelineFarDistance();
+	void SetPipelineFarDistance(const _float& fFarDistance);
 
 	//LightManager
 	const LIGHT_DESC* GetLight(_uint iIndex);
 	HRESULT AddLight(const LIGHT_DESC& LightDesc);
+	HRESULT RenderLights(class Shader* pShader, class VIBufferRect* pVIBuffer);
 
 	//FontManger
 	HRESULT AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath);
@@ -118,9 +121,11 @@ public:
 	_bool RayIntersectTerrain(const RAY& ray, class Terrain* pTerrain);
 
 	//GridManager
+#ifdef _DEBUG
 	void RenderGrid();
 	void SetGridVisible(_bool enable);
 	_bool IsGridVisible() const;
+#endif
 	_float GetGridCellSize();
 	void SetGridCellSize(_float cellSize);
 	_uint GetNumGridCells();
@@ -147,11 +152,30 @@ public:
 	_bool Edit_AddTriangleAtSharedVertex(_int cellA, _int cellB, _float weldEps);
 	_bool RandomPointAround(_fvector center, _float radius, _float3* outPos, _uint maxTrials = 64);
 
-
 	//SaveLoadManager
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 	std::vector<MAP_OBJECTDATA> LoadMapData(const std::string& path);
 	HRESULT SaveMapData(const std::string& path);
+
+	//RenderTargetManager
+	HRESULT AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor);
+	HRESULT AddRenderTargetGroup(const _wstring& strRenderTargetGroupTag, const _wstring& strRenderTargetTag);
+	HRESULT BeginRenderTargetGroup(const _wstring& strRenderTargetGroupTag, _bool isClearDepth = false, ID3D11DepthStencilView* pDepthStencilView = nullptr);
+	HRESULT EndRenderTargetGroup();
+	HRESULT BindRenderTargetShaderResource(const _wstring& strRenderTargetTag, class Shader* pShader, const _char* pConstantName);
+	HRESULT CopyRenderTargetResource(const _wstring& strRenderTargetTag, ID3D11Texture2D* pOut);
+#ifdef _DEBUG
+	HRESULT ReadyRenderTargetDebug(const _wstring& strRenderTargetTag, _float fX, _float fY, _float fSizeX, _float fSizeY);
+	HRESULT RenderRenderTargetGroup(const _wstring& strRenderTargetGroupTag, class Shader* pShader, class VIBufferRect* pVIBuffer);
+#endif
+
+	//ShadowLightManager
+	HRESULT AddShadowLight(const SHADOW_DESC& ShadowDesc);
+	const _float4x4* GetShadowTransformFloat4x4Ptr(D3DTS eState, _uint iIndex = 0);	
+	const _float3* GetShadowLightPositionPtr(_uint iIndex);
+	const _float* GetShadowLightFarDistancePtr(_uint iIndex);
+	void ClearShadowLights();
+	_uint GetNumShadowLights();
 
 private:
 	class Graphic* m_pGraphic = { nullptr };
@@ -169,6 +193,8 @@ private:
 	class GridManager* m_pGridManager = { nullptr };
 	class NavigationManager* m_pNavigationManager = { nullptr };
 	class SaveLoadManager* m_pSaveLoadManager = { nullptr };
+	class RenderTargetManager* m_pRenderTargetManager = { nullptr };
+	class ShadowLightManager* m_pShadowLightManager = { nullptr };
 };
 
 NS_END

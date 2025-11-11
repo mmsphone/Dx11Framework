@@ -46,6 +46,7 @@
     <ClInclude Include="..\public\Graphic.h" />
     <ClInclude Include="..\public\GridManager.h" />
     <ClInclude Include="..\public\IMGUIManager.h" />
+    <ClInclude Include="..\public\Info.h" />
     <ClInclude Include="..\public\Input.h" />
     <ClInclude Include="..\public\Layer.h" />
     <ClInclude Include="..\public\Light.h" />
@@ -61,12 +62,16 @@
     <ClInclude Include="..\public\Part.h" />
     <ClInclude Include="..\public\PickingManager.h" />
     <ClInclude Include="..\public\Pipeline.h" />
+    <ClInclude Include="..\public\Projectile.h" />
     <ClInclude Include="..\public\PrototypeManager.h" />
     <ClInclude Include="..\public\RenderManager.h" />
+    <ClInclude Include="..\public\RenderTarget.h" />
+    <ClInclude Include="..\public\RenderTargetManager.h" />
     <ClInclude Include="..\public\SaveLoadManager.h" />
     <ClInclude Include="..\public\Scene.h" />
     <ClInclude Include="..\public\SceneManager.h" />
     <ClInclude Include="..\public\Shader.h" />
+    <ClInclude Include="..\public\ShadowLightManager.h" />
     <ClInclude Include="..\public\StateMachine.h" />
     <ClInclude Include="..\public\Terrain.h" />
     <ClInclude Include="..\public\Texture.h" />
@@ -77,6 +82,9 @@
     <ClInclude Include="..\public\VertexIndexBuffer.h" />
     <ClInclude Include="..\public\VIBufferCell.h" />
     <ClInclude Include="..\public\VIBufferCube.h" />
+    <ClInclude Include="..\public\VIBufferInstancing.h" />
+    <ClInclude Include="..\public\ViBufferInstancingPoint.h" />
+    <ClInclude Include="..\public\VIBufferInstancingRect.h" />
     <ClInclude Include="..\public\VIBufferRect.h" />
     <ClInclude Include="..\public\VIBufferTerrain.h" />
   </ItemGroup>
@@ -102,6 +110,7 @@
     <ClCompile Include="..\private\Graphic.cpp" />
     <ClCompile Include="..\private\GridManager.cpp" />
     <ClCompile Include="..\private\IMGUIManager.cpp" />
+    <ClCompile Include="..\private\Info.cpp" />
     <ClCompile Include="..\private\Input.cpp" />
     <ClCompile Include="..\private\Layer.cpp" />
     <ClCompile Include="..\private\Light.cpp" />
@@ -116,12 +125,16 @@
     <ClCompile Include="..\private\Part.cpp" />
     <ClCompile Include="..\private\PickingManager.cpp" />
     <ClCompile Include="..\private\Pipeline.cpp" />
+    <ClCompile Include="..\private\Projectile.cpp" />
     <ClCompile Include="..\private\PrototypeManager.cpp" />
     <ClCompile Include="..\private\RenderManager.cpp" />
+    <ClCompile Include="..\private\RenderTarget.cpp" />
+    <ClCompile Include="..\private\RenderTargetManager.cpp" />
     <ClCompile Include="..\private\SaveLoadManager.cpp" />
     <ClCompile Include="..\private\Scene.cpp" />
     <ClCompile Include="..\private\SceneManager.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
+    <ClCompile Include="..\private\ShadowLightManager.cpp" />
     <ClCompile Include="..\private\StateMachine.cpp" />
     <ClCompile Include="..\private\Terrain.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
@@ -132,6 +145,9 @@
     <ClCompile Include="..\private\VertexIndexBuffer.cpp" />
     <ClCompile Include="..\private\VIBufferCell.cpp" />
     <ClCompile Include="..\private\VIBufferCube.cpp" />
+    <ClCompile Include="..\private\VIBufferInstancing.cpp" />
+    <ClCompile Include="..\private\ViBufferInstancingPoint.cpp" />
+    <ClCompile Include="..\private\VIBufferInstancingRect.cpp" />
     <ClCompile Include="..\private\VIBufferRect.cpp" />
     <ClCompile Include="..\private\VIBufferTerrain.cpp" />
     <ClCompile Include="..\public\IMGUI\backends\imgui_impl_dx11.cpp" />
@@ -147,7 +163,10 @@
     <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\bin\Shader\Shader_Deferred.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_InstancingPos.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_Cell.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_InstancingPosTex.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_SphereSky.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxAnimMesh.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxCube.hlsl" />
@@ -208,11 +227,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>../bin/</OutDir>
+    <OutDir>../bin/Release/</OutDir>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>../bin/</OutDir>
+    <OutDir>../bin/Debug/</OutDir>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -285,7 +304,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>

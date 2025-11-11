@@ -181,6 +181,30 @@
     <Filter Include="05.Component\AIController">
       <UniqueIdentifier>{bfafdafb-364b-4250-adf7-ed88f0a0f298}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05.Component\Info">
+      <UniqueIdentifier>{f581720a-7099-464d-91f3-21482c27efa3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Projectile">
+      <UniqueIdentifier>{853368df-2526-439b-8e91-7f158a49e67e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\VertexIndexBuffer\VIBufferInstancing">
+      <UniqueIdentifier>{d89c5540-1a37-49f8-9ab4-d71e99f28e77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\VertexIndexBuffer\VIBufferInstancing\VIBufferInstancingPoint">
+      <UniqueIdentifier>{76f36faf-f487-4c24-bf4f-ff354e128c18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\VertexIndexBuffer\VIBufferInstancing\VIBufferInstancingRect">
+      <UniqueIdentifier>{cac13aa4-cc9c-4642-8039-3494cd1c49da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\RenderTargetManager">
+      <UniqueIdentifier>{b6023849-07fa-46dc-b422-83c43835879d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\RenderTarget">
+      <UniqueIdentifier>{b635a719-759c-46a3-8fea-4f6986f8a50c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\ShadowLightManger">
+      <UniqueIdentifier>{3f06fabf-ed3c-47d6-9a44-687ebc479eea}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -362,6 +386,30 @@
     </ClInclude>
     <ClInclude Include="..\public\AIController.h">
       <Filter>05.Component\AIController</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Info.h">
+      <Filter>05.Component\Info</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Projectile.h">
+      <Filter>04.ForUtility\Projectile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\VIBufferInstancing.h">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferInstancing</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ViBufferInstancingPoint.h">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferInstancing\VIBufferInstancingPoint</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\VIBufferInstancingRect.h">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferInstancing\VIBufferInstancingRect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RenderTarget.h">
+      <Filter>04.ForUtility\RenderTarget</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\RenderTargetManager.h">
+      <Filter>03.Utility\RenderTargetManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ShadowLightManager.h">
+      <Filter>03.Utility\ShadowLightManger</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -548,6 +596,30 @@
     <ClCompile Include="..\private\AIController.cpp">
       <Filter>05.Component\AIController</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\Info.cpp">
+      <Filter>05.Component\Info</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Projectile.cpp">
+      <Filter>04.ForUtility\Projectile</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\VIBufferInstancing.cpp">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferInstancing</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ViBufferInstancingPoint.cpp">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferInstancing\VIBufferInstancingPoint</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\VIBufferInstancingRect.cpp">
+      <Filter>05.Component\VertexIndexBuffer\VIBufferInstancing\VIBufferInstancingRect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\RenderTarget.cpp">
+      <Filter>04.ForUtility\RenderTarget</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\RenderTargetManager.cpp">
+      <Filter>03.Utility\RenderTargetManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ShadowLightManager.cpp">
+      <Filter>03.Utility\ShadowLightManger</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli">
@@ -574,6 +646,15 @@
       <Filter>07.Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\Shader\Shader_SphereSky.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_InstancingPos.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_Deferred.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_InstancingPosTex.hlsl">
       <Filter>07.Shaders</Filter>
     </FxCompile>
   </ItemGroup>

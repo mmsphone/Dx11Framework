@@ -123,7 +123,7 @@ HRESULT Shader::BindMatrices(const _char* pConstantName, const _float4x4* pMatri
 	return pMatrixVariable->SetMatrixArray(reinterpret_cast<const _float*>(pMatrix), 0, iNumMatrices);
 }
 
-HRESULT Shader::BindShaderResource(const _char* pConstantName, ID3D11ShaderResourceView* pSRV)
+HRESULT Shader::BindRenderTargetShaderResource(const _char* pConstantName, ID3D11ShaderResourceView* pSRV)
 {
 	ID3DX11EffectVariable* pVariable = m_pEffect->GetVariableByName(pConstantName);
 	if (nullptr == pVariable)

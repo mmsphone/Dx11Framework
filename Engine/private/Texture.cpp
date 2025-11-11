@@ -58,12 +58,12 @@ HRESULT Texture::Initialize(void* pArg)
     return S_OK;
 }
 
-HRESULT Texture::BindShaderResource(Shader* pShader, const _char* pConstantName, _uint iTextureIndex)
+HRESULT Texture::BindRenderTargetShaderResource(Shader* pShader, const _char* pConstantName, _uint iTextureIndex)
 {
 	if (iTextureIndex >= m_iNumTextures) // 없는 텍스처면
 		return E_FAIL;
 
-	return pShader->BindShaderResource(pConstantName, m_Textures[iTextureIndex]);
+	return pShader->BindRenderTargetShaderResource(pConstantName, m_Textures[iTextureIndex]);
 }
 
 HRESULT Texture::BindShaderResources(Shader* pShader, const _char* pConstantName)

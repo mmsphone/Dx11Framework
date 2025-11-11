@@ -43,17 +43,23 @@ HRESULT ClientApp::Render()
 	/* 백, 깊이버퍼를 초기화한다. */
 	m_pEngineUtility->BeginDraw(&vClearColor);
 
+#ifdef _DEBUG
 	m_pEngineUtility->RenderGrid();
+#endif
 
 	/* 객체들을 그린다. */
 	m_pEngineUtility->Draw();
 
 	//m_pEngineUtility->DrawFont(TEXT("Font_Default"), TEXT("ab이거 봐라de"), _float2(0.f, 0.f));
 
+#ifdef _DEBUG
 	m_pEngineUtility->RenderNavigation();
+#endif
 
 	/* 후면버퍼를 전면으로 보여준다. */
 	m_pEngineUtility->EndDraw();
+
+	m_pEngineUtility->ClearDeadObjects();
 
 	return S_OK;
 }

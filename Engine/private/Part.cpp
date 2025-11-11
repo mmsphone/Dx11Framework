@@ -44,6 +44,11 @@ HRESULT Part::Render()
 	return S_OK;
 }
 
+const _float4x4* Part::GetCombinedWorldMatrix() const
+{
+    return &m_CombinedWorldMatrix;
+}
+
 void Part::Free()
 {
     __super::Free();

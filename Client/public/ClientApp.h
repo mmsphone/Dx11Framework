@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "Client_Defines.h"
 #include "Base.h"
+#include "Client_Defines.h"
 
 NS_BEGIN(Engine)
 class EngineUtility;

@@ -14,6 +14,8 @@ protected:
 public:
 	virtual HRESULT InitializePrototype();
 	virtual HRESULT Initialize(void* pArg);
+	virtual HRESULT Render();
+
 	virtual void SetOwner(class Object* pOwner);
 	virtual class Object* GetOwner();
 

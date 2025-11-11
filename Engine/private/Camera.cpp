@@ -72,6 +72,7 @@ void Camera::Free()
 void Camera::UpdatePipeLine()
 {
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    m_pEngineUtility->SetTransform(D3DTS::D3DTS_VIEW, pTransform->GetWorldMatrixInverse());
-    m_pEngineUtility->SetTransform(D3DTS::D3DTS_PROJECTION, XMMatrixPerspectiveFovLH(m_fFovy, m_fAspect, m_fNear, m_fFar));
+    m_pEngineUtility->SetPipelineTransform(D3DTS::D3DTS_VIEW, pTransform->GetWorldMatrixInverse());
+    m_pEngineUtility->SetPipelineTransform(D3DTS::D3DTS_PROJECTION, XMMatrixPerspectiveFovLH(m_fFovy, m_fAspect, m_fNear, m_fFar));
+    m_pEngineUtility->SetPipelineFarDistance(m_fFar);
 }

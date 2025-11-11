@@ -94,13 +94,13 @@ HRESULT Model::Render(_uint iMeshIndex)
     return S_OK;
 }
 
-HRESULT Model::BindShaderResource(_uint iMeshIndex, Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex)
+HRESULT Model::BindRenderTargetShaderResource(_uint iMeshIndex, Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex)
 {
     _uint iMaterialIndex = m_Meshes[iMeshIndex]->GetMaterialIndex();
     if (iMaterialIndex >= m_iNumMaterials)
         return E_FAIL;
 
-    return m_Materials[iMaterialIndex]->BindShaderResource(pShader, pConstantName, eType, iIndex);
+    return m_Materials[iMaterialIndex]->BindRenderTargetShaderResource(pShader, pConstantName, eType, iIndex);
 }
 
 HRESULT Model::BindBoneMatrices(_uint iMeshIndex, Shader* pShader, const _char* pConstantName)
@@ -167,13 +167,16 @@ void Model::SetAnimation(_uint iIndex, _bool isLoop)
     SetAnimation(iIndex, isLoop, 0.1f);
 }
 
-void Model::SetAnimation(_uint iIndex, _bool isLoop, _float blendTimeSec)
+void Model::SetAnimation(_uint iIndex, _bool isLoop, _float blendTimeSec, _bool restartFlag)
 {
     if (iIndex >= m_Animations.size())
         return;
 
-    if (m_iCurrentAnimIndex == iIndex && m_isAnimLoop == isLoop)
+    if (m_iCurrentAnimIndex == iIndex && m_isAnimLoop == isLoop && restartFlag == false)
         return;
+    
+    if (restartFlag == true)
+        blendTimeSec = 0.f;
 
     // 1) 이전 로컬 포즈 캡처
     m_BlendFromLocal.clear();
@@ -194,6 +197,7 @@ void Model::SetAnimation(_uint iIndex, _bool isLoop, _float blendTimeSec)
     m_BlendDuration = max(0.f, blendTimeSec);
 
     // 3) 대상 애니로 전환
+    m_isAnimFinished = false;
     m_iCurrentAnimIndex = iIndex;
     m_isAnimLoop = isLoop;
     m_Animations[iIndex]->Reset();

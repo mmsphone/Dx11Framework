@@ -18,11 +18,10 @@ public:
 	_bool   HasState(const string& name) const;
 
 	void    AddTransition(const std::string& fromState, const Transition& transition);
-	void    AddTransition(const std::string& fromState, const std::string& toState, _uint priority, std::function<bool(Object*, StateMachine*)> cond);
+	void    AddTransition(const std::string& fromState, const std::string& toState, _uint priority, std::function<bool(Object*, StateMachine*)> cond, _bool restartFlag = false);
 	void    AddTransitions(const std::vector<std::string>& fromStates, const Transition& transition);
 
-	void    SetState(const std::string& name);
-	void    SetStateRestart(const std::string& name);
+	void    SetState(const std::string& name, _bool restartFlag = false);
 
 	void    Update(_float fTimeDelta);
 	_bool   Dispatch(const EventData& eventData);

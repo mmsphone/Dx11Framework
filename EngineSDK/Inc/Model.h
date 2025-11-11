@@ -20,13 +20,13 @@ public:
 	virtual HRESULT Initialize(void* pArg);
 	virtual HRESULT Render(_uint iMeshIndex);
 
-	HRESULT BindShaderResource(_uint iMeshIndex, class Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex);
+	HRESULT BindRenderTargetShaderResource(_uint iMeshIndex, class Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex);
 	HRESULT BindBoneMatrices(_uint iMeshIndex, class Shader* pShader, const _char* pConstantName);
 	void UpdateBoneMatrices();
 
 	void PlayAnimation(_float fTimeDelta);
 	void SetAnimation(_uint iIndex, _bool isLoop = false);
-	void SetAnimation(_uint iIndex, _bool isLoop, _float blendTimeSec);
+	void SetAnimation(_uint iIndex, _bool isLoop, _float blendTimeSec, _bool restartFlag = false);
 	void StopAnimation();
 	void ResumeAnimation();
 	_uint GetCurrentAnimIndex() const;

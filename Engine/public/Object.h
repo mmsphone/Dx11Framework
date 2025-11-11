@@ -25,6 +25,7 @@ public:
 	virtual void Update(_float fTimeDelta);
 	virtual void LateUpdate(_float fTimeDelta);
 	virtual HRESULT Render();
+	virtual HRESULT RenderShadow(_uint iIndex);
 
 	_bool IsDead();
 	void SetDead(_bool bDead);

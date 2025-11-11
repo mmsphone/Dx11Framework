@@ -59,13 +59,13 @@ HRESULT Material::Initialize(const MaterialData& material)
 	return S_OK;
 }
 
-HRESULT Material::BindShaderResource(Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex)
+HRESULT Material::BindRenderTargetShaderResource(Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex)
 {
 	if (iIndex < m_Textures[(int)eType].size() && m_Textures[(int)eType][iIndex])
 	{
 		_int bUseTex = 1;
 		pShader->BindRawValue("g_bUseTexture", &bUseTex, sizeof(_int));
-		return pShader->BindShaderResource(pConstantName, m_Textures[(_int)eType][iIndex]);
+		return pShader->BindRenderTargetShaderResource(pConstantName, m_Textures[(_int)eType][iIndex]);
 	}
 
 	_int bUseTex = 0;

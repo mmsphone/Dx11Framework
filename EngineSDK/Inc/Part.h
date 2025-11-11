@@ -24,6 +24,8 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	const _float4x4* GetCombinedWorldMatrix() const;
+
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free() override;
 protected:

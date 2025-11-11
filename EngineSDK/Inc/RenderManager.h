@@ -19,17 +19,42 @@ public:
 	HRESULT JoinRenderGroup(RENDERGROUP eGroupId, class Object* pObject);
 	void Draw();
 
+#ifdef _DEBUG
+	HRESULT AddDebugComponent(class Component* pDebugComponent);
+#endif
+
 	static RenderManager* Create();
 	virtual void Free() override;
 
 private:
 	void RenderPriority();
-	void RenderNonBlend();
+	void RenderShadowLight();
+	void RenderNonBlend(); 
+	void RenderLights();
+	void RenderCombined();
+	void RenderNonLights();
 	void RenderBlend();
 	void RenderUI();
+
+	HRESULT ReadyShadowDepthStencilView();
+	HRESULT ChangeViewportSize(_uint iWidth, _uint iHeight);
+
+#ifdef _DEBUG
+	void RenderDebug();
+#endif
+
 private:
+	class EngineUtility* m_pEngineUtility = { nullptr };
+
 	list<class Object*> m_RenderObjects[RENDERGROUP::RENDERGROUP_END];
-	class EngineUtility* m_pEngineUtility = nullptr;
+	_float4x4				m_WorldMatrix{}, m_ViewMatrix{}, m_ProjMatrix{};
+	class VIBufferRect* m_pVIBuffer = { nullptr };
+	class Shader* m_pShader = { nullptr };
+	ID3D11DepthStencilView* m_pShadowDepthStencilView = { nullptr };
+
+#ifdef _DEBUG
+	list<class Component*>			m_DebugComponents;
+#endif
 };
 
 NS_END

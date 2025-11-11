@@ -20,7 +20,10 @@ public:
 	_matrix GetTransformMatrixInverse(D3DTS eState);
 
 	const _float4* GetCamPosition();
-	void SetTransform(D3DTS eState, _fmatrix TransformMatrix);
+	void SetPipelineTransform(D3DTS eState, _fmatrix TransformMatrix);
+
+	const _float* GetPipelineFarDistance();
+	void SetPipelineFarDistance(const _float& fFarDistance);
 
 	static Pipeline* Create();
 	virtual void Free();
@@ -29,6 +32,7 @@ private:
 	_float4x4				 m_TransformationMatrix[D3DTS::D3DTS_END] = {};
 	_float4x4				 m_TransformationMatrix_Inverse[D3DTS::D3DTS_END] = {};
 	_float4					 m_vCamPosition = { 0.0f, 0.f, 0.f, 1.f };
+	_float					m_fFarDistance = {};
 };
 
 NS_END

@@ -51,6 +51,11 @@ HRESULT Object::Render()
     return S_OK;
 }
 
+HRESULT Object::RenderShadow(_uint iIndex)
+{
+	return S_OK;
+}
+
 _bool Object::IsDead()
 {
 	return m_IsDead;

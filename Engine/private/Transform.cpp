@@ -270,7 +270,7 @@ void Transform::Translate(_fvector vTranslateDir, _float fTimeDelta)
 	SetState(STATE::POSITION, vPosition);
 }
 
-HRESULT Transform::BindShaderResource(Shader* pShader, const _char* pConstantName)
+HRESULT Transform::BindRenderTargetShaderResource(Shader* pShader, const _char* pConstantName)
 {
 	return pShader->BindMatrix(pConstantName, &m_WorldMatrix);
 }

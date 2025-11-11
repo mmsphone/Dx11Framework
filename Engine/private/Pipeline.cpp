@@ -31,9 +31,19 @@ const _float4* Pipeline::GetCamPosition()
 	return &m_vCamPosition;
 }
 
-void Pipeline::SetTransform(D3DTS eState, _fmatrix TransformMatrix)
+void Pipeline::SetPipelineTransform(D3DTS eState, _fmatrix TransformMatrix)
 {
 	XMStoreFloat4x4(&m_TransformationMatrix[eState], TransformMatrix);
+}
+
+const _float* Pipeline::GetPipelineFarDistance()
+{
+	return &m_fFarDistance;
+}
+
+void Pipeline::SetPipelineFarDistance(const _float& fFarDistance)
+{
+	m_fFarDistance = fFarDistance;
 }
 
 HRESULT Pipeline::Initialize()

@@ -15,7 +15,7 @@ public:
 	virtual HRESULT InitializePrototype(const _tchar* pTextureFilePath, _uint iNumTextures);
 	virtual HRESULT Initialize(void* pArg) override;
 
-	HRESULT BindShaderResource(class Shader* pShader, const _char* pConstantName, _uint iTextureIndex);
+	HRESULT BindRenderTargetShaderResource(class Shader* pShader, const _char* pConstantName, _uint iTextureIndex);
 	HRESULT BindShaderResources(class Shader* pShader, const _char* pConstantName);
 
 	static Texture* Create(const _tchar* pTextureFilePath, _uint iNumTextures);

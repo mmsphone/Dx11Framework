@@ -38,9 +38,9 @@ void StateMachine::AddTransition(const std::string& fromState, const Transition&
     m_transitions[fromState].push_back(transition);
 }
 
-void StateMachine::AddTransition(const std::string& fromState, const std::string& toState, _uint priority, std::function<bool(Object*, StateMachine*)> cond)
+void StateMachine::AddTransition(const std::string& fromState, const std::string& toState, _uint priority, std::function<bool(Object*, StateMachine*)> cond, _bool restartFlag)
 {
-    m_transitions[fromState].push_back(Transition{ std::move(cond), toState, priority });
+    m_transitions[fromState].push_back(Transition{ std::move(cond), toState, priority, restartFlag });
 }
 
 void StateMachine::AddTransitions(const std::vector<std::string>& fromStates, const Transition& transition)
@@ -49,21 +49,11 @@ void StateMachine::AddTransitions(const std::vector<std::string>& fromStates, co
         m_transitions[s].push_back(transition);
 }
 
-void StateMachine::SetState(const std::string& name)
+void StateMachine::SetState(const std::string& name, _bool restartFlag)
 {
-    if (!m_curState.empty() && m_curState == name)
+    if (!m_curState.empty() && m_curState == name && !restartFlag)
         return;
 
-    if (!m_curState.empty())
-        CallExit();
-
-    m_curState = name;
-    m_timeInState = 0.f;
-    CallEnter();
-}
-
-void StateMachine::SetStateRestart(const std::string& name)
-{
     if (!m_curState.empty())
         CallExit();
 
@@ -97,8 +87,7 @@ void StateMachine::Update(_float fTimeDelta)
             }
         }
         if (best) {
-            if (best->nextState != m_curState)
-                SetState(best->nextState);
+            SetState(best->nextState, best->restartFlag);
         }
     }
 }

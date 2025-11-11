@@ -13,6 +13,8 @@
 #include "Drone.h"
 #include "Worm.h"
 #include "Shieldbug.h"
+#include "SMG_Projectile.h"
+#include "Weapon_AR.h"
 
 Loader::Loader()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
@@ -85,17 +87,33 @@ HRESULT Loader::LoadingForLogo()
 	lstrcpy(m_szLoading, TEXT("텍스처 로딩중..."));
 
 	lstrcpy(m_szLoading, TEXT("셰이더 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::LOGO, TEXT("Shader_VtxMesh"), Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"), VTXMESH::Elements, VTXMESH::iNumElements))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxPosTex"), Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"), VTXPOSTEX::Elements, VTXPOSTEX::iNumElements))))
 		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::LOGO, TEXT("Shader_VtxPosTex"), Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"), VTXPOSTEX::Elements, VTXPOSTEX::iNumElements))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxMesh"), Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"), VTXMESH::Elements, VTXMESH::iNumElements))))
 		return E_FAIL;
-	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
-	
-	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::LOGO, TEXT("FixedCam"), FixedCam::Create())))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxAnimMesh"), Shader::Create(TEXT("../bin/Shader/Shader_VtxAnimMesh.hlsl"), VTXSKINMESH::Elements, VTXSKINMESH::iNumElements))))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_InstancingPos"), Shader::Create(TEXT("../bin/Shader/Shader_InstancingPos.hlsl"), VTXPOS_INSTANCEPARTICLE::Elements, VTXPOS_INSTANCEPARTICLE::iNumElements))))
 		return E_FAIL;
 
-	//lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
+	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
+
+	lstrcpy(m_szLoading, TEXT("컴포넌트 로딩중..."));
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("StateMachine"), StateMachine::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("AIController"), AIController::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Info"), Info::Create())))
+		return E_FAIL;
+	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("FreeCam"), FreeCam::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("FixedCam"), FixedCam::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("ChaseCam"), ChaseCam::Create())))
+		return E_FAIL;
+
+	lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
 	//std::vector<MAP_OBJECTDATA> mapData = m_pEngineUtility->LoadMapData("../bin/data/LogoScene.dat");
 	//
 	//std::unordered_map<std::string, std::pair<std::wstring, std::wstring>> nameMap = {
@@ -113,13 +131,7 @@ HRESULT Loader::LoadingForLogo()
 HRESULT Loader::LoadingForGamePlay()
 {
  	lstrcpy(m_szLoading, TEXT("텍스처 로딩중..."));
-
-	lstrcpy(m_szLoading, TEXT("셰이더 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Shader_SphereSky"), Shader::Create(TEXT("../bin/Shader/Shader_SphereSky.hlsl"), VTXMESH::Elements, VTXMESH::iNumElements))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Shader_VtxMesh"), Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"), VTXMESH::Elements, VTXMESH::iNumElements))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Shader_VtxAnimMesh"), Shader::Create(TEXT("../bin/Shader/Shader_VtxAnimMesh.hlsl"), VTXSKINMESH::Elements, VTXSKINMESH::iNumElements))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_Bullet"), Texture::Create(TEXT("../bin/Resources/Textures/Snow/Snow.png"), 1))))
 		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
@@ -138,20 +150,22 @@ HRESULT Loader::LoadingForGamePlay()
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Monster_Shieldbug/Monster_Shieldbug.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Shieldbug"), Model::Create(MODELTYPE::ANIM, model))))
 		return E_FAIL;
-
-	lstrcpy(m_szLoading, TEXT("컴포넌트 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("StateMachine"), StateMachine::Create())))
+	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Weapon_AR/Weapon_AR.bin");
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Weapon_AR"), Model::Create(MODELTYPE::ANIM, model))))
 		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("AIController"), AIController::Create())))
+	VIBufferInstancingPoint::POINT_INSTANCE_DESC ParticleDesc{};
+	ParticleDesc.iNumInstance = 1;
+	ParticleDesc.vScale = _float2(0.3f, 0.3f);
+	ParticleDesc.vCenter = _float3(0.f, 0.f, 0.f);
+	ParticleDesc.vPivot = _float3(0.f, 0.f, 0.f);
+	ParticleDesc.vRange = _float3(0.0f, 0.0f, 0.0f);
+	ParticleDesc.vLifeTime = _float2(2.f, 2.f);
+	ParticleDesc.vSpeed = _float2(2.f, 4.f);
+	ParticleDesc.isLoop = true;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_Particle_Bullet"), VIBufferInstancingPoint::Create(&ParticleDesc))))
 		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("FreeCam"), FreeCam::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("FixedCam"), FixedCam::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("ChaseCam"), ChaseCam::Create())))
-		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("GameScene1_Map"), GameScene1_Map::Create())))
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Player"), Player::Create())))
@@ -162,10 +176,13 @@ HRESULT Loader::LoadingForGamePlay()
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Shieldbug"), Shieldbug::Create())))
 		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("SMG_Projectile"), SMG_Projectile::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Weapon_AR"), Weapon_AR::Create())))
+		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
 	std::vector<MAP_OBJECTDATA> mapData = m_pEngineUtility->LoadMapData("../bin/data/GameScene1_Map.dat");
-	
 	std::unordered_map<std::string, std::pair<std::wstring, std::wstring>> nameMap = {
 		{ "GameScene1", {		L"GameScene1_Map",	L"Map" } },
 		{ "Player_Male", {		L"Player",			L"Player" } },
@@ -175,7 +192,6 @@ HRESULT Loader::LoadingForGamePlay()
 	};
 	if (FAILED(LoadMapObjects(SCENE::GAMEPLAY, mapData, nameMap)))
 		return E_FAIL;
-
 	m_pEngineUtility->LoadCells("../bin/data/GameScene1_Navigation.dat");	
 
 	lstrcpy(m_szLoading, TEXT("로딩 완료"));
@@ -225,18 +241,6 @@ HRESULT Loader::LoadMapObjects(SCENE sceneId, const std::vector<MAP_OBJECTDATA>&
 		Object* pObject = pLayer->GetAllObjects().back();
 		if (!pObject)
 			continue;
-
-		////모델 덮기
-		//Model* pModel = dynamic_cast<Model*>(pObject->FindComponent(TEXT("Model")));
-		//if (pModel)
-		//{
-		//	ModelData* pModelData = m_pEngineUtility->LoadNoAssimpModel(obj.modelPath.c_str());
-		//	if (pModelData)
-		//	{
-		//		pModel->SetModelData(pModelData);
-		//		pModel->SetBinPath(obj.modelPath);
-		//	}
-		//}
 
 		//트랜스폼 행렬
 		if (auto pTransform = dynamic_cast<Transform*>(pObject->FindComponent(TEXT("Transform"))))

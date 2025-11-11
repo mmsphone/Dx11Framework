@@ -118,8 +118,6 @@ void GridManager::Render()
     m_pBatch->End();
 }
 
-#endif
-
 void GridManager::SetVisible(_bool bVisible)
 {
     m_GridVisible = bVisible;
@@ -129,6 +127,7 @@ _bool GridManager::IsVisible() const
 {
     return m_GridVisible;
 }
+#endif
 
 _float GridManager::GetGridCellSize() const
 {

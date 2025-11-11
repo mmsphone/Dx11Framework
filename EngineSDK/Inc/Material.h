@@ -13,7 +13,7 @@ private:
 
 public:
 	HRESULT Initialize(const MaterialData& material);
-	HRESULT BindShaderResource(class Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex);
+	HRESULT BindRenderTargetShaderResource(class Shader* pShader, const _char* pConstantName, TextureType eType, _uint iIndex);
 
 	static Material* Create(const MaterialData& material);
 	virtual void Free() override;

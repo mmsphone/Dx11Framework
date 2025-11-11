@@ -13,6 +13,8 @@ private:
 public:
 	HRESULT Initialize(const LIGHT_DESC& lightDesc);
 	const LIGHT_DESC* GetLight() const;
+	HRESULT RenderLight(class Shader* pShader, class VIBufferRect* pVIBuffer);
+
 
 	static Light* Create(const LIGHT_DESC& lightDesc);
 	virtual void Free() override;

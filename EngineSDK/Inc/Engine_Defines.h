@@ -35,6 +35,7 @@
 #include <unordered_map>
 #include <ctime>
 #include <string>
+#include <variant>
 using namespace std;
 
 #include <fstream>
@@ -45,10 +46,10 @@ using namespace std;
 #include <windows.h>
 
 using namespace DirectX;
-#include "Engine_Enum.h"
 #include "Engine_Macro.h"
-#include "Engine_Struct.h"
+#include "Engine_Enum.h"
 #include "Engine_Typedef.h"
+#include "Engine_Struct.h"
 #include "Engine_Function.h"
 
 #define DIRECTINPUT_VERSION	0x0800
@@ -60,6 +61,12 @@ namespace Engine
 {
 	static const _wstring		g_strTransformTag = TEXT("Transform");
 	static constexpr _uint		g_iMaxNumBones = { 512 };
+
+	//const unsigned int g_iMaxWidth = 16384;
+	//const unsigned int g_iMaxHeight = 9216;
+	
+	const unsigned int g_iMaxWidth = 8192;
+	const unsigned int g_iMaxHeight = 4608;
 }
 
 #ifdef _DEBUG

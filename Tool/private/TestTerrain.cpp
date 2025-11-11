@@ -58,7 +58,7 @@ HRESULT TestTerrain::Render()
     Texture* pTextureBrush = dynamic_cast<Texture*>(FindComponent(TEXT("Texture_Brush")));
     VIBufferTerrain* pTerrain = dynamic_cast<VIBufferTerrain*>(FindComponent(TEXT("VIBuffer")));
 
-    if (FAILED(pTransform->BindShaderResource(pShader, "g_WorldMatrix")))
+    if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
 
     if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW))))
@@ -68,9 +68,9 @@ HRESULT TestTerrain::Render()
 
     if (FAILED(pTextureDiffuse->BindShaderResources(pShader, "g_DiffuseTexture")))
         return E_FAIL;
-    if (FAILED(pTextureMask->BindShaderResource(pShader, "g_MaskTexture", 0)))
+    if (FAILED(pTextureMask->BindRenderTargetShaderResource(pShader, "g_MaskTexture", 0)))
         return E_FAIL;
-    if (FAILED(pTextureBrush->BindShaderResource(pShader, "g_BrushTexture", 0)))
+    if (FAILED(pTextureBrush->BindRenderTargetShaderResource(pShader, "g_BrushTexture", 0)))
         return E_FAIL;
 
     if (FAILED(pShader->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))

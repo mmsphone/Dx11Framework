@@ -15,6 +15,8 @@
 #include "GridManager.h"
 #include "NavigationManager.h"
 #include "SaveLoadManager.h"
+#include "RenderTargetManager.h"
+#include "ShadowLightManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -29,6 +31,9 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 
 	m_pInput = Input::Create(EngineDesc.hInstance, EngineDesc.hWnd);
 	CHECKNULLPTR(m_pInput) return E_FAIL;
+
+	m_pRenderTargetManager = RenderTargetManager::Create();
+	CHECKNULLPTR(m_pRenderTargetManager) return E_FAIL;
 
 	m_pRenderManager = RenderManager::Create();
 	CHECKNULLPTR(m_pRenderManager) return E_FAIL;
@@ -68,6 +73,9 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 
 	m_pSaveLoadManager = SaveLoadManager::Create();
 	CHECKNULLPTR(m_pSaveLoadManager) return E_FAIL;
+
+	m_pShadowLightManager = ShadowLightManager::Create();
+	CHECKNULLPTR(m_pShadowLightManager) return E_FAIL;
 
 	return S_OK;
 }
@@ -109,6 +117,7 @@ HRESULT EngineUtility::EndDraw()
 
 void EngineUtility::ReleaseEngine()
 {
+	SafeRelease(m_pShadowLightManager);
 	SafeRelease(m_pSaveLoadManager);
 	SafeRelease(m_pNavigationManager);
 	SafeRelease(m_pPickingManager);
@@ -126,6 +135,7 @@ void EngineUtility::ReleaseEngine()
 	SafeRelease(m_pPrototypeManager);
 
 	SafeRelease(m_pTimeManager);
+	SafeRelease(m_pRenderTargetManager);
 	SafeRelease(m_pInput);
 
 	SafeRelease(m_pGraphic);
@@ -350,9 +360,19 @@ const _float4* EngineUtility::GetCamPosition()
 	return m_pPipeLine->GetCamPosition();
 }
 
-void EngineUtility::SetTransform(D3DTS eState, _fmatrix TransformMatrix)
+void EngineUtility::SetPipelineTransform(D3DTS eState, _fmatrix TransformMatrix)
 {
-	m_pPipeLine->SetTransform(eState, TransformMatrix);
+	m_pPipeLine->SetPipelineTransform(eState, TransformMatrix);
+}
+
+const _float* EngineUtility::GetPipelineFarDistance()
+{
+	return m_pPipeLine->GetPipelineFarDistance();
+}
+
+void EngineUtility::SetPipelineFarDistance(const _float& fFarDistance)
+{
+	m_pPipeLine->SetPipelineFarDistance(fFarDistance);
 }
 
 const LIGHT_DESC* EngineUtility::GetLight(_uint iIndex)
@@ -363,6 +383,11 @@ const LIGHT_DESC* EngineUtility::GetLight(_uint iIndex)
 HRESULT EngineUtility::AddLight(const LIGHT_DESC& LightDesc)
 {
 	return m_pLightManager->AddLight(LightDesc);
+}
+
+HRESULT EngineUtility::RenderLights(class Shader* pShader, class VIBufferRect* pVIBuffer)
+{
+	return m_pLightManager->RenderLights(pShader, pVIBuffer);
 }
 
 HRESULT EngineUtility::AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath)
@@ -465,12 +490,11 @@ _bool EngineUtility::RayIntersectTerrain(const RAY& ray, Terrain* pTerrain)
 	return m_pPickingManager->RayIntersectTerrain(ray, pTerrain);
 }
 
+#ifdef _DEBUG
 void EngineUtility::RenderGrid()
 {
-#ifdef _DEBUG
 	if(m_pGridManager->IsVisible())
 		m_pGridManager->Render();
-#endif
 }
 
 void EngineUtility::SetGridVisible(_bool enable)
@@ -482,6 +506,8 @@ _bool EngineUtility::IsGridVisible() const
 {
 	return m_pGridManager->IsVisible();
 }
+#endif
+
 _float EngineUtility::GetGridCellSize()
 {
 	return m_pGridManager->GetGridCellSize();
@@ -587,4 +613,76 @@ std::vector<MAP_OBJECTDATA> EngineUtility::LoadMapData(const std::string& path)
 HRESULT EngineUtility::SaveMapData(const std::string& path)
 {
 	return m_pSaveLoadManager->SaveMapData(path);
+}
+
+HRESULT EngineUtility::AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor)
+{
+	return m_pRenderTargetManager->AddRenderTarget(strRenderTargetTag, iWidth, iHeight, ePixelFormat, vClearColor);
+}
+
+HRESULT EngineUtility::AddRenderTargetGroup(const _wstring& strRenderTargetGroupTag, const _wstring& strRenderTargetTag)
+{
+	return m_pRenderTargetManager->AddRenderTargetGroup(strRenderTargetGroupTag, strRenderTargetTag);
+}
+
+HRESULT EngineUtility::BeginRenderTargetGroup(const _wstring& strRenderTargetGroupTag, _bool isClearDepth, ID3D11DepthStencilView* pDepthStencilView)
+{
+	return m_pRenderTargetManager->BeginRenderTargetGroup(strRenderTargetGroupTag, isClearDepth, pDepthStencilView);
+}
+
+HRESULT EngineUtility::EndRenderTargetGroup()
+{
+	return m_pRenderTargetManager->EndRenderTargetGroup();
+}
+
+HRESULT EngineUtility::BindRenderTargetShaderResource(const _wstring& strRenderTargetTag, class Shader* pShader, const _char* pConstantName)
+{
+	return m_pRenderTargetManager->BindRenderTargetShaderResource(strRenderTargetTag, pShader, pConstantName);
+}
+
+HRESULT EngineUtility::CopyRenderTargetResource(const _wstring& strRenderTargetTag, ID3D11Texture2D* pOut)
+{
+	return m_pRenderTargetManager->CopyRenderTargetResource(strRenderTargetTag, pOut);
+}
+
+#ifdef _DEBUG
+HRESULT EngineUtility::ReadyRenderTargetDebug(const _wstring& strRenderTargetTag, _float fX, _float fY, _float fSizeX, _float fSizeY)
+{
+	return m_pRenderTargetManager->ReadyRenderTargetDebug(strRenderTargetTag, fX, fY, fSizeX, fSizeY);
+}
+
+HRESULT EngineUtility::RenderRenderTargetGroup(const _wstring& strRenderTargetGroupTag, class Shader* pShader, class VIBufferRect* pVIBuffer)
+{
+	return m_pRenderTargetManager->RenderRenderTargetGroup(strRenderTargetGroupTag, pShader, pVIBuffer);
+}
+#endif
+
+HRESULT EngineUtility::AddShadowLight(const SHADOW_DESC& ShadowDesc)
+{
+	return m_pShadowLightManager->AddShadowLight(ShadowDesc);
+}
+
+const _float4x4* EngineUtility::GetShadowTransformFloat4x4Ptr(D3DTS eState, _uint iIndex)
+{
+	return m_pShadowLightManager->GetShadowTransformFloat4x4Ptr(eState, iIndex);
+}
+
+const _float3* EngineUtility::GetShadowLightPositionPtr(_uint iIndex)
+{
+	return m_pShadowLightManager->GetShadowLightPositionPtr(iIndex);
+}
+
+const _float* EngineUtility::GetShadowLightFarDistancePtr(_uint iIndex)
+{
+	return m_pShadowLightManager->GetShadowLightFarDistancePtr(iIndex);
+}
+
+void EngineUtility::ClearShadowLights()
+{
+	return m_pShadowLightManager->ClearShadowLights();
+}
+
+_uint EngineUtility::GetNumShadowLights()
+{
+	return m_pShadowLightManager->GetNumShadowLights();
 }

@@ -26,6 +26,11 @@ HRESULT Component::Initialize(void* pArg)
     return S_OK;
 }
 
+HRESULT Component::Render()
+{
+    return S_OK;
+}
+
 void Component::SetOwner(Object* pOwner)
 {
     m_pOwner = pOwner;

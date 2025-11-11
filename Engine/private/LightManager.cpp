@@ -53,6 +53,16 @@ LightManager* LightManager::Create()
 {
     return new LightManager();
 }
+
+HRESULT LightManager::RenderLights(class Shader* pShader, class VIBufferRect* pVIBuffer)
+{
+    for (auto& pLight : m_Lights)
+    {
+        pLight->RenderLight(pShader, pVIBuffer);
+    }
+    return S_OK;
+}
+
 void LightManager::Free()
 {
     __super::Free();

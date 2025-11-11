@@ -90,7 +90,7 @@ HRESULT FieldObject::Render()
         OutputDebugStringA(oss.str().c_str());
     }
 
-    if (FAILED(pTransform->BindShaderResource(pShader, "g_WorldMatrix")))
+    if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
 
     if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW))))
@@ -113,7 +113,7 @@ HRESULT FieldObject::Render()
     if (FAILED(pShader->BindRawValue("g_vLightSpecular", &pLightDesc->vSpecular, sizeof(_float4))))
         return E_FAIL;
 
-    if (FAILED(pTransform->BindShaderResource(pShader2, "g_WorldMatrix")))
+    if (FAILED(pTransform->BindRenderTargetShaderResource(pShader2, "g_WorldMatrix")))
         return E_FAIL;
     if (FAILED(pShader2->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW))))
         return E_FAIL;
@@ -135,7 +135,7 @@ HRESULT FieldObject::Render()
     {
         if (pModel->GetModelData()->bones.size() > 0)
         {
-            if (FAILED(pModel->BindShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
+            if (FAILED(pModel->BindRenderTargetShaderResource(i, pShader, "g_DiffuseTexture", TextureType::Diffuse, 0)))
             {
                 OutputDebugStringA("[RenderCheck] DiffuseTexture bind failed\n");
                 continue;
@@ -148,7 +148,7 @@ HRESULT FieldObject::Render()
         }
         else
         {
-            if (FAILED(pModel->BindShaderResource(i, pShader2, "g_DiffuseTexture", TextureType::Diffuse, 0)))
+            if (FAILED(pModel->BindRenderTargetShaderResource(i, pShader2, "g_DiffuseTexture", TextureType::Diffuse, 0)))
             {
                 OutputDebugStringA("[RenderCheck] DiffuseTexture bind failed\n");
                 continue;

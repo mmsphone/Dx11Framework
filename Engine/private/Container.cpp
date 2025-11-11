@@ -37,14 +37,29 @@ HRESULT Container::Initialize(void* pArg)
 
 void Container::PriorityUpdate(_float fTimeDelta)
 {
+    for (auto& pPartObj : m_Parts)
+    {
+        if (nullptr != pPartObj)
+            pPartObj->PriorityUpdate(fTimeDelta);
+    }
 }
 
 void Container::Update(_float fTimeDelta)
 {
+    for (auto& pPartObj : m_Parts)
+    {
+        if (nullptr != pPartObj)
+            pPartObj->Update(fTimeDelta);
+    }
 }
 
 void Container::LateUpdate(_float fTimeDelta)
 {
+    for (auto& pPartObj : m_Parts)
+    {
+        if (nullptr != pPartObj)
+            pPartObj->LateUpdate(fTimeDelta);
+    }
 }
 
 HRESULT Container::Render()

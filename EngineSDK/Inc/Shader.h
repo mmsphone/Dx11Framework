@@ -20,7 +20,7 @@ public:
 	HRESULT BindRawValue(const _char* pConstantName, const void* pData, _uint iSize);
 	HRESULT BindMatrix(const _char* pConstantName, const _float4x4* pMatrix);
 	HRESULT BindMatrices(const _char* pConstantName, const _float4x4* pMatrix, _uint iNumMatrices);
-	HRESULT BindShaderResource(const _char* pConstantName, ID3D11ShaderResourceView* pSRV);
+	HRESULT BindRenderTargetShaderResource(const _char* pConstantName, ID3D11ShaderResourceView* pSRV);
 	HRESULT BindShaderResources(const _char* pConstantName, ID3D11ShaderResourceView** ppSRVs, _uint iNumSRVs);
 
 	static Shader* Create(const _tchar* pShaderFilePath, const D3D11_INPUT_ELEMENT_DESC* pElements, _uint iNumElements);

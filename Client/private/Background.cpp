@@ -63,13 +63,13 @@ HRESULT Background::Render()
     Texture* pTexture = dynamic_cast<Texture*>(FindComponent(TEXT("Texture")));
     VIBufferRect* pRect = dynamic_cast<VIBufferRect*>(FindComponent(TEXT("VIBuffer")));
 
-    if (FAILED(pTransform->BindShaderResource(pShader, "g_WorldMatrix")))
+    if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ViewMatrix", &m_ViewMatrix)))
         return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ProjMatrix", &m_ProjMatrix)))
         return E_FAIL;
-    if (FAILED(pTexture->BindShaderResource(pShader, "g_Texture", 0)))
+    if (FAILED(pTexture->BindRenderTargetShaderResource(pShader, "g_Texture", 0)))
         return E_FAIL;
 
     pShader->Begin(0);

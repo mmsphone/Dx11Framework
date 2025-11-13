@@ -73,7 +73,7 @@ void UI::UpdateState()
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
 
     pTransform->SetScale(m_fSizeX, m_fSizeY);
-    pTransform->SetState(STATE::POSITION, XMVectorSet(
+    pTransform->SetState(MATRIXROW::MATRIXROW_POSITION, XMVectorSet(
         m_fX - m_fViewportSizeX * 0.5f,
         -m_fY + m_fViewportSizeY * 0.5f,
         0.0f,

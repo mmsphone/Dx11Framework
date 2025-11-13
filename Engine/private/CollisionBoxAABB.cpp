@@ -34,16 +34,16 @@ _bool CollisionBoxAABB::Intersect(Collision* pCollision)
 
     switch (pCollision->GetType())
     {
-    case COLLISIONTYPE::AABB:
-        isIntersected = m_pDesc->Intersects(*static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(AABB)));
+    case COLLISIONTYPE::COLLISIONTYPE_AABB:
+        isIntersected = m_pDesc->Intersects(*static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(COLLISIONTYPE_AABB)));
         break;
 
-    case COLLISIONTYPE::OBB:
-        isIntersected = m_pDesc->Intersects(*static_cast<BoundingOrientedBox*>(pCollision->GetWorldCollisionBox(OBB)));
+    case COLLISIONTYPE::COLLISIONTYPE_OBB:
+        isIntersected = m_pDesc->Intersects(*static_cast<BoundingOrientedBox*>(pCollision->GetWorldCollisionBox(COLLISIONTYPE_OBB)));
         break;
 
-    case COLLISIONTYPE::SPHERE:
-        isIntersected = m_pDesc->Intersects(*static_cast<BoundingSphere*>(pCollision->GetWorldCollisionBox(SPHERE)));
+    case COLLISIONTYPE::COLLISIONTYPE_SPHERE:
+        isIntersected = m_pDesc->Intersects(*static_cast<BoundingSphere*>(pCollision->GetWorldCollisionBox(COLLISIONTYPE_SPHERE)));
         break;
     }
 

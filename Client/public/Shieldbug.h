@@ -42,6 +42,7 @@ private:
     void SetUpAIInputData();
     HRESULT SetUpAIProcess();
     void Move(_float fTimeDelta);
+    void Rotate(_float fTimeDelta);
     void Attack();
     void ApplyDamageToPlayer(Info* info, _float damage);
 
@@ -51,11 +52,18 @@ private:
 
     tagAIInputDesc* m_pAIInputCache = nullptr;
     _bool   m_isMove = false;
-    _vector m_aimDir = {};
-    _bool   m_isSprint = false;
     _bool   m_isAttack = false;
+    _bool   m_isDefend = false;
+    _bool   m_isEnterDefend = false;
+    _vector m_aimDir = {};
 
     _bool   m_targetAttackable = true;
+
+    _bool  m_yawInterpActive = false;
+    _float m_yawInterpT = 0.f;     // 진행 시간
+    _float m_yawInterpDur = 0.2f;   // 보간 시간(튜닝)
+    _float m_yawStart = 0.f;     // 시작 yaw
+    _float m_yawTarget = 0.f;     // 목표 yaw
 };
 
 NS_END

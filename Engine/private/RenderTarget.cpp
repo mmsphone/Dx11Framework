@@ -61,7 +61,7 @@ HRESULT RenderTarget::ReadyRenderTargetDebug(_float fX, _float fY, _float fSizeX
 	return S_OK;
 }
 
-HRESULT RenderTarget::Render(Shader* pShader, VIBufferRect* pVIBuffer)
+HRESULT RenderTarget::RenderDebug(Shader* pShader, VIBufferRect* pVIBuffer)
 {
 	pShader->BindMatrix("g_WorldMatrix", &m_WorldMatrix);
 

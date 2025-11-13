@@ -22,6 +22,8 @@ public:
 	_bool ComparePointsEps(_fvector vSour, _fvector vDest, _float eps);
 	_float ComputeHeight(_fvector vResultPos);
 
+	void SetIndex(_int iIndex);
+
 	static Cell* Create(const _float3* pPoints, _uint iIndex);
 	virtual void Free() override;
 #ifdef _DEBUG

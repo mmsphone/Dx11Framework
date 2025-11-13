@@ -10,6 +10,7 @@
 #include "StateMachine.h"
 #include "AIController.h"
 #include "Info.h"
+#include "Physics.h"
 
 #include "VIBufferRect.h"
 #include "VIBufferCube.h"

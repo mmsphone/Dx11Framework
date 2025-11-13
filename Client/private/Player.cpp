@@ -36,6 +36,9 @@ HRESULT Player::Initialize(void* pArg)
     if (FAILED(SetUpInfo()))
         return E_FAIL;
 
+    Physics* pPhysics = static_cast<Physics*>(FindComponent(TEXT("Physics")));
+    pPhysics->SetOnGround(true);
+
     return S_OK;
 }
 
@@ -55,6 +58,11 @@ void Player::Update(_float fTimeDelta)
         pModel->PlayAnimation(fTimeDelta);
 
     __super::Update(fTimeDelta);
+
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    _vector vPos = pTransform->GetState(MATRIXROW_POSITION);
+    m_pEngineUtility->SetActiveLightsByDistance(vPos, 40.f);
+    m_pEngineUtility->SetActiveShadowLightsByDistance(vPos, 20.f);
 }
 
 void Player::LateUpdate(_float fTimeDelta)
@@ -112,11 +120,11 @@ HRESULT Player::RenderShadow(_uint iIndex)
     if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
 
-    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW, iIndex)))) 
+    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW, iIndex)))) 
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION, iIndex))))
+    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION, iIndex))))
         return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_ShadowLightFarDistance", m_pEngineUtility->GetShadowLightFarDistancePtr(iIndex), sizeof(_float))))
+    if (FAILED(pShader->BindRawValue("g_ShadowLightFarDistance", m_pEngineUtility->GetActiveShadowLightFarDistancePtr(iIndex), sizeof(_float))))
         return E_FAIL;
 
     _uint       iNumMeshes = pModel->GetNumMeshes();
@@ -172,6 +180,10 @@ HRESULT Player::ReadyComponents()
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("Info"), TEXT("Info"), nullptr, nullptr)))
         return E_FAIL;
 
+    Physics::PHYSICS_DESC desc{};
+    desc.worldSizeOffset = 0.1f;
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Physics"), TEXT("Physics"), nullptr, &desc)))
+        return E_FAIL;
 
     return S_OK;
 }
@@ -243,12 +255,16 @@ HRESULT Player::SetUpStateMachine()
                 return;
             pModel->SetAnimation(pPlayer->FindAnimIndex("Walk"), true, 0.1f);
         },
-        [](Object* owner, StateMachine* sm, _float fDeltaTime) {
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = dynamic_cast<Player*>(owner);
             if (!pPlayer)
                 return;
-            pPlayer->Move(fDeltaTime);
-            pPlayer->Rotate(fDeltaTime);
+
+            if (auto pPhysics = dynamic_cast<Physics*>(owner->FindComponent(TEXT("Physics"))))
+                pPhysics->Update(fTimeDelta);
+
+            pPlayer->Move(fTimeDelta);
+            pPlayer->Rotate(fTimeDelta);
         },
         nullptr
     });
@@ -261,12 +277,14 @@ HRESULT Player::SetUpStateMachine()
                 return;
             pModel->SetAnimation(pPlayer->FindAnimIndex("Run"), true, 0.1f);
         },
-        [](Object* owner, StateMachine* sm, _float fDeltaTime) {
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = dynamic_cast<Player*>(owner);
-            if (!pPlayer)
-                return;
-            pPlayer->Move(fDeltaTime);
-            pPlayer->Rotate(fDeltaTime);
+
+            if (auto pPhysics = dynamic_cast<Physics*>(owner->FindComponent(TEXT("Physics"))))
+                pPhysics->Update(fTimeDelta);
+
+            pPlayer->Move(fTimeDelta);
+            pPlayer->Rotate(fTimeDelta);
         },
         nullptr
     });
@@ -278,7 +296,7 @@ HRESULT Player::SetUpStateMachine()
             if (!pPlayer || !pModel)
                 return;
             pModel->SetAnimation(pPlayer->FindAnimIndex("Attack"), false, 0.05f, true);
-            pPlayer->Attack();
+            pPlayer->Shoot();
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = dynamic_cast<Player*>(owner);
@@ -462,35 +480,103 @@ void Player::InputCheck()
     }
 
     m_isSprint = m_pEngineUtility->IsKeyDown(DIK_LSHIFT) ? true : false;
-    m_isShoot = m_pEngineUtility->IsMouseDown(LB) ? true : false;
+    m_isShoot = m_pEngineUtility->IsMouseDown(MOUSEKEY_LEFTBUTTON) ? true : false;
 
 }
 
 void Player::Move(_float fTimeDelta)
 {
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    if (pTransform == nullptr || m_isMove == false)
+    Physics* pPhysics = static_cast<Physics*>(FindComponent(TEXT("Physics")));
+    if (m_isMove == false)
         return;
 
     //이동
-    _vector prePos = pTransform->GetState(POSITION);
+    _vector prePos = pTransform->GetState(MATRIXROW_POSITION);
 
     _float moveAmp = 1.f;
     if (m_isSprint) 
         moveAmp = 1.4f;
     pTransform->Translate(m_aimDir, fTimeDelta * moveAmp);
+    _vector delta = XMVectorScale(m_aimDir, fTimeDelta * moveAmp);
 
-    const _vector movePos = pTransform->GetState(POSITION);
-    if (m_pEngineUtility->IsInCell(movePos) == false)
+    _vector movePos = pTransform->GetState(MATRIXROW_POSITION);
+    _int cellIndex = -1;
+
+    if (m_pEngineUtility->IsInCell(movePos, &cellIndex) == false) // 셀 밖 이동 금지
     {
-        pTransform->SetState(POSITION, prePos);
+        if (m_pEngineUtility->IsInCell(prePos, &cellIndex) == false) return;
+
+        _vector slideDelta{};
+        if (m_pEngineUtility->GetSlideVectorOnCell(prePos, delta, cellIndex, &slideDelta))
+        {
+            // 슬라이드 적용
+            pTransform->SetState(MATRIXROW_POSITION, prePos + slideDelta);
+        }
+        else
+        {
+            // 실패 시 원위치
+            pTransform->SetState(MATRIXROW_POSITION, prePos);
+        }
     }
     else
     {
-        _vector fixedPos{};
-        m_pEngineUtility->SetHeightOnCell(pTransform->GetState(POSITION), &fixedPos);
-        pTransform->SetState(POSITION, fixedPos);
+    // ----- 히스테리시스 & 계단 허용 파라미터 -----
+    const _float snapBand      = 0.05f; // 스냅 접촉 밴드(지면으로 붙일 때)
+    const _float releaseBand   = 0.10f; // 해제 밴드(지면에서 떨어졌다고 판정)
+    const _float stepUpMax     = 0.20f; // 한 프레임 올라탈 수 있는 최대 높이
+    const _float stepDownSnap  = 0.20f; // 한 프레임 내려가며 따라붙는 최대 높이
+
+    _float cellPosY = m_pEngineUtility->GetHeightPosOnCell(&movePos, cellIndex);
+    _float curY     = XMVectorGetY(movePos);
+    _float dy       = cellPosY - curY; // (+) 위에 있음, (-) 아래에 있음
+
+    // 1) 올라탈 수 없는 큰 단차면 이동 거부(원위치)
+    if (dy > stepUpMax) {
+        pTransform->SetState(MATRIXROW_POSITION, prePos);
+        return;
     }
+
+    // 2) 지상 상태일 때
+    if (pPhysics->IsOnGround())
+    {
+        if (dy >= -snapBand) {
+            // 거의 같은 높이거나 약간 위: 스냅
+            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+            pPhysics->SetOnGround(true);
+        }
+        else if (-dy <= stepDownSnap) {
+            // 작게 내려가는 계단: 스냅해서 따라감
+            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+            pPhysics->SetOnGround(true);
+        }
+        else if (-dy > releaseBand) {
+            pTransform->SetState(MATRIXROW_POSITION, movePos + m_aimDir * 0.1f);
+            pPhysics->SetOnGround(false);
+        }
+        else {
+            // 스냅/해제 중간 구간: 마지막 상태 유지(지상)로 안정화
+            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+            pPhysics->SetOnGround(true);
+        }
+    }
+    // 3) 공중 상태일 때: 더 엄격하게 붙여줌(바닥에 거의 닿았을 때만)
+    else
+    {
+        if (dy >= -snapBand) {
+            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+            pPhysics->SetOnGround(true);
+        } else {
+            // 계속 낙하: XZ 이동만 반영, Y는 물리에서 처리
+            pTransform->SetState(MATRIXROW_POSITION, movePos);
+            pPhysics->SetOnGround(false);
+        }
+    }
+}
 }
 
 void Player::Rotate(_float fTimeDelta)
@@ -524,7 +610,7 @@ void Player::Rotate(_float fTimeDelta)
     if (!m_isShoot && m_isMove)
     {
         // 현재/목표 방향(Y=0 평탄화)
-        _vector look = XMVector3Normalize(XMVectorSetY(tf->GetState(LOOK), 0.f));
+        _vector look = XMVector3Normalize(XMVectorSetY(tf->GetState(MATRIXROW_LOOK), 0.f));
         _vector dir = XMVector3Normalize(XMVectorSetY(m_aimDir, 0.f));
         if (XMVector3Equal(dir, XMVectorZero())) return;
 
@@ -545,7 +631,7 @@ void Player::Rotate(_float fTimeDelta)
 
 }
 
-void Player::Attack()
+void Player::Shoot()
 {
     _float2 mouse = m_pEngineUtility->GetMousePos();
     float d01 = 1.f;
@@ -576,7 +662,7 @@ void Player::Attack()
         Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
         if (pTransform == nullptr)
             return;
-        _vector playerPos = pTransform->GetState(POSITION);
+        _vector playerPos = pTransform->GetState(MATRIXROW_POSITION);
         _vector moveDir = pickPos - playerPos;
 
         Projectile::PROJECTILE_DESC Desc{};
@@ -600,7 +686,7 @@ void Player::Attack()
         _vector muzzlePos = pMuzzlePosMat.r[3];
         muzzlePos = XMVector3TransformCoord(muzzlePos, pPartPosMat);
 
-        static_cast<Transform*>(m_pEngineUtility->FindLayer(iCurSceneId, TEXT("Projectile"))->GetAllObjects().back()->FindComponent(TEXT("Transform")))->SetState(POSITION, muzzlePos);
+        static_cast<Transform*>(m_pEngineUtility->FindLayer(iCurSceneId, TEXT("Projectile"))->GetAllObjects().back()->FindComponent(TEXT("Transform")))->SetState(MATRIXROW_POSITION, muzzlePos);
         {
             Transform* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
             if (tf)
@@ -610,7 +696,7 @@ void Player::Attack()
                 if (!XMVector3Equal(dir, XMVectorZero()))
                 {
                     // 현재/목표 yaw (+PI 오프셋: 모델이 -Z를 바라보는 정렬 보정 그대로 유지)
-                    _vector look = XMVector3Normalize(XMVectorSetY(tf->GetState(LOOK), 0.f));
+                    _vector look = XMVector3Normalize(XMVectorSetY(tf->GetState(MATRIXROW_LOOK), 0.f));
                     const float baseOffset = XM_PI;
 
                     const float curYaw = atan2f(XMVectorGetX(look), XMVectorGetZ(look));
@@ -655,12 +741,12 @@ void Player::HitBack(_float fTimeDelta)
         const float speed = m_kbPower * t; // 남을수록 감속
 
         // 충돌/네비 체크
-        _vector prePos = tf->GetState(POSITION);
+        _vector prePos = tf->GetState(MATRIXROW_POSITION);
         tf->Translate(m_kbDir, speed * dt);
 
-        _vector newPos = tf->GetState(POSITION);
+        _vector newPos = tf->GetState(MATRIXROW_POSITION);
         if (!m_pEngineUtility->IsInCell(newPos))
-            tf->SetState(POSITION, prePos);
+            tf->SetState(MATRIXROW_POSITION, prePos);
 
         m_kbRemain -= dt;
         if (m_kbRemain <= 0.f)

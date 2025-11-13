@@ -40,7 +40,7 @@ private:
 	HRESULT ChangeViewportSize(_uint iWidth, _uint iHeight);
 
 #ifdef _DEBUG
-	void RenderDebug();
+	void Render();
 #endif
 
 private:

@@ -122,17 +122,17 @@ void ObjectPanel::OnRender()
 
             XMMATRIX newWorld = matS * matR * matT;
 
-            // RIGHT / UP / LOOK / POSITION 추출
+            // MATRIXROW_RIGHT / MATRIXROW_UP / MATRIXROW_LOOK / MATRIXROW_POSITION 추출
             _vector vRight = newWorld.r[0];
             _vector vUp = newWorld.r[1];
             _vector vLook = newWorld.r[2];
             _vector vPos = newWorld.r[3];
 
             // Transform에 반영
-            pTransform->SetState(STATE::RIGHT, vRight);
-            pTransform->SetState(STATE::UP, vUp);
-            pTransform->SetState(STATE::LOOK, vLook);
-            pTransform->SetState(STATE::POSITION, vPos);
+            pTransform->SetState(MATRIXROW::MATRIXROW_RIGHT, vRight);
+            pTransform->SetState(MATRIXROW::MATRIXROW_UP, vUp);
+            pTransform->SetState(MATRIXROW::MATRIXROW_LOOK, vLook);
+            pTransform->SetState(MATRIXROW::MATRIXROW_POSITION, vPos);
         }
 
         ImGui::Separator();

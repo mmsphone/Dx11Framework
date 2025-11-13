@@ -52,7 +52,7 @@ DOCUMENTATION
   - READ FIRST
   - HOW TO UPDATE TO A NEWER VERSION OF DEAR IMGUI
   - GETTING STARTED WITH INTEGRATING DEAR IMGUI IN YOUR CODE/ENGINE
-  - HOW A SIMPLE APPLICATION MAY LOOK LIKE
+  - HOW A SIMPLE APPLICATION MAY MATRIXROW_LOOK LIKE
   - USING CUSTOM BACKEND / CUSTOM ENGINE
 - API BREAKING CHANGES (read me when you update!)
 - FREQUENTLY ASKED QUESTIONS (FAQ)
@@ -81,7 +81,7 @@ CODE
 // [SECTION] FONTS, TEXTURES
 // [SECTION] ID STACK
 // [SECTION] INPUTS
-// [SECTION] ERROR CHECKING, STATE RECOVERY
+// [SECTION] ERROR CHECKING, MATRIXROW RECOVERY
 // [SECTION] ITEM SUBMISSION
 // [SECTION] LAYOUT
 // [SECTION] SCROLLING
@@ -272,7 +272,7 @@ CODE
  - If you are running over a standard OS with a common graphics API, you should be able to use unmodified imgui_impl_*** files from the examples/ folder.
 
 
- HOW A SIMPLE APPLICATION MAY LOOK LIKE
+ HOW A SIMPLE APPLICATION MAY MATRIXROW_LOOK LIKE
  --------------------------------------
 
  USING THE EXAMPLE BACKENDS (= imgui_impl_XXX.cpp files from the backends/ folder).
@@ -6045,7 +6045,7 @@ void ImGui::FindHoveredWindowEx(const ImVec2& pos, bool find_first_and_in_any_vi
         if (window->Flags & ImGuiWindowFlags_NoMouseInputs)
             continue;
 
-        // Using the clipped AABB, a child window will typically be clipped by its parent (not always)
+        // Using the clipped COLLISIONTYPE_AABB, a child window will typically be clipped by its parent (not always)
         ImVec2 hit_padding = (window->Flags & (ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize)) ? padding_regular : padding_for_resize;
         if (!window->OuterRectClipped.ContainsWithPad(pos, hit_padding))
             continue;
@@ -7572,7 +7572,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         window->SizeFull = CalcWindowSizeAfterConstraint(window, window->SizeFull);
         window->Size = window->Collapsed && !(flags & ImGuiWindowFlags_ChildWindow) ? window->TitleBarRect().GetSize() : window->SizeFull;
 
-        // POSITION
+        // MATRIXROW_POSITION
 
         // Popup latch its initial position, will position itself when it appears next frame
         if (window_just_activated_by_user)
@@ -10595,7 +10595,7 @@ bool ImGui::Shortcut(ImGuiKeyChord key_chord, ImGuiInputFlags flags, ImGuiID own
 }
 
 //-----------------------------------------------------------------------------
-// [SECTION] ERROR CHECKING, STATE RECOVERY
+// [SECTION] ERROR CHECKING, MATRIXROW RECOVERY
 //-----------------------------------------------------------------------------
 // - DebugCheckVersionAndDataLayout() (called via IMGUI_CHECKVERSION() macros)
 // - ErrorCheckUsingSetCursorPosToExtendParentBoundaries()
@@ -14561,7 +14561,7 @@ bool ImGui::BeginDragDropSource(ImGuiDragDropFlags flags)
             }
 
             // Magic fallback to handle items with no assigned ID, e.g. Text(), Image()
-            // We build a throwaway ID based on current ID stack + relative AABB of items in window.
+            // We build a throwaway ID based on current ID stack + relative COLLISIONTYPE_AABB of items in window.
             // THE IDENTIFIER WON'T SURVIVE ANY REPOSITIONING/RESIZINGG OF THE WIDGET, so if your widget moves your dragging operation will be canceled.
             // We don't need to maintain/call ClearActiveID() as releasing the button will early out this function and trigger !ActiveIdIsAlive.
             // Rely on keeping other window->LastItemXXX fields intact.
@@ -16600,7 +16600,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
             Unindent();
         }
 
-        Text("MOUSE STATE");
+        Text("MOUSE MATRIXROW");
         {
             Indent();
             if (IsMousePosValid())

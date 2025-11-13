@@ -38,7 +38,7 @@ HRESULT Camera::Initialize(void* pArg)
     /* 사용자가 셋팅하고 싶은 카메라의 초기 상태를 트랜스폼에 동기화했다. */
     /* 뷰행렬을 만들기위한 어느정도의 준비는 됐다. */
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    pTransform->SetState(STATE::POSITION, XMVectorSetW(XMLoadFloat3(&pDesc->vEye), 1.f));
+    pTransform->SetState(MATRIXROW::MATRIXROW_POSITION, XMVectorSetW(XMLoadFloat3(&pDesc->vEye), 1.f));
     pTransform->LookAt(XMVectorSetW(XMLoadFloat3(&pDesc->vAt), 1.f));
 
     /* 초기데이터 파이프라인에 셋팅. */

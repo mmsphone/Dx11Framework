@@ -13,8 +13,8 @@ HRESULT AssetPanel::Initialize()
     m_RootDirectory = std::filesystem::current_path();
     m_CurrentDirectory = m_RootDirectory;
 
-    m_PanelPosition = _float2(0.f, 300.f);
-    m_PanelSize = _float2(400.f, 450.f);
+    m_PanelPosition = _float2(0.f, 500.f);
+    m_PanelSize = _float2(400.f, 300.f);
 
     return S_OK;
 }

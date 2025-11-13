@@ -4979,7 +4979,7 @@ STBTT_DEF int stbtt_CompareUTF8toUTF16_bigendian(const char *s1, int len1, const
 #endif // STB_TRUETYPE_IMPLEMENTATION
 
 
-// FULL VERSION HISTORY
+// WINMODE_FULL VERSION HISTORY
 //
 //   1.25 (2021-07-11) many fixes
 //   1.24 (2020-02-05) fix warning

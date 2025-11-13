@@ -15,6 +15,7 @@
 #include "Shieldbug.h"
 #include "SMG_Projectile.h"
 #include "Weapon_AR.h"
+#include "Worm_Projectile.h"
 
 Loader::Loader()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
@@ -105,6 +106,8 @@ HRESULT Loader::LoadingForLogo()
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Info"), Info::Create())))
 		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Physics"), Physics::Create())))
+		return E_FAIL;
 	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("FreeCam"), FreeCam::Create())))
 		return E_FAIL;
@@ -136,22 +139,22 @@ HRESULT Loader::LoadingForGamePlay()
 
 	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
 	ModelData* model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/GameScene1/GameScene1.bin");
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_GameScene1_Map"), Model::Create(MODELTYPE::NONANIM, model))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_GameScene1_Map"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Player_Male/Player_Male.bin");
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Player"), Model::Create(MODELTYPE::ANIM, model))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Player"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Monster_Drone/Monster_Drone.bin");
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Drone"), Model::Create(MODELTYPE::ANIM, model))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Drone"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Monster_Worm/Monster_Worm.bin");
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Worm"), Model::Create(MODELTYPE::ANIM, model))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Worm"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Monster_Shieldbug/Monster_Shieldbug.bin");
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Shieldbug"), Model::Create(MODELTYPE::ANIM, model))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Shieldbug"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Weapon_AR/Weapon_AR.bin");
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Weapon_AR"), Model::Create(MODELTYPE::ANIM, model))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Weapon_AR"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
 	VIBufferInstancingPoint::POINT_INSTANCE_DESC ParticleDesc{};
 	ParticleDesc.iNumInstance = 1;
@@ -179,6 +182,8 @@ HRESULT Loader::LoadingForGamePlay()
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("SMG_Projectile"), SMG_Projectile::Create())))
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Weapon_AR"), Weapon_AR::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Worm_Projectile"), Worm_Projectile::Create())))
 		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
@@ -250,10 +255,10 @@ HRESULT Loader::LoadMapObjects(SCENE sceneId, const std::vector<MAP_OBJECTDATA>&
 			_vector look = XMLoadFloat4((_float4*)&obj.worldMatrix.m[2]);
 			_vector pos = XMLoadFloat4((_float4*)&obj.worldMatrix.m[3]);
 
-			pTransform->SetState(RIGHT, right);
-			pTransform->SetState(UP, up);
-			pTransform->SetState(LOOK, look);
-			pTransform->SetState(POSITION, pos);
+			pTransform->SetState(MATRIXROW_RIGHT, right);
+			pTransform->SetState(MATRIXROW_UP, up);
+			pTransform->SetState(MATRIXROW_LOOK, look);
+			pTransform->SetState(MATRIXROW_POSITION, pos);
 
 		}
 	}

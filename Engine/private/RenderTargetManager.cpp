@@ -51,6 +51,9 @@ HRESULT RenderTargetManager::BeginRenderTargetGroup(const _wstring& strRenderTar
 	list<RenderTarget*>* pMRTList = FindRenderTargetGroup(strRenderTargetGroupTag);
 	if (nullptr == pMRTList)
 		return E_FAIL;
+	//바인딩된 SRV 모두 해제
+	ID3D11ShaderResourceView* pSRV[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { nullptr };
+	m_pEngineUtility->GetContext()->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, pSRV);
 
 	m_pEngineUtility->GetContext()->OMGetRenderTargets(1, &m_pBackBufferRenderTargetView, &m_pDepthStencilView);
 
@@ -115,7 +118,7 @@ HRESULT RenderTargetManager::ReadyRenderTargetDebug(const _wstring& strRenderTar
 	return pRenderTarget->ReadyRenderTargetDebug(fX, fY, fSizeX, fSizeY);
 }
 
-HRESULT RenderTargetManager::RenderRenderTargetGroup(const _wstring& strRenderTargetGroupTag, Shader* pShader, VIBufferRect* pVIBuffer)
+HRESULT RenderTargetManager::RenderDebugRenderTargetGroup(const _wstring& strRenderTargetGroupTag, Shader* pShader, VIBufferRect* pVIBuffer)
 {
 	list<RenderTarget*>* pRenderTargetGroupList = FindRenderTargetGroup(strRenderTargetGroupTag);
 	if (nullptr == pRenderTargetGroupList)
@@ -123,7 +126,7 @@ HRESULT RenderTargetManager::RenderRenderTargetGroup(const _wstring& strRenderTa
 
 	for (auto& pRenderTarget : *pRenderTargetGroupList)
 	{
-		pRenderTarget->Render(pShader, pVIBuffer);
+		pRenderTarget->RenderDebug(pShader, pVIBuffer);
 	}
 
 	return S_OK;

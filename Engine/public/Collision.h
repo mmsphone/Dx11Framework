@@ -34,7 +34,7 @@ public:
 	virtual void Free() override;
 
 private:
-	COLLISIONTYPE m_CollisionType = { COLLISIONTYPE::COLLISION_END };
+	COLLISIONTYPE m_CollisionType = { COLLISIONTYPE::COLLISIONTYPE_END };
 	class CollisionBox* m_pCollisionBox = { nullptr };
 	_bool m_isIntersected = false;
 

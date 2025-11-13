@@ -6,6 +6,7 @@
 namespace Engine
 {
     class Object;
+    struct tagPickResult;
 }
 
 NS_BEGIN(Tool)

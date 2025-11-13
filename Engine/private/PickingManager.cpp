@@ -21,7 +21,7 @@ PICK_RESULT PickingManager::Pick()
     if (IsMouseOverUI())
     {
         result.hit = true;
-        result.pickType = PICK_UI;
+        result.pickType = PICKTYPE_UI;
         return result;
     }
 
@@ -43,7 +43,7 @@ PICK_RESULT PickingManager::Pick()
     }
 
     if (nearestObj) {
-        result.hit = true; result.pHitObject = nearestObj; result.hitPos = nearestPos; result.pickType = PICK_OBJECT;
+        result.hit = true; result.pHitObject = nearestObj; result.hitPos = nearestPos; result.pickType = PICKTYPE_OBJECT;
         return result;
     }
 
@@ -55,7 +55,7 @@ PICK_RESULT PickingManager::Pick()
             if (auto* pTerrain = dynamic_cast<Terrain*>(object)) {
                 _float3 hitPos{};
                 if (RayIntersectTerrain(ray, pTerrain, &hitPos)) {
-                    result.hit = true; result.pHitObject = pTerrain; result.hitPos = hitPos; result.pickType = PICK_TERRAIN;
+                    result.hit = true; result.pHitObject = pTerrain; result.hitPos = hitPos; result.pickType = PICKTYPE_TERRAIN;
                     return result;
                 }
             }
@@ -93,7 +93,7 @@ PICK_RESULT PickingManager::Pick()
             XMStoreFloat3(&result.hitPos, wpos);
             result.hit = true;
             result.pHitObject = nullptr;
-            result.pickType = PICK_PIXEL;
+            result.pickType = PICKTYPE_PIXEL;
 
             m_pEngineUtility->SetMarkerPosition(result.hitPos);
             return result;
@@ -110,7 +110,7 @@ PICK_RESULT PickingManager::Pick()
             float t = -XMVectorGetX(XMVector3Dot(n, o)) / fdot;
             if (t > 0.f) {
                 XMStoreFloat3(&result.hitPos, o + d * t);
-                result.hit = true; result.pHitObject = nullptr; result.pickType = PICK_GRID;
+                result.hit = true; result.pHitObject = nullptr; result.pickType = PICKTYPE_GRID;
                 m_pEngineUtility->SetMarkerPosition(result.hitPos);
                 return result;
             }
@@ -141,23 +141,23 @@ _bool PickingManager::RayIntersectObject(const RAY& ray, Object* pObject, _float
 
     switch (pCollision->GetType())
     {
-    case COLLISIONTYPE::AABB:
+    case COLLISIONTYPE::COLLISIONTYPE_AABB:
     {
-        BoundingBox* pBox = static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(AABB));
+        BoundingBox* pBox = static_cast<BoundingBox*>(pCollision->GetWorldCollisionBox(COLLISIONTYPE_AABB));
         if (pBox && pBox->Intersects(origin, dir, dist) && dist >= 0.f)
             hit = true;
         break;
     }
-    case COLLISIONTYPE::OBB:
+    case COLLISIONTYPE::COLLISIONTYPE_OBB:
     {
-        BoundingOrientedBox* pBox = static_cast<BoundingOrientedBox*>(pCollision->GetWorldCollisionBox(OBB));
+        BoundingOrientedBox* pBox = static_cast<BoundingOrientedBox*>(pCollision->GetWorldCollisionBox(COLLISIONTYPE_OBB));
         if (pBox && pBox->Intersects(origin, dir, dist) && dist >= 0.f)
             hit = true;
         break;
     }
-    case COLLISIONTYPE::SPHERE:
+    case COLLISIONTYPE::COLLISIONTYPE_SPHERE:
     {
-        BoundingSphere* pBox = static_cast<BoundingSphere*>(pCollision->GetWorldCollisionBox(SPHERE));
+        BoundingSphere* pBox = static_cast<BoundingSphere*>(pCollision->GetWorldCollisionBox(COLLISIONTYPE_SPHERE));
         if (pBox && pBox->Intersects(origin, dir, dist) && dist >= 0.f)
             hit = true;
         break;

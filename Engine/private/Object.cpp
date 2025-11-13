@@ -71,7 +71,7 @@ HRESULT Object::AddComponent(_uint iPrototypeSceneId, const _wstring& strPrototy
 	if (nullptr != FindComponent(strComponentTag))
 		return E_FAIL;
 
-	Component* pComponent = static_cast<Component*>(m_pEngineUtility->ClonePrototype(PROTOTYPE::COMPONENT, iPrototypeSceneId, strPrototypeTag, pArg));
+	Component* pComponent = static_cast<Component*>(m_pEngineUtility->ClonePrototype(PROTOTYPE::PROTOTYPE_COMPONENT, iPrototypeSceneId, strPrototypeTag, pArg));
 	if (nullptr == pComponent)
 		return E_FAIL;
 

@@ -35,7 +35,7 @@ void SMG_Projectile::Update(_float fTimeDelta)
     if (!tf || m_desc.hitRadius <= 0.f) 
         return;
 
-    const _vector center = tf->GetState(POSITION);
+    const _vector center = tf->GetState(MATRIXROW_POSITION);
 
     std::vector<Object*> hits;
     HitProjectile(center, m_desc.hitRadius, hits);
@@ -55,6 +55,7 @@ void SMG_Projectile::Update(_float fTimeDelta)
 void SMG_Projectile::LateUpdate(_float fTimeDelta)
 {
     m_pEngineUtility->JoinRenderGroup(NONBLEND, this);
+
     __super::LateUpdate(fTimeDelta);
 }
 
@@ -179,7 +180,7 @@ void SMG_Projectile::HitProjectile(const _vector& projectilePos, _float& fHitRad
         if (pTransform == nullptr)
             continue;
 
-        const _vector delta = pTransform->GetState(POSITION) - projectilePos;
+        const _vector delta = pTransform->GetState(MATRIXROW_POSITION) - projectilePos;
 
         const _float dx = XMVectorGetX(delta);
         const _float dy = XMVectorGetY(delta) * invScaleY;

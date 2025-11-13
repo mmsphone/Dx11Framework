@@ -41,6 +41,7 @@ private:
 
     void SetUpAIInputData();
     HRESULT SetUpAIProcess();
+    void Rotate(_float fTimeDelta);
     void Shoot();
 
 private:
@@ -52,6 +53,12 @@ private:
     _bool   m_isAttack = false;
 
     _bool   m_targetAttackable = true;
+
+    _bool  m_yawInterpActive = false;
+    _float m_yawInterpT = 0.f;     // 진행 시간
+    _float m_yawInterpDur = 0.2f;   // 보간 시간(튜닝 포인트)
+    _float m_yawStart = 0.f;     // 시작 yaw
+    _float m_yawTarget = 0.f;
 };
 
 NS_END

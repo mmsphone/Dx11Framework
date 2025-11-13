@@ -14,6 +14,9 @@ public:
 	std::vector<MAP_OBJECTDATA> LoadMapData(const std::string& path);
 	HRESULT SaveMapData(const std::string& path);
 
+	HRESULT SaveLights(const std::string& path);
+	HRESULT ReadyLightsFromFile(const std::string& path);
+
 	static SaveLoadManager* Create();
 	virtual void Free() override;
 

@@ -79,7 +79,7 @@ void Container::Free()
 
 HRESULT Container::AddPart(_uint iPrototypeLevelID, const _wstring& strPrototypeTag, _uint iPartObjectIndex, void* pArg)
 {
-    Part* pPartObject = dynamic_cast<Part*>(m_pEngineUtility->ClonePrototype(PROTOTYPE::OBJECT, iPrototypeLevelID, strPrototypeTag, pArg));
+    Part* pPartObject = dynamic_cast<Part*>(m_pEngineUtility->ClonePrototype(PROTOTYPE::PROTOTYPE_OBJECT, iPrototypeLevelID, strPrototypeTag, pArg));
     if (nullptr == pPartObject)
         return E_FAIL;
 

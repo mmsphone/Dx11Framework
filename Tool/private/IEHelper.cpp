@@ -752,7 +752,10 @@ bool IEHelper::ImportFBX(const std::string& filePath, ModelData& outModel)
             md.normals.push_back(mesh->HasNormals() ? _float3{ _float(mesh->mNormals[i].x), _float(mesh->mNormals[i].y), _float(mesh->mNormals[i].z) } : _float3{ 0,1,0 });
             md.texcoords.push_back(mesh->HasTextureCoords(0) ? _float2{ _float(mesh->mTextureCoords[0][i].x), _float(mesh->mTextureCoords[0][i].y) } : _float2{ 0,0 });
             if (mesh->HasTangentsAndBitangents())
+            {
                 md.tangents.push_back({ _float(mesh->mTangents[i].x), _float(mesh->mTangents[i].y), _float(mesh->mTangents[i].z) });
+                md.binormals.push_back({ _float(mesh->mBitangents[i].x), _float(mesh->mBitangents[i].y), _float(mesh->mBitangents[i].z) });
+            }
         }
 
         // 인덱스

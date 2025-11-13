@@ -20,8 +20,8 @@ public:
 	virtual HRESULT InitializePrototype() override;
 	virtual HRESULT Initialize(void* pArg) override;
 
-	_vector GetState(STATE eState) const;
-	void SetState(STATE eState, _fvector vState);
+	_vector GetState(MATRIXROW eState) const;
+	void SetState(MATRIXROW eState, _fvector vState);
 	_float3 GetScale() const;
 	void SetScale(_float fSizeX = 1.f, _float fSizeY = 1.f, _float fSizeZ = 1.f);
 

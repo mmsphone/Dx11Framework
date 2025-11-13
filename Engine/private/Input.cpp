@@ -99,11 +99,11 @@ _long Input::GetMouseMove(MOUSEMOVESTATE eMouseState)
 {
 	switch (eMouseState)
 	{
-	case MOUSEMOVESTATE::X:
+	case MOUSEMOVESTATE::MOUSEMOVE_X:
 		return m_curMouse.lX;
-	case MOUSEMOVESTATE::Y:
+	case MOUSEMOVESTATE::MOUSEMOVE_Y:
 		return m_curMouse.lY;
-	case MOUSEMOVESTATE::MOVE_WHEEL:
+	case MOUSEMOVESTATE::MOUSEMOVE_WHEEL:
 		return m_curMouse.lZ;
 	default:
 		return 0;

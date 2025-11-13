@@ -24,6 +24,7 @@ public:
 	virtual void Update(_float fTimeDelta) override;
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
+	virtual HRESULT RenderShadow(_uint iIndex) override;
 
 	static Object* Create();
 	virtual Object* Clone(void* pArg) override;

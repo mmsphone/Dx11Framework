@@ -46,13 +46,13 @@ HRESULT Collision::Initialize(void* pArg)
     CollisionBox::COLLISIONBOX_DESC* pDesc = static_cast<CollisionBox::COLLISIONBOX_DESC*>(pArg);
     switch (m_CollisionType)
     {
-    case COLLISIONTYPE::AABB:
+    case COLLISIONTYPE::COLLISIONTYPE_AABB:
         m_pCollisionBox = CollisionBoxAABB::Create(pDesc);
         break;
-    case COLLISIONTYPE::OBB:
+    case COLLISIONTYPE::COLLISIONTYPE_OBB:
         m_pCollisionBox = CollisionBoxOBB::Create(pDesc);
         break;
-    case COLLISIONTYPE::SPHERE:
+    case COLLISIONTYPE::COLLISIONTYPE_SPHERE:
         m_pCollisionBox = CollisionBoxSphere::Create(pDesc);
         break;
     }
@@ -80,11 +80,11 @@ void* Collision::GetWorldCollisionBox(COLLISIONTYPE eType)
 {
     switch (eType)
     {
-    case COLLISIONTYPE::AABB:
+    case COLLISIONTYPE::COLLISIONTYPE_AABB:
         return dynamic_cast<CollisionBoxAABB*>(m_pCollisionBox)->GetWorldBox();
-    case COLLISIONTYPE::OBB:
+    case COLLISIONTYPE::COLLISIONTYPE_OBB:
         return dynamic_cast<CollisionBoxOBB*>(m_pCollisionBox)->GetWorldBox();
-    case COLLISIONTYPE::SPHERE:
+    case COLLISIONTYPE::COLLISIONTYPE_SPHERE:
         return dynamic_cast<CollisionBoxSphere*>(m_pCollisionBox)->GetWorldBox();
     }
     return nullptr;
@@ -94,11 +94,11 @@ void* Collision::GetLocalCollisionBox(COLLISIONTYPE eType)
 {
     switch (eType)
     {
-    case COLLISIONTYPE::AABB:
+    case COLLISIONTYPE::COLLISIONTYPE_AABB:
         return dynamic_cast<CollisionBoxAABB*>(m_pCollisionBox)->GetLocalBox();
-    case COLLISIONTYPE::OBB:
+    case COLLISIONTYPE::COLLISIONTYPE_OBB:
         return dynamic_cast<CollisionBoxOBB*>(m_pCollisionBox)->GetLocalBox();
-    case COLLISIONTYPE::SPHERE:
+    case COLLISIONTYPE::COLLISIONTYPE_SPHERE:
         return dynamic_cast<CollisionBoxSphere*>(m_pCollisionBox)->GetLocalBox();
     }
     return nullptr;

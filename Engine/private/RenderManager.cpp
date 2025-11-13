@@ -128,7 +128,7 @@ void RenderManager::Draw()
 
     m_pEngineUtility->SnapDepthForPicking();
 #ifdef _DEBUG
-	RenderDebug();
+	Render();
 #endif
 }
 
@@ -197,7 +197,7 @@ void RenderManager::RenderShadowLight()
 	m_pEngineUtility->GetContext()->RSGetViewports(&iNumViewports, &ViewportDesc);
 
 	ChangeViewportSize(g_iMaxWidth, g_iMaxHeight);
-	_uint iNumShadowLights = m_pEngineUtility->GetNumShadowLights();
+	_uint iNumShadowLights = m_pEngineUtility->GetNumActiveShadowLights();
 	for (auto& pRenderObject : m_RenderObjects[SHADOWLIGHT])
 	{
 		if (nullptr != pRenderObject && pRenderObject->IsDead() == false)
@@ -246,6 +246,8 @@ void RenderManager::RenderLights()
 
 	if (FAILED(m_pShader->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))
 		return;
+	if (FAILED(m_pShader->BindRawValue("g_fCamFarDistance", m_pEngineUtility->GetPipelineFarDistance(), sizeof(_float))))
+		return;
 	if (FAILED(m_pShader->BindMatrix("g_WorldMatrix", &m_WorldMatrix)))
 		return;
 	if (FAILED(m_pShader->BindMatrix("g_ViewMatrix", &m_ViewMatrix)))
@@ -256,6 +258,7 @@ void RenderManager::RenderLights()
 		return;
 	if (FAILED(m_pShader->BindMatrix("g_ProjMatrixInverse", m_pEngineUtility->GetTransformFloat4x4InversePtr(D3DTS_PROJECTION))))
 		return;
+
 
 	if (FAILED(m_pEngineUtility->RenderLights(m_pShader, m_pVIBuffer)))
 		return;
@@ -285,8 +288,10 @@ void RenderManager::RenderCombined()
 		return;
 	if (FAILED(m_pShader->BindMatrix("g_ProjMatrix", &m_ProjMatrix)))
 		return;
+	if (FAILED(m_pShader->BindRawValue("g_fCamFarDistance", m_pEngineUtility->GetPipelineFarDistance(), sizeof(_float))))
+		return;
 
-	_uint iNumShadowLights = m_pEngineUtility->GetNumShadowLights();
+	_uint iNumShadowLights = m_pEngineUtility->GetNumActiveShadowLights();
 	if (FAILED(m_pShader->BindRawValue("g_NumShadowLights", &iNumShadowLights, sizeof(_uint))))
 		return;
 
@@ -294,52 +299,52 @@ void RenderManager::RenderCombined()
 	{
 		if (FAILED(m_pEngineUtility->BindRenderTargetShaderResource(TEXT("RenderTarget_ShadowLight1"), m_pShader, "g_ShadowTexture1")))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix1", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_VIEW, 0))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix1", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_VIEW, 0))))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix1", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_PROJECTION, 0))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix1", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_PROJECTION, 0))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition1", m_pEngineUtility->GetShadowLightPositionPtr(0), sizeof(_float3))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition1", m_pEngineUtility->GetActiveShadowLightPositionPtr(0), sizeof(_float3))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance1", m_pEngineUtility->GetShadowLightFarDistancePtr(0), sizeof(_float))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance1", m_pEngineUtility->GetActiveShadowLightFarDistancePtr(0), sizeof(_float))))
 			return;
 	}
 	if (iNumShadowLights > 1)
 	{
 		if (FAILED(m_pEngineUtility->BindRenderTargetShaderResource(TEXT("RenderTarget_ShadowLight2"), m_pShader, "g_ShadowTexture2")))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix2", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_VIEW, 1))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix2", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_VIEW, 1))))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix2", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_PROJECTION, 1))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix2", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_PROJECTION, 1))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition2", m_pEngineUtility->GetShadowLightPositionPtr(1), sizeof(_float3))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition2", m_pEngineUtility->GetActiveShadowLightPositionPtr(1), sizeof(_float3))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance2", m_pEngineUtility->GetShadowLightFarDistancePtr(1), sizeof(_float))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance2", m_pEngineUtility->GetActiveShadowLightFarDistancePtr(1), sizeof(_float))))
 			return;
 	}
 	if (iNumShadowLights > 2)
 	{
 		if (FAILED(m_pEngineUtility->BindRenderTargetShaderResource(TEXT("RenderTarget_ShadowLight3"), m_pShader, "g_ShadowTexture3")))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix3", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_VIEW, 2))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix3", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_VIEW, 2))))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix3", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_PROJECTION, 2))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix3", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_PROJECTION, 2))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition3", m_pEngineUtility->GetShadowLightPositionPtr(2), sizeof(_float3))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition3", m_pEngineUtility->GetActiveShadowLightPositionPtr(2), sizeof(_float3))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance3", m_pEngineUtility->GetShadowLightFarDistancePtr(2), sizeof(_float))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance3", m_pEngineUtility->GetActiveShadowLightFarDistancePtr(2), sizeof(_float))))
 			return;
 	}
 	if (iNumShadowLights > 3)
 	{
 		if (FAILED(m_pEngineUtility->BindRenderTargetShaderResource(TEXT("RenderTarget_ShadowLight4"), m_pShader, "g_ShadowTexture4")))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix4", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_VIEW, 3))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightViewMatrix4", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_VIEW, 3))))
 			return;
-		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix4", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS_PROJECTION, 3))))
+		if (FAILED(m_pShader->BindMatrix("g_ShadowLightProjMatrix4", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS_PROJECTION, 3))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition4", m_pEngineUtility->GetShadowLightPositionPtr(3), sizeof(_float3))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightPosition4", m_pEngineUtility->GetActiveShadowLightPositionPtr(3), sizeof(_float3))))
 			return;
-		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance4", m_pEngineUtility->GetShadowLightFarDistancePtr(3), sizeof(_float))))
+		if (FAILED(m_pShader->BindRawValue("g_ShadowLightFarDistance4", m_pEngineUtility->GetActiveShadowLightFarDistancePtr(3), sizeof(_float))))
 			return;
 	}
 
@@ -442,7 +447,7 @@ HRESULT RenderManager::ChangeViewportSize(_uint iWidth, _uint iHeight)
 }
 
 #ifdef _DEBUG
-void RenderManager::RenderDebug()
+void RenderManager::Render()
 {
 	for (auto& pDebugComponent : m_DebugComponents)
 	{
@@ -459,11 +464,11 @@ void RenderManager::RenderDebug()
 	if (FAILED(m_pVIBuffer->BindBuffers()))
 		return;
 
-	if (FAILED(m_pEngineUtility->RenderRenderTargetGroup(TEXT("RenderTargetGroup_Objects"), m_pShader, m_pVIBuffer)))
+	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_Objects"), m_pShader, m_pVIBuffer)))
 		return;
-	if (FAILED(m_pEngineUtility->RenderRenderTargetGroup(TEXT("RenderTargetGroup_LightAcc"), m_pShader, m_pVIBuffer)))
+	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_LightAcc"), m_pShader, m_pVIBuffer)))
 		return;
-	if (FAILED(m_pEngineUtility->RenderRenderTargetGroup(TEXT("RenderTargetGroup_ShadowLight"), m_pShader, m_pVIBuffer)))
+	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_ShadowLight"), m_pShader, m_pVIBuffer)))
 		return;
 }
 #endif

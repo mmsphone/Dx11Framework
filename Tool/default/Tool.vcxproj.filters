@@ -19,12 +19,6 @@
     <Filter Include="05.Panel">
       <UniqueIdentifier>{9d4179a8-33a9-4a8b-90bb-5e1f1381971d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05.Panel\Model">
-      <UniqueIdentifier>{bad110ee-17cf-46c7-89de-26c261d26295}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="05.Panel\Map">
-      <UniqueIdentifier>{6801a911-a092-465f-b48d-ee5854641a8a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="IMGUI">
       <UniqueIdentifier>{5679d548-5601-4123-bf66-15d0d1ebdad2}</UniqueIdentifier>
     </Filter>
@@ -43,9 +37,6 @@
     <Filter Include="04.Object\FieldObject">
       <UniqueIdentifier>{3ca63d7f-d8c5-49b5-bb2a-fdc9d0cbb5c9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05.Panel\Cam">
-      <UniqueIdentifier>{30ecdcb8-fb1c-4c18-bd36-26717d5eec32}</UniqueIdentifier>
-    </Filter>
     <Filter Include="00.Define">
       <UniqueIdentifier>{4c116804-30c7-48fb-a40b-af8d9203ba62}</UniqueIdentifier>
     </Filter>
@@ -53,11 +44,23 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="05.Panel\Object">
+    <Filter Include="05.Panel\LightPanel">
+      <UniqueIdentifier>{5ebc6eb5-29a9-4633-973b-5695881f63f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Panel\ModelPanel">
+      <UniqueIdentifier>{bad110ee-17cf-46c7-89de-26c261d26295}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Panel\ObjectPanel">
       <UniqueIdentifier>{167d949c-3038-42b6-958a-423fdc574d9c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05.Panel\Asset">
+    <Filter Include="05.Panel\CamPanel">
+      <UniqueIdentifier>{30ecdcb8-fb1c-4c18-bd36-26717d5eec32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Panel\AssetPanel">
       <UniqueIdentifier>{f4796f6a-9444-4ba8-9ffa-c1439f3228e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Panel\MapPanel">
+      <UniqueIdentifier>{6801a911-a092-465f-b48d-ee5854641a8a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -86,10 +89,10 @@
       <Filter>03.Scene\MapScene</Filter>
     </ClInclude>
     <ClInclude Include="..\public\ModelPanel.h">
-      <Filter>05.Panel\Model</Filter>
+      <Filter>05.Panel\ModelPanel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\MapPanel.h">
-      <Filter>05.Panel\Map</Filter>
+      <Filter>05.Panel\MapPanel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\IEHelper.h">
       <Filter>IEHelper</Filter>
@@ -107,13 +110,16 @@
       <Filter>04.Object\FieldObject</Filter>
     </ClInclude>
     <ClInclude Include="..\public\CamPanel.h">
-      <Filter>05.Panel\Cam</Filter>
+      <Filter>05.Panel\CamPanel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\ObjectPanel.h">
-      <Filter>05.Panel\Object</Filter>
+      <Filter>05.Panel\ObjectPanel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\AssetPanel.h">
-      <Filter>05.Panel\Asset</Filter>
+      <Filter>05.Panel\AssetPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\LightPanel.h">
+      <Filter>05.Panel\LightPanel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -143,10 +149,10 @@
       <Filter>03.Scene\MapScene</Filter>
     </ClCompile>
     <ClCompile Include="..\private\ModelPanel.cpp">
-      <Filter>05.Panel\Model</Filter>
+      <Filter>05.Panel\ModelPanel</Filter>
     </ClCompile>
     <ClCompile Include="..\private\MapPanel.cpp">
-      <Filter>05.Panel\Map</Filter>
+      <Filter>05.Panel\MapPanel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\imgui.cpp">
       <Filter>IMGUI</Filter>
@@ -185,16 +191,19 @@
       <Filter>04.Object\FieldObject</Filter>
     </ClCompile>
     <ClCompile Include="..\private\CamPanel.cpp">
-      <Filter>05.Panel\Cam</Filter>
+      <Filter>05.Panel\CamPanel</Filter>
     </ClCompile>
     <ClCompile Include="..\private\ObjectPanel.cpp">
-      <Filter>05.Panel\Object</Filter>
+      <Filter>05.Panel\ObjectPanel</Filter>
     </ClCompile>
     <ClCompile Include="..\..\EngineSDK\Inc\IMGUI\ImGuizmo.cpp">
       <Filter>IMGUI</Filter>
     </ClCompile>
     <ClCompile Include="..\private\AssetPanel.cpp">
-      <Filter>05.Panel\Asset</Filter>
+      <Filter>05.Panel\AssetPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\LightPanel.cpp">
+      <Filter>05.Panel\LightPanel</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

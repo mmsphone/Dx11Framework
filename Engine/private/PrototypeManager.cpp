@@ -41,9 +41,9 @@ Base* PrototypeManager::ClonePrototype(PROTOTYPE eType, _uint iSceneId, const _w
     if (pPrototype == nullptr)
         return nullptr;
 
-    if (eType == PROTOTYPE::OBJECT)
+    if (eType == PROTOTYPE::PROTOTYPE_OBJECT)
         return dynamic_cast<Object*>(pPrototype)->Clone(pArg);
-    else if (eType == PROTOTYPE::COMPONENT)
+    else if (eType == PROTOTYPE::PROTOTYPE_COMPONENT)
         return dynamic_cast<Component*>(pPrototype)->Clone(pArg);
     else
         return nullptr;

@@ -28,14 +28,14 @@ HRESULT Transform::Initialize(void* pArg)
 	return S_OK;
 }
 
-_vector Transform::GetState(STATE eState) const
+_vector Transform::GetState(MATRIXROW eState) const
 {
 	return XMLoadFloat4x4(&m_WorldMatrix).r[eState];
 }
 
-void Transform::SetState(STATE eState, _fvector vState)
+void Transform::SetState(MATRIXROW eState, _fvector vState)
 {
-	if (eState == STATE::POSITION)
+	if (eState == MATRIXROW::MATRIXROW_POSITION)
 	{
 		XMFLOAT4 pos;
 		XMStoreFloat4(&pos, vState);
@@ -50,17 +50,17 @@ void Transform::SetState(STATE eState, _fvector vState)
 _float3 Transform::GetScale() const
 {
 	return _float3(
-		XMVectorGetX(XMVector3Length(GetState(STATE::RIGHT))),
-		XMVectorGetX(XMVector3Length(GetState(STATE::UP))),
-		XMVectorGetX(XMVector3Length(GetState(STATE::LOOK)))
+		XMVectorGetX(XMVector3Length(GetState(MATRIXROW::MATRIXROW_RIGHT))),
+		XMVectorGetX(XMVector3Length(GetState(MATRIXROW::MATRIXROW_UP))),
+		XMVectorGetX(XMVector3Length(GetState(MATRIXROW::MATRIXROW_LOOK)))
 	);
 }
 
 void Transform::SetScale(_float fSizeX, _float fSizeY, _float fSizeZ)
 {
-	SetState(STATE::RIGHT, XMVector3Normalize(GetState(STATE::RIGHT)) * fSizeX);
-	SetState(STATE::UP, XMVector3Normalize(GetState(STATE::UP)) * fSizeY);
-	SetState(STATE::LOOK, XMVector3Normalize(GetState(STATE::LOOK)) * fSizeZ);
+	SetState(MATRIXROW::MATRIXROW_RIGHT, XMVector3Normalize(GetState(MATRIXROW::MATRIXROW_RIGHT)) * fSizeX);
+	SetState(MATRIXROW::MATRIXROW_UP, XMVector3Normalize(GetState(MATRIXROW::MATRIXROW_UP)) * fSizeY);
+	SetState(MATRIXROW::MATRIXROW_LOOK, XMVector3Normalize(GetState(MATRIXROW::MATRIXROW_LOOK)) * fSizeZ);
 }
 
 void Transform::SetSpeedPerSec(_float& fSpeed)
@@ -96,73 +96,73 @@ _matrix Transform::GetWorldMatrixInverse()
 void Transform::GoForward(_float fTimeDelta)
 {
 	//벡터 가져오기
-	_vector     vPosition = GetState(STATE::POSITION);
-	_vector     vLook = GetState(STATE::LOOK);
+	_vector     vPosition = GetState(MATRIXROW::MATRIXROW_POSITION);
+	_vector     vLook = GetState(MATRIXROW::MATRIXROW_LOOK);
 
 	//바라보는 방향으로 Speed * TimeDelta 만큼 좌표 이동
 	vPosition += XMVector3Normalize(vLook) * m_fSpeedPerSec * fTimeDelta;
 
 	//위치 상태 재설정
-	SetState(STATE::POSITION, vPosition);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPosition);
 }
 
 void Transform::GoLeft(_float fTimeDelta)
 {
 	//벡터 가져오기
-	_vector     vPosition = GetState(STATE::POSITION);
-	_vector     vRight = GetState(STATE::RIGHT);
+	_vector     vPosition = GetState(MATRIXROW::MATRIXROW_POSITION);
+	_vector     vRight = GetState(MATRIXROW::MATRIXROW_RIGHT);
 
 	//Right 벡터 반대 방향으로 Speed * TimeDelta 만큼 좌표 이동
 	vPosition -= XMVector3Normalize(vRight) * m_fSpeedPerSec * fTimeDelta;
 	
 	//위치 상태 재설정
-	SetState(STATE::POSITION, vPosition);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPosition);
 }
 
 void Transform::GoRight(_float fTimeDelta)
 {
 	//벡터 가져오기
-	_vector     vPosition = GetState(STATE::POSITION);
-	_vector     vRight = GetState(STATE::RIGHT);
+	_vector     vPosition = GetState(MATRIXROW::MATRIXROW_POSITION);
+	_vector     vRight = GetState(MATRIXROW::MATRIXROW_RIGHT);
 
 	//Right 벡터 방향으로 Speed * TimeDelta 만큼 좌표 이동
 	vPosition += XMVector3Normalize(vRight) * m_fSpeedPerSec * fTimeDelta;
 
 	//위치 상태 재설정
-	SetState(STATE::POSITION, vPosition);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPosition);
 }
 
 void Transform::GoBackward(_float fTimeDelta)
 {
 	//벡터 가져오기
-	_vector     vPosition = GetState(STATE::POSITION);
-	_vector     vLook = GetState(STATE::LOOK);
+	_vector     vPosition = GetState(MATRIXROW::MATRIXROW_POSITION);
+	_vector     vLook = GetState(MATRIXROW::MATRIXROW_LOOK);
 
 	//바라보는 반대 방향으로 Speed * TimeDelta 만큼 좌표 이동
 	vPosition -= XMVector3Normalize(vLook) * m_fSpeedPerSec * fTimeDelta;
 
 	//위치 상태 재설정
-	SetState(STATE::POSITION, vPosition);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPosition);
 }
 
 void Transform::GoUp(_float fTimeDelta)
 {
-	_vector vPos = GetState(STATE::POSITION);
-	_vector vUp = GetState(STATE::UP);
+	_vector vPos = GetState(MATRIXROW::MATRIXROW_POSITION);
+	_vector vUp = GetState(MATRIXROW::MATRIXROW_UP);
 
 	vPos += XMVector3Normalize(vUp) * m_fSpeedPerSec * fTimeDelta;
 
-	SetState(STATE::POSITION, vPos);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPos);
 }
 
 void Transform::GoDown(_float fTimeDelta)
 {
-	_vector vPos = GetState(STATE::POSITION);
-	_vector vUp = GetState(STATE::UP);
+	_vector vPos = GetState(MATRIXROW::MATRIXROW_POSITION);
+	_vector vUp = GetState(MATRIXROW::MATRIXROW_UP);
 
 	vPos -= XMVector3Normalize(vUp) * m_fSpeedPerSec * fTimeDelta;
 
-	SetState(STATE::POSITION, vPos);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPos);
 }
 
 void Transform::RotateRadian(_fvector vAxis, _float fRadian)
@@ -183,17 +183,17 @@ void Transform::RotateRadian(_fvector vAxis, _float fRadian)
 	vLook = XMVector3TransformNormal(vLook, RotationMatrix);
 
 	//상태 행렬 재설정
-	SetState(STATE::RIGHT, vRight);
-	SetState(STATE::UP, vUp);
-	SetState(STATE::LOOK, vLook);
+	SetState(MATRIXROW::MATRIXROW_RIGHT, vRight);
+	SetState(MATRIXROW::MATRIXROW_UP, vUp);
+	SetState(MATRIXROW::MATRIXROW_LOOK, vLook);
 }
 
 void Transform::RotateTimeDelta(_fvector vAxis, _float fTimeDelta)
 {
 	//현재 행렬 상태 가져오기
-	_vector vRight = GetState(STATE::RIGHT);
-	_vector vUp = GetState(STATE::UP);
-	_vector vLook = GetState(STATE::LOOK);
+	_vector vRight = GetState(MATRIXROW::MATRIXROW_RIGHT);
+	_vector vUp = GetState(MATRIXROW::MATRIXROW_UP);
+	_vector vLook = GetState(MATRIXROW::MATRIXROW_LOOK);
 
 	//회전 행렬 연산
 	_matrix RotationMatrix = XMMatrixRotationAxis(vAxis, m_fRotationPerSec * fTimeDelta);
@@ -203,16 +203,16 @@ void Transform::RotateTimeDelta(_fvector vAxis, _float fTimeDelta)
 	vLook = XMVector3TransformNormal(vLook, RotationMatrix);
 
 	//상태 행렬 재설정
-	SetState(STATE::RIGHT, vRight);
-	SetState(STATE::UP, vUp);
-	SetState(STATE::LOOK, vLook);
+	SetState(MATRIXROW::MATRIXROW_RIGHT, vRight);
+	SetState(MATRIXROW::MATRIXROW_UP, vUp);
+	SetState(MATRIXROW::MATRIXROW_LOOK, vLook);
 }
 
 void Transform::Turn(_fvector vAxis, _float fTimeDelta)
 {
-	_vector vRight = GetState(STATE::RIGHT);
-	_vector vUp = GetState(STATE::UP);
-	_vector vLook = GetState(STATE::LOOK);
+	_vector vRight = GetState(MATRIXROW::MATRIXROW_RIGHT);
+	_vector vUp = GetState(MATRIXROW::MATRIXROW_UP);
+	_vector vLook = GetState(MATRIXROW::MATRIXROW_LOOK);
 
 	_matrix RotationMatrix = XMMatrixRotationAxis(vAxis, m_fRotationPerSec * fTimeDelta);
 
@@ -220,15 +220,15 @@ void Transform::Turn(_fvector vAxis, _float fTimeDelta)
 	vUp = XMVector3TransformNormal(vUp, RotationMatrix);
 	vLook = XMVector3TransformNormal(vLook, RotationMatrix);
 
-	SetState(STATE::RIGHT, vRight);
-	SetState(STATE::UP, vUp);
-	SetState(STATE::LOOK, vLook);
+	SetState(MATRIXROW::MATRIXROW_RIGHT, vRight);
+	SetState(MATRIXROW::MATRIXROW_UP, vUp);
+	SetState(MATRIXROW::MATRIXROW_LOOK, vLook);
 }
 
 void Transform::LookAt(_fvector vFocus)
 {
 	//목표 좌표 - 현재 좌표 -> Look 벡터
-	_vector     vLook = vFocus - GetState(STATE::POSITION);
+	_vector     vLook = vFocus - GetState(MATRIXROW::MATRIXROW_POSITION);
 	//Look 벡터를 y축과 외적 -> Right 벡터
 	_vector     vRight = XMVector3Cross(XMVectorSet(0.f, 1.f, 0.f, 0.f), vLook);
 	//Look 벡터와 Right벡터를 외적 -> Up 벡터
@@ -237,15 +237,15 @@ void Transform::LookAt(_fvector vFocus)
 	//현재 크기를 곱해 상태 행렬 재설정
 	_float3     vScale = GetScale();
 
-	SetState(STATE::RIGHT, XMVector3Normalize(vRight) * vScale.x);
-	SetState(STATE::UP, XMVector3Normalize(vUp) * vScale.y);
-	SetState(STATE::LOOK, XMVector3Normalize(vLook) * vScale.z);
+	SetState(MATRIXROW::MATRIXROW_RIGHT, XMVector3Normalize(vRight) * vScale.x);
+	SetState(MATRIXROW::MATRIXROW_UP, XMVector3Normalize(vUp) * vScale.y);
+	SetState(MATRIXROW::MATRIXROW_LOOK, XMVector3Normalize(vLook) * vScale.z);
 }
 
 void Transform::Chase(_fvector vDest, _float fTimeDelta, _float fLimitDistance)
 {
 	//현재 위치
-	_vector     vPosition = GetState(STATE::POSITION);
+	_vector     vPosition = GetState(MATRIXROW::MATRIXROW_POSITION);
 	//목표 위치 - 현재 위치 -> 이동 방향 벡터
 	_vector     vMoveDir = vDest - vPosition;
 	// 사이 거리
@@ -259,15 +259,15 @@ void Transform::Chase(_fvector vDest, _float fTimeDelta, _float fLimitDistance)
 	vPosition += XMVector3Normalize(vMoveDir) * m_fSpeedPerSec * fTimeDelta;
 
 	//위치 상태 재설정
-	SetState(STATE::POSITION, vPosition);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPosition);
 }
 
 void Transform::Translate(_fvector vTranslateDir, _float fTimeDelta)
 {
-	_vector     vPosition = GetState(STATE::POSITION);
+	_vector     vPosition = GetState(MATRIXROW::MATRIXROW_POSITION);
 	vPosition += XMVector3Normalize(vTranslateDir) * m_fSpeedPerSec * fTimeDelta;
 
-	SetState(STATE::POSITION, vPosition);
+	SetState(MATRIXROW::MATRIXROW_POSITION, vPosition);
 }
 
 HRESULT Transform::BindRenderTargetShaderResource(Shader* pShader, const _char* pConstantName)

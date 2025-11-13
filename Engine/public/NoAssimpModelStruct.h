@@ -32,6 +32,7 @@ struct MeshData {
     std::vector<_float3> normals;
     std::vector<_float2> texcoords;
     std::vector<_float3> tangents;
+    std::vector<_float3> binormals;
     std::vector<_uint>   indices;
 
     std::vector<MeshBone> bones;

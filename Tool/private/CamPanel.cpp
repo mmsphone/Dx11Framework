@@ -18,7 +18,7 @@ HRESULT CamPanel::Initialize(SCENE eType)
     m_SceneType = eType;
 
     m_PanelPosition = _float2(900.f, 0.f);
-    m_PanelSize = _float2(400.f, 300.f);
+    m_PanelSize = _float2(400.f, 200.f);
 
     return S_OK;
 }
@@ -31,13 +31,13 @@ void CamPanel::OnRender()
     if (pTransform == nullptr) return;
 
     _float3 vPos{};
-    XMStoreFloat3(&vPos, pTransform->GetState(POSITION));
+    XMStoreFloat3(&vPos, pTransform->GetState(MATRIXROW_POSITION));
     ImGui::Text("--Cam Position--");
     ImGui::Text("X : %f / Y : %f / Z : %f", vPos.x, vPos.y, vPos.z);
     ImGui::Text("\n");
 
     _float3 vDir{};
-    XMStoreFloat3(&vDir, pTransform->GetState(LOOK));
+    XMStoreFloat3(&vDir, pTransform->GetState(MATRIXROW_LOOK));
     ImGui::Text("--Cam Forward Direction--");
     ImGui::Text("X : %f / Y : %f / Z : %f", vDir.x, vDir.y, vDir.z);
     ImGui::Text("\n");

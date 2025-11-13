@@ -62,6 +62,68 @@ void NavigationManager::ClearTempPoints()
 {
     m_TempPoints.clear();
 }
+void NavigationManager::RemoveCell(_int cellIndex)
+{
+    if (cellIndex < 0 || static_cast<size_t>(cellIndex) >= m_Cells.size())
+        return;
+
+    // -------------------------------------------
+    // 1) 삭제 대상 셀 메모리 해제
+    // -------------------------------------------
+    SafeRelease(m_Cells[cellIndex]);
+
+    // 벡터에서 제거
+    m_Cells.erase(m_Cells.begin() + cellIndex);
+
+    // -------------------------------------------
+    // 2) 모든 셀의 이웃 index 재정리
+    //    - cellIndex 보다 큰 index들은 1 감소
+    //    - cellIndex 자체를 이웃으로 참조하던 경우 -1로 처리
+    // -------------------------------------------
+
+    for (auto* c : m_Cells)
+    {
+        for (int e = 0; e < (int)LINE_END; ++e)
+        {
+            int n = c->GetNeighborIndex(static_cast<LINETYPE>(e));
+            if (n == cellIndex)
+            {
+                // 삭제 셀을 이웃으로 갖고 있었음
+                c->SetNeighborIndex(static_cast<LINETYPE>(e), -1);
+            }
+            if (n > cellIndex)
+            {
+                // 삭제로 인해 index 1 감소시키기
+                c->SetNeighborIndex(static_cast<LINETYPE>(e), n - 1);
+            }
+        }
+    }
+
+    // -------------------------------------------
+    // 3) 남은 셀들의 Index 값을 0부터 재부여
+    //    (Cell 내부에 인덱스를 가지고 있으므로 동기화 필요)
+    // -------------------------------------------
+    for (int i = 0; i < (int)m_Cells.size(); ++i)
+    {
+        m_Cells[i]->SetIndex(i);
+    }
+
+    // -------------------------------------------
+    // 4) 옵션: 이웃 정보 전체 재계산
+    // 정확도를 높이려면 아래처럼 전체 이웃을 다시 잡아도 됨
+    // -------------------------------------------
+    for (int i = 0; i < (int)m_Cells.size(); ++i)
+    {
+        // 기존 이웃 정보 초기화
+        m_Cells[i]->SetNeighborIndex(LINETYPE::AB, -1);
+        m_Cells[i]->SetNeighborIndex(LINETYPE::BC, -1);
+        m_Cells[i]->SetNeighborIndex(LINETYPE::CA, -1);
+    }
+
+    // 모든 셀에 대해 다시 neighbor 연결
+    for (int i = 0; i < (int)m_Cells.size(); ++i)
+        SetNeighborsForNewCell(i);
+}
 void NavigationManager::RemoveRecentCell()
 {
     if (m_Cells.empty()) 
@@ -200,6 +262,11 @@ _bool NavigationManager::IsInCell(_fvector vWorldPos, _int* pOutCellIndex)
     return false;
 }
 
+_float NavigationManager::GetHeightPosOnCell(_vector* pPos, const _int& pCellIndex)
+{
+    return m_Cells[pCellIndex]->ComputeHeight(*pPos);
+}
+
 _bool NavigationManager::SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos)
 {
     if (m_Cells.empty())
@@ -214,6 +281,117 @@ _bool NavigationManager::SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjust
 
     if (pOutAdjustedPos)
         *pOutAdjustedPos = vAdjusted;
+    return true;
+}
+
+_bool NavigationManager::GetSlideVectorOnCell(_fvector pos, _fvector delta, _int cellIndex, _vector* outSlideVector) const
+{
+    if (!outSlideVector) return false;
+    if (cellIndex < 0 || static_cast<size_t>(cellIndex) >= m_Cells.size()) return false;
+
+    // 현재/목표
+    _float3 p; XMStoreFloat3(&p, pos);
+    _float3 d; XMStoreFloat3(&d, delta);
+
+    // 삼각형 정점 (CW 정렬 가정: AddCell에서 보정)
+    _float3 T[3];
+    XMStoreFloat3(&T[0], m_Cells[cellIndex]->GetPoint(POINTTYPE::A));
+    XMStoreFloat3(&T[1], m_Cells[cellIndex]->GetPoint(POINTTYPE::B));
+    XMStoreFloat3(&T[2], m_Cells[cellIndex]->GetPoint(POINTTYPE::C));
+
+    auto cross2D = [](_float3 a, _float3 b)->float { return a.x * b.z - a.z * b.x; };
+    auto sub = [](_float3 a, _float3 b)->_float3 { return _float3{ a.x - b.x, 0.f, a.z - b.z }; };
+    auto dot2D = [](_float3 a, _float3 b)->float { return a.x * b.x + a.z * b.z; };
+    auto len2D = [](_float3 a)->float { return sqrtf(a.x * a.x + a.z * a.z); };
+    auto norm2D = [&](_float3 v)->_float3 {
+        float L = len2D(v); if (L <= 1e-8f) return _float3{ 0,0,0 };
+        return _float3{ v.x / L, 0.f, v.z / L };
+        };
+
+    // 목표 위치(이동 적용)
+    _float3 q = _float3{ p.x + d.x, p.y + d.y, p.z + d.z };
+
+    // 삼각형 내부 판정(2D XZ). CW 삼각형의 내부는 각 에지에 대해 sign <= 0 이어야 함
+    auto signedSide = [&](const _float3& A, const _float3& B, const _float3& P)->float {
+        _float3 AB = sub(B, A);
+        _float3 AP = sub(P, A);
+        return cross2D(AB, AP); // CW 내부면 보통 <= 0
+        };
+
+    float sAB = signedSide(T[0], T[1], q);
+    float sBC = signedSide(T[1], T[2], q);
+    float sCA = signedSide(T[2], T[0], q);
+
+    // 모두 <= 0 이면 안 미끄러져도 됨(그냥 원하는 이동)
+    if (sAB <= 0.f && sBC <= 0.f && sCA <= 0.f) {
+        *outSlideVector = delta;
+        return true;
+    }
+
+    // 밖이라면 "가장 크게 양수인"(= 가장 많이 위반한) 에지를 고른다
+    struct Hit { LINETYPE e; float s; _float3 A, B; };
+    Hit cand[3] = {
+        { LINETYPE::AB, sAB, T[0], T[1] },
+        { LINETYPE::BC, sBC, T[1], T[2] },
+        { LINETYPE::CA, sCA, T[2], T[0] },
+    };
+    float bestS = -FLT_MAX; int bestI = -1;
+    for (int i = 0; i < 3; ++i) {
+        if (cand[i].s > bestS) { bestS = cand[i].s; bestI = i; }
+    }
+    if (bestI < 0) return false; // 이론상 도달 X
+
+    // 선택 에지
+    _float3 EA = cand[bestI].A;
+    _float3 EB = cand[bestI].B;
+
+    // 에지 방향 단위 벡터(XZ)
+    _float3 edgeDir = norm2D(sub(EB, EA));
+    if (len2D(edgeDir) <= 1e-7f) {
+        // 퇴화 에지: 이동을 0으로
+        *outSlideVector = XMVectorZero();
+        return true;
+    }
+
+    // 원 이동 델타의 XZ를 에지 방향으로 정사영 → 슬라이드 벡터(XZ)
+    _float3 dXZ = _float3{ d.x, 0.f, d.z };
+    float proj = dot2D(dXZ, edgeDir);
+    _float3 slideXZ = _float3{ edgeDir.x * proj, 0.f, edgeDir.z * proj };
+
+    // 최종 슬라이드 목표 위치
+    _float3 qSlide = _float3{ p.x + slideXZ.x, p.y + d.y, p.z + slideXZ.z };
+
+    // 여전히 밖이면(코너 등) 에지 위의 최근접점으로 클램프 후, 안쪽으로 ε 밀어넣기
+    float sABs = signedSide(T[0], T[1], qSlide);
+    float sBCs = signedSide(T[1], T[2], qSlide);
+    float sCAs = signedSide(T[2], T[0], qSlide);
+
+    if (!(sABs <= 0.f && sBCs <= 0.f && sCAs <= 0.f))
+    {
+        // 에지 선분의 최근접점
+        _float3 AE = sub(qSlide, EA);
+        _float3 E = sub(EB, EA);
+        float Elen2 = dot2D(E, E);
+        float t = (Elen2 > 1e-8f) ? (dot2D(AE, E) / Elen2) : 0.f;
+        if (t < 0.f) t = 0.f; else if (t > 1.f) t = 1.f;
+
+        _float3 onEdge = _float3{ EA.x + E.x * t, p.y + d.y, EA.z + E.z * t };
+
+        // 에지의 안쪽 법선( CW 기준 내부는 cross(Edge, inward) 부호가 음수 )
+        // 에지 법선(안쪽) = 에지 방향을 오른쪽으로 90도 회전한 벡터
+        _float3 inwardN = _float3{ -edgeDir.z, 0.f, edgeDir.x }; // CW에서 대체로 내부로 향함
+        const float pushEps = 1e-3f;
+
+        _float3 pushed = _float3{ onEdge.x + inwardN.x * pushEps,
+                                  onEdge.y,
+                                  onEdge.z + inwardN.z * pushEps };
+
+        slideXZ = _float3{ pushed.x - p.x, 0.f, pushed.z - p.z };
+    }
+
+    // out: Y는 원래 delta.y 유지(보통 0). XZ는 slide로 교체
+    _vector out = XMVectorSet(slideXZ.x, d.y, slideXZ.z, 0.f);
+    *outSlideVector = out;
     return true;
 }
 
@@ -299,36 +477,73 @@ _bool NavigationManager::Edit_AddTriangleAtSharedVertex(_int cellA, _int cellB, 
             }
         }
     }
-    if (sharedCount != 1)
-        return false; // 한 점만 공유하는 케이스가 아니면 실패
 
-    _float3 P = A[sharedAi]; // 공유점(=B[sharedBi])
+    if (sharedCount == 1)
+    {
+        _float3 P = A[sharedAi];
 
-    // 2) 비공유 꼭짓점 후보들 모으기
-    _float3 Aopts[2], Bopts[2];
-    int ia2 = 0, ib2 = 0;
-    for (int i = 0; i < 3; ++i) if (i != sharedAi) Aopts[ia2++] = A[i];
-    for (int i = 0; i < 3; ++i) if (i != sharedBi) Bopts[ib2++] = B[i];
+        _float3 Aopts[2], Bopts[2];
+        int ia2 = 0, ib2 = 0;
+        for (int i = 0; i < 3; ++i) if (i != sharedAi) Aopts[ia2++] = A[i];
+        for (int i = 0; i < 3; ++i) if (i != sharedBi) Bopts[ib2++] = B[i];
 
-    // 3) 두 집합에서 XZ 거리가 가장 가까운 페어 선택
-    int bestA = 0, bestB = 0;
-    float bestD2 = FLT_MAX;
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 2; ++j) {
-            float d2 = distXZ2(Aopts[i], Bopts[j]);
-            if (d2 < bestD2) { bestD2 = d2; bestA = i; bestB = j; }
+        int bestA = 0, bestB = 0;
+        float bestD2 = FLT_MAX;
+        for (int i = 0; i < 2; ++i) {
+            for (int j = 0; j < 2; ++j) {
+                float d2 = distXZ2(Aopts[i], Bopts[j]);
+                if (d2 < bestD2) { bestD2 = d2; bestA = i; bestB = j; }
+            }
         }
+
+        _float3 tri[3] = { P, Aopts[bestA], Bopts[bestB] };
+        SnapIfNear(tri[1], tri[0], weldEps);
+        SnapIfNear(tri[2], tri[0], weldEps);
+        AddCell(tri);
+        return true;
     }
 
-    // 4) 새 삼각형 구성: (공유점 P, A측 선택점, B측 선택점)
-    _float3 tri[3] = { P, Aopts[bestA], Bopts[bestB] };
+    if (sharedCount == 0)
+    {
+        LINETYPE eA{}, eB{};
+        _float3 A0, A1, B0, B1;
+        if (!FindNearestEdgePairXZ(A, B, eA, eB, A0, A1, B0, B1))
+            return false;
 
-    // 용접: 선택점들이 공유점에 매우 가깝다면 스냅
-    SnapIfNear(tri[1], tri[0], weldEps);
-    SnapIfNear(tri[2], tri[0], weldEps);
+        // 용접: 각각 대응되는 쌍을 스냅
+        SnapIfNear(B0, A0, weldEps);
+        SnapIfNear(B1, A1, weldEps);
 
-    // 5) 추가 (면적/중복/정렬/이웃은 AddCell 내부가 처리)
-    AddCell(tri);
+        // 사각형(A0-A1-B1-B0)을 두 개의 삼각형으로 분해
+        _float3 tri1[3] = { A0, A1, B0 }; // 대각선 A1-B0
+        _float3 tri2[3] = { B0, A1, B1 };
+
+        // 퇴화 방지(혹시 스냅 때문에 면적 0이 되면 대각선 반대로 한번 더 시도)
+        auto areaXZ2 = [](_float3 p, _float3 q, _float3 r)->float {
+            float s = ((q.x - p.x) * (r.z - p.z) - (q.z - p.z) * (r.x - p.x));
+            return s * s;
+            };
+        const float minArea2 = 1e-12f;
+
+        bool ok1 = areaXZ2(tri1[0], tri1[1], tri1[2]) > minArea2;
+        bool ok2 = areaXZ2(tri2[0], tri2[1], tri2[2]) > minArea2;
+
+        if (!ok1 || !ok2)
+        {
+            // 대각선을 A0-B1로 바꾼 분해 시도
+            _float3 t1[3] = { A0, B1, B0 };
+            _float3 t2[3] = { A0, A1, B1 };
+            bool ok1b = areaXZ2(t1[0], t1[1], t1[2]) > minArea2;
+            bool ok2b = areaXZ2(t2[0], t2[1], t2[2]) > minArea2;
+            if (ok1b && ok2b) { memcpy(tri1, t1, sizeof(t1)); memcpy(tri2, t2, sizeof(t2)); ok1 = ok2 = true; }
+        }
+
+        if (!ok1 || !ok2) return false;
+
+        AddCell(tri1);
+        AddCell(tri2);
+        return true;
+    }
     return true;
 }
 
@@ -564,4 +779,62 @@ void NavigationManager::SnapIfNear(_float3& inoutP, const _float3& target, float
     const float dz = inoutP.z - target.z;
     if ((dx * dx + dy * dy + dz * dz) <= eps * eps)
         inoutP = target;
+}
+
+bool NavigationManager::FindNearestEdgePairXZ(const _float3 triA[3], const _float3 triB[3], LINETYPE& outEdgeA, LINETYPE& outEdgeB, _float3& outA0, _float3& outA1, _float3& outB0, _float3& outB1) const
+{
+    struct EdgeDef { LINETYPE e; _float3 a, b; };
+    auto buildEdges = [&](const _float3 t[3], EdgeDef edges[3]) {
+        edges[0] = { LINETYPE::AB, t[POINTTYPE::A], t[POINTTYPE::B] };
+        edges[1] = { LINETYPE::BC, t[POINTTYPE::B], t[POINTTYPE::C] };
+        edges[2] = { LINETYPE::CA, t[POINTTYPE::C], t[POINTTYPE::A] };
+        };
+
+    EdgeDef EA[3], EB[3];
+    buildEdges(triA, EA);
+    buildEdges(triB, EB);
+
+    auto segSegDistXZ = [&](const _float3& a0, const _float3& a1,
+        const _float3& b0, const _float3& b1)->float
+        {
+            // 엔드포인트→상대 세그먼트 거리의 최소값(대칭 4회)
+            float d0 = DistPointToSegmentXZ(a0, b0, b1);
+            float d1 = DistPointToSegmentXZ(a1, b0, b1);
+            float d2 = DistPointToSegmentXZ(b0, a0, a1);
+            float d3 = DistPointToSegmentXZ(b1, a0, a1);
+            return min(min(d0, d1), min(d2, d3));
+        };
+
+    float best = FLT_MAX;
+    int bi = -1, bj = -1;
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            float d = segSegDistXZ(EA[i].a, EA[i].b, EB[j].a, EB[j].b);
+            if (d < best)
+            {
+                best = d; bi = i; bj = j;
+            }
+        }
+    }
+    if (bi < 0 || bj < 0) return false;
+
+    // 에지 선택
+    outEdgeA = EA[bi].e; outEdgeB = EB[bj].e;
+
+    // 두 가지 짝 매칭 중 총합 거리가 더 작은 순서(A0↔B0, A1↔B1)로 정렬
+    _float3 A0 = EA[bi].a, A1 = EA[bi].b;
+    _float3 B0 = EB[bj].a, B1 = EB[bj].b;
+
+    auto dXZ = [&](const _float3& p, const _float3& q) {
+        float dx = p.x - q.x, dz = p.z - q.z; return sqrtf(dx * dx + dz * dz);
+        };
+    float pairSum1 = dXZ(A0, B0) + dXZ(A1, B1);
+    float pairSum2 = dXZ(A0, B1) + dXZ(A1, B0);
+
+    if (pairSum1 <= pairSum2) { outA0 = A0; outA1 = A1; outB0 = B0; outB1 = B1; }
+    else { outA0 = A0; outA1 = A1; outB0 = B1; outB1 = B0; }
+
+    return true;
 }

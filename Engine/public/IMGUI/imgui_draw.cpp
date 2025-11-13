@@ -2005,7 +2005,7 @@ void ImTriangulator::ReclassifyNode(ImTriangulatorNode* n1)
 // (Reminder: we don't perform any coarse clipping/culling in ImDrawList layer!
 // It is up to caller to ensure not making costly calls that will be outside of visible area.
 // As concave fill is noticeably more expensive than other primitives, be mindful of this...
-// Caller can build AABB of points, and avoid filling if 'draw_list->_CmdHeader.ClipRect.Overlays(points_bb) == false')
+// Caller can build COLLISIONTYPE_AABB of points, and avoid filling if 'draw_list->_CmdHeader.ClipRect.Overlays(points_bb) == false')
 void ImDrawList::AddConcavePolyFilled(const ImVec2* points, const int points_count, ImU32 col)
 {
     if (points_count < 3 || (col & IM_COL32_A_MASK) == 0)

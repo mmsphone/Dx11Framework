@@ -88,9 +88,6 @@
     <Filter Include="04.ForUtility\Part">
       <UniqueIdentifier>{2d04aba3-02ba-46f5-b95d-968727279958}</UniqueIdentifier>
     </Filter>
-    <Filter Include="07.Shaders">
-      <UniqueIdentifier>{d104fdff-b326-447a-a2e3-d30c95c4c2c8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="05.Component\VertexIndexBuffer">
       <UniqueIdentifier>{38ead284-d421-498e-9203-2b5ab28308f4}</UniqueIdentifier>
     </Filter>
@@ -204,6 +201,15 @@
     </Filter>
     <Filter Include="03.Utility\ShadowLightManger">
       <UniqueIdentifier>{3f06fabf-ed3c-47d6-9a44-687ebc479eea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Component\Physics">
+      <UniqueIdentifier>{5f6098bd-5aa1-490f-bbe0-253804ddeebf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="07.Shaders">
+      <UniqueIdentifier>{d104fdff-b326-447a-a2e3-d30c95c4c2c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\ShadowLight">
+      <UniqueIdentifier>{6aa6f114-529d-404c-b427-e309276c4460}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -410,6 +416,12 @@
     </ClInclude>
     <ClInclude Include="..\public\ShadowLightManager.h">
       <Filter>03.Utility\ShadowLightManger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Physics.h">
+      <Filter>05.Component\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ShadowLight.h">
+      <Filter>04.ForUtility\ShadowLight</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -619,6 +631,12 @@
     </ClCompile>
     <ClCompile Include="..\private\ShadowLightManager.cpp">
       <Filter>03.Utility\ShadowLightManger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Physics.cpp">
+      <Filter>05.Component\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ShadowLight.cpp">
+      <Filter>04.ForUtility\ShadowLight</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

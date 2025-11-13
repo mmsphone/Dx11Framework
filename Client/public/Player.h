@@ -39,7 +39,7 @@ protected:
     void InputCheck();
     void Move(_float fTimeDelta);
     void Rotate(_float fTimeDelta);
-    void Attack();
+    void Shoot();
     void HitBack(_float fTimeDelta);
 
 private:

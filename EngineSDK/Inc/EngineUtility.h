@@ -90,7 +90,14 @@ public:
 	//LightManager
 	const LIGHT_DESC* GetLight(_uint iIndex);
 	HRESULT AddLight(const LIGHT_DESC& LightDesc);
+	HRESULT RemoveLight(_uint iIndex);
+	const list<class Light*>& GetAllLights();
+	const list<class Light*>& GetActiveLights();
+	void ClearLights();
 	HRESULT RenderLights(class Shader* pShader, class VIBufferRect* pVIBuffer);
+	void SetLightActive(_uint iIndex, _bool bActive);
+	void SetLightActive(Light* pLight, _bool bActive);
+	void SetActiveLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxLights = 5);
 
 	//FontManger
 	HRESULT AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath);
@@ -140,13 +147,16 @@ public:
 	HRESULT RenderNavigation();
 #endif
 	void AddTempPoint(const _float3& point);
-	void ClearTempPoints();
+	void ClearTempPoints(); 
+	void RemoveCell(_int cellIndex);
 	void RemoveRecentCell();
 	void ClearCells();
 	void SaveCells(const _char* pNavigationDataFile);
 	void LoadCells(const _char* pNavigationDataFile);
 	_bool IsInCell(_fvector vWorldPos, _int* pOutCellIndex = nullptr);
+	_float GetHeightPosOnCell(_vector* pPos, const _int& pCellIndex);
 	_bool SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos);
+	_bool GetSlideVectorOnCell(_fvector pos, _fvector delta, _int cellIndex, _vector* outSlideVector) const;
 	const vector<class Cell*>& GetCells() const;
 	_bool Edit_AddTriangleOnEdge(_int cellId, _fvector pickedPoint, _float weldEps);
 	_bool Edit_AddTriangleAtSharedVertex(_int cellA, _int cellB, _float weldEps);
@@ -156,6 +166,8 @@ public:
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);
 	std::vector<MAP_OBJECTDATA> LoadMapData(const std::string& path);
 	HRESULT SaveMapData(const std::string& path);
+	HRESULT SaveLights(const std::string& path);
+	HRESULT ReadyLightsFromFile(const std::string& path);
 
 	//RenderTargetManager
 	HRESULT AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor);
@@ -166,16 +178,24 @@ public:
 	HRESULT CopyRenderTargetResource(const _wstring& strRenderTargetTag, ID3D11Texture2D* pOut);
 #ifdef _DEBUG
 	HRESULT ReadyRenderTargetDebug(const _wstring& strRenderTargetTag, _float fX, _float fY, _float fSizeX, _float fSizeY);
-	HRESULT RenderRenderTargetGroup(const _wstring& strRenderTargetGroupTag, class Shader* pShader, class VIBufferRect* pVIBuffer);
+	HRESULT RenderDebugRenderTargetGroup(const _wstring& strRenderTargetGroupTag, class Shader* pShader, class VIBufferRect* pVIBuffer);
 #endif
 
 	//ShadowLightManager
+	const SHADOW_DESC* GetShadowLight(_uint iIndex);
 	HRESULT AddShadowLight(const SHADOW_DESC& ShadowDesc);
-	const _float4x4* GetShadowTransformFloat4x4Ptr(D3DTS eState, _uint iIndex = 0);	
-	const _float3* GetShadowLightPositionPtr(_uint iIndex);
-	const _float* GetShadowLightFarDistancePtr(_uint iIndex);
+	HRESULT RemoveShadowLight(_uint iIndex);
+	const list<class ShadowLight*>& GetAllShadowLights();
+	const list<class ShadowLight*>& GetActiveShadowLights();
 	void ClearShadowLights();
-	_uint GetNumShadowLights();
+	const _float4x4* GetActiveShadowLightTransformFloat4x4Ptr(D3DTS eState, _uint iIndex = 0);	
+	const _float3* GetActiveShadowLightPositionPtr(_uint iIndex);
+	const _float* GetActiveShadowLightFarDistancePtr(_uint iIndex);
+	_uint GetNumActiveShadowLights();
+	void SetShadowLightActive(_uint iIndex, _bool bActive);
+	void SetShadowLightActive(class ShadowLight* pShadowLight, _bool bActive);
+	void SetActiveShadowLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxCount = 4);
+
 
 private:
 	class Graphic* m_pGraphic = { nullptr };

@@ -172,6 +172,7 @@
     <ClInclude Include="..\public\UITemplate.h" />
     <ClInclude Include="..\public\Weapon_AR.h" />
     <ClInclude Include="..\public\Worm.h" />
+    <ClInclude Include="..\public\Worm_Projectile.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
@@ -198,6 +199,7 @@
     <ClCompile Include="..\private\UITemplate.cpp" />
     <ClCompile Include="..\private\Weapon_AR.cpp" />
     <ClCompile Include="..\private\Worm.cpp" />
+    <ClCompile Include="..\private\Worm_Projectile.cpp" />
     <ClCompile Include="Client.cpp" />
   </ItemGroup>
   <ItemGroup>

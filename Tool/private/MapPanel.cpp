@@ -17,7 +17,7 @@ MapPanel::MapPanel(const string& PanelName, bool open)
 HRESULT MapPanel::Initialize()
 {
     m_PanelPosition = _float2(0.f, 0.f);
-    m_PanelSize = _float2(400.f, 300.f);
+    m_PanelSize = _float2(400.f, 500.f);
 
     return S_OK;
 }
@@ -41,18 +41,18 @@ void MapPanel::OnRender()
     ImGui::Text("Click To Place Marker");
     static PICK_RESULT s_pick{};
 
-    if (m_CellMode == false && m_pEngineUtility->IsMousePressed(LB))
+    if (m_CellMode == false && m_pEngineUtility->IsMousePressed(MOUSEKEY_LEFTBUTTON))
     {
         PICK_RESULT pick = m_pEngineUtility->Pick();
         if (pick.hit == true)
         {
             switch (pick.pickType)
             {
-            case PICK_PIXEL:
+            case PICKTYPE_PIXEL:
                 s_pick = pick;
                 m_pEngineUtility->SetMarkerPosition(pick.hitPos);
                 break;
-            case PICK_OBJECT:
+            case PICKTYPE_OBJECT:
                 if (pick.pHitObject != m_pSelectedObject)
                 {
                     m_pSelectedObject = pick.pHitObject;
@@ -69,7 +69,7 @@ void MapPanel::OnRender()
                     m_pEngineUtility->AddPanel(objPanelName, m_pObjectPanel);
                 }
                 break;
-            case PICK_TERRAIN:
+            case PICKTYPE_TERRAIN:
             {
                 s_pick = pick;
                 TestTerrain* pTerrain = dynamic_cast<TestTerrain*>(pick.pHitObject);
@@ -80,7 +80,7 @@ void MapPanel::OnRender()
                 }
                 break;
             }
-            case PICK_GRID:
+            case PICKTYPE_GRID:
                 s_pick = pick;
                 m_pEngineUtility->SetMarkerPosition(pick.hitPos);
                 break;
@@ -93,10 +93,10 @@ void MapPanel::OnRender()
     if (s_pick.hit)
     {
         const char* pickTypeName =
-            (s_pick.pickType == PICK_TERRAIN) ? "Terrain" :
-            (s_pick.pickType == PICK_GRID) ? "Grid" :
-            (s_pick.pickType == PICK_OBJECT) ? "Object" :
-            (s_pick.pickType == PICK_PIXEL) ? "Pixel" : "Unknown";
+            (s_pick.pickType == PICKTYPE_TERRAIN) ? "Terrain" :
+            (s_pick.pickType == PICKTYPE_GRID) ? "Grid" :
+            (s_pick.pickType == PICKTYPE_OBJECT) ? "Object" :
+            (s_pick.pickType == PICKTYPE_PIXEL) ? "Pixel" : "Unknown";
 
         ImGui::Text("Marker Type: %s", pickTypeName);
         ImGui::Text("Marker Pos: %.2f, %.2f, %.2f",
@@ -123,12 +123,72 @@ void MapPanel::OnRender()
     ImGui::SetNextItemWidth(100.f);
     ImGui::InputFloat("WeldEps", &s_WeldEps, 0.0f, 0.0f, "%.4f");
 
+    // 네비게이션 셀 리스트 UI
+    {
+        const auto& cells = m_pEngineUtility->GetCells();
+        const int cellCount = static_cast<int>(cells.size());
+
+        ImGui::Separator();
+        ImGui::Text("Navigation Cells");
+        ImGui::TextDisabled("Total: %d", cellCount);
+
+        if (cellCount == 0)
+        {
+            ImGui::TextDisabled("No navigation cells.");
+        }
+        else
+        {
+            ImGui::BeginChild("NavCellList", ImVec2(0, 120), true, ImGuiWindowFlags_HorizontalScrollbar);
+
+            for (int i = 0; i < cellCount; ++i)
+            {
+                // 라벨: Cell_0, Cell_1 ...
+                char label[64];
+                sprintf_s(label, "Cell_%d", i);
+
+                bool selected = (i == m_SelectedCellIndex);
+                if (ImGui::Selectable(label, selected))
+                {
+                    m_SelectedCellIndex = i;
+
+                    // 선택 시 마커를 셀 중심으로 옮겨주기
+                    _float3 a, b, c;
+                    XMStoreFloat3(&a, cells[i]->GetPoint(POINTTYPE::A));
+                    XMStoreFloat3(&b, cells[i]->GetPoint(POINTTYPE::B));
+                    XMStoreFloat3(&c, cells[i]->GetPoint(POINTTYPE::C));
+
+                    _float3 center{
+                        (a.x + b.x + c.x) / 3.f,
+                        (a.y + b.y + c.y) / 3.f,
+                        (a.z + b.z + c.z) / 3.f
+                    };
+                    m_pEngineUtility->SetMarkerPosition(center);
+                }
+            }
+
+            ImGui::EndChild();
+        }
+
+        // 선택된 셀 삭제 버튼
+        if (ImGui::Button("Delete Selected Cell"))
+        {
+            if (m_SelectedCellIndex >= 0 && m_SelectedCellIndex < cellCount)
+            {
+                // EngineUtility에 RemoveCell 래핑 함수가 있다고 가정
+                m_pEngineUtility->RemoveCell(static_cast<_int>(m_SelectedCellIndex));
+
+                // 삭제 후 선택 인덱스 리셋
+                m_SelectedCellIndex = -1;
+            }
+        }
+    }
+
     // ---- 핵심 분기: CellMode 중 좌클릭 처리 ----
-    if (m_CellMode && m_pEngineUtility->IsMousePressed(MOUSEKEYSTATE::LB))
+    if (m_CellMode && m_pEngineUtility->IsMousePressed(MOUSEKEYSTATE::MOUSEKEY_LEFTBUTTON))
     {
         bool added = false; // 삼각형 추가 여부
         PICK_RESULT pick = m_pEngineUtility->Pick();
-        if (pick.hit && (pick.pickType == PICK_TERRAIN || pick.pickType == PICK_GRID || pick.pickType == PICK_PIXEL))
+        if (pick.hit && (pick.pickType == PICKTYPE_TERRAIN || pick.pickType == PICKTYPE_GRID || pick.pickType == PICKTYPE_PIXEL))
         {
             _int hitCell = -1;
             const bool inNav = m_pEngineUtility->IsInCell(XMLoadFloat3(&pick.hitPos), &hitCell);
@@ -302,7 +362,7 @@ void MapPanel::OnRender()
             m_pEngineUtility->SetHeightOnCell(vPos, &adjusted);
             vPos = adjusted;
         }
-        pTransform->SetState(POSITION, vPos);
+        pTransform->SetState(MATRIXROW_POSITION, vPos);
     }
     ImGui::Separator();
 
@@ -322,9 +382,9 @@ void MapPanel::OnRender()
 
         auto DumpBasis = [&](Transform* t)
             {
-                XMVECTOR R = XMVector3Normalize(t->GetState(RIGHT));
-                XMVECTOR U = XMVector3Normalize(t->GetState(UP));
-                XMVECTOR L = XMVector3Normalize(t->GetState(LOOK));
+                XMVECTOR R = XMVector3Normalize(t->GetState(MATRIXROW_RIGHT));
+                XMVECTOR U = XMVector3Normalize(t->GetState(MATRIXROW_UP));
+                XMVECTOR L = XMVector3Normalize(t->GetState(MATRIXROW_LOOK));
 
                 XMVECTOR C = XMVector3Cross(R, U);                // LH면 C(=R×U)가 L과 같아야 함
                 float dotRUx = XMVectorGetX(XMVector3Dot(C, L));  // ≈ +1이면 정상(LH), ≈ -1이면 축이 반대로 들어옴(미러/뒤집힘)
@@ -369,10 +429,10 @@ void MapPanel::OnRender()
                     _vector look = XMLoadFloat4((_float4*)&obj.worldMatrix.m[2]);
                     _vector pos = XMLoadFloat4((_float4*)&obj.worldMatrix.m[3]);
 
-                    pTransform->SetState(RIGHT, right);
-                    pTransform->SetState(UP, up);
-                    pTransform->SetState(LOOK, look);
-                    pTransform->SetState(POSITION, pos);
+                    pTransform->SetState(MATRIXROW_RIGHT, right);
+                    pTransform->SetState(MATRIXROW_UP, up);
+                    pTransform->SetState(MATRIXROW_LOOK, look);
+                    pTransform->SetState(MATRIXROW_POSITION, pos);
 
 
                     DumpBasis(pTransform);
@@ -451,6 +511,7 @@ void MapPanel::OnRender()
     {
         ImGui::TextDisabled("Layer 'FieldObject' not found.");
     }
+
 }
 
 void MapPanel::SetSelectedBinPath(const string& path)

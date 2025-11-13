@@ -16,7 +16,7 @@ HRESULT ToolApp::Initialize()
 	ENGINE_DESC			EngineDesc{};
 	EngineDesc.hInstance = g_hInstance;
 	EngineDesc.hWnd = g_hWnd;
-	EngineDesc.eWinMode = WINMODE::WIN;
+	EngineDesc.eWinMode = WINMODE::WINMODE_WINDOW;
 	EngineDesc.iWinSizeX = g_iWinSizeX;
 	EngineDesc.iWinSizeY = g_iWinSizeY;
 	EngineDesc.iNumLevels = SCENE::SCENE_END;
@@ -53,8 +53,6 @@ HRESULT ToolApp::Render()
 #endif
 	/* 객체들을 그린다. */
 	m_pEngineUtility->Draw();
-
-	m_pEngineUtility->DrawFont(TEXT("Font_Default"), TEXT("ab이거 봐라de"), _float2(0.f, 0.f));
 
 #ifdef _DEBUG
 	m_pEngineUtility->RenderNavigation();

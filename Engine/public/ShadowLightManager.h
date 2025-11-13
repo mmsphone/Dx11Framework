@@ -10,19 +10,29 @@ class ShadowLightManager final : public Base
 	virtual ~ShadowLightManager() = default;
 
 public:
+	const SHADOW_DESC* GetShadowLight(_uint iIndex);
 	HRESULT AddShadowLight(const SHADOW_DESC& ShadowDesc);
-	const _float4x4* GetShadowTransformFloat4x4Ptr(D3DTS eState, _uint iIndex);
-	const _float3* GetShadowLightPositionPtr(_uint iIndex);
-	const _float* GetShadowLightFarDistancePtr(_uint iIndex);
+	HRESULT RemoveShadowLight(_uint iIndex);
+	const list<class ShadowLight*>& GetAllShadowLights();
+	const list<class ShadowLight*>& GetActiveShadowLights();
 	void ClearShadowLights();
-	_uint GetNumShadowLights();
+
+	const _float4x4* GetActiveShadowLightTransformFloat4x4Ptr(D3DTS eState, _uint iIndex);
+	const _float3* GetActiveShadowLightPositionPtr(_uint iIndex);
+	const _float* GetActiveShadowLightFarDistancePtr(_uint iIndex);
+	
+	_uint GetNumActiveShadowLights();
+
+	void SetShadowLightActive(_uint iIndex, _bool bActive);
+	void SetShadowLightActive(class ShadowLight* pShadowLight, _bool bActive);
+	void SetActiveShadowLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxCount);
+
 
 	static ShadowLightManager* Create();
 	virtual void Free() override;
 private:
-	list<_float4x4*>				m_pTransformationMatrices[D3DTS_END] = {};
-	list<_float3*>					m_vLightPosition{};
-	list<_float*>					m_fFarDistance{};
+	list<class ShadowLight*> m_ShadowLights;
+	list<class ShadowLight*> m_ActiveShadowLights;
 };
 
 NS_END

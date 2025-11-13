@@ -24,7 +24,7 @@ HRESULT ObjectManager::Initialize(_uint iNumScenes)
 HRESULT ObjectManager::AddObject(_uint iPrototypeSceneId, const _wstring& strPrototypeTag, _uint iLayerSceneId, const _wstring& strLayerTag, void* pArg)
 {
 	// 원형 객체를 복제해서 가져오기
-	Object* pObject = dynamic_cast<Object*>(m_pEngineUtility->ClonePrototype(PROTOTYPE::OBJECT, iPrototypeSceneId, strPrototypeTag, pArg));
+	Object* pObject = dynamic_cast<Object*>(m_pEngineUtility->ClonePrototype(PROTOTYPE::PROTOTYPE_OBJECT, iPrototypeSceneId, strPrototypeTag, pArg));
 	if (pObject == nullptr)
 		return E_FAIL;
 	

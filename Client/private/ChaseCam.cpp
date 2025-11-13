@@ -52,7 +52,7 @@ void ChaseCam::LateUpdate(_float fTimeDelta)
     if (targetTransform == nullptr)
         return;
 
-    pTransform->SetState(POSITION, targetTransform->GetState(POSITION) + m_vOffset);
+    pTransform->SetState(MATRIXROW_POSITION, targetTransform->GetState(MATRIXROW_POSITION) + m_vOffset);
 }
 
 HRESULT ChaseCam::Render()

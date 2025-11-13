@@ -33,7 +33,6 @@ private:
 	HRESULT ReadyComponents() override;
 
 private:
-	const _uint* m_pParentState = { nullptr };
 	const _float4x4* m_pSocketBoneMatrix = { };
 
 };

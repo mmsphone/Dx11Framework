@@ -144,6 +144,11 @@ _float Cell::ComputeHeight(_fvector vResultPos)
     return (m_vPoints[0].y + m_vPoints[1].y + m_vPoints[2].y) / 3.f;
 }
 
+void Cell::SetIndex(_int iIndex)
+{
+    m_iIndex = iIndex;
+}
+
 
 #ifdef _DEBUG
 HRESULT Cell::Render()

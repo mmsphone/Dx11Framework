@@ -76,19 +76,6 @@ HRESULT TestTerrain::Render()
     if (FAILED(pShader->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))
         return E_FAIL;
 
-
-    const LIGHT_DESC* pLightDesc = m_pEngineUtility->GetLight(0);
-    if (nullptr == pLightDesc)
-        return E_FAIL;
-
-    if (FAILED(pShader->BindRawValue("g_vLightDir", &pLightDesc->vDirection, sizeof(_float4))))
-        return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_vLightDiffuse", &pLightDesc->vDiffuse, sizeof(_float4))))
-        return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_vLightAmbient", &pLightDesc->vAmbient, sizeof(_float4))))
-        return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_vLightSpecular", &pLightDesc->vSpecular, sizeof(_float4))))
-        return E_FAIL;
     if (FAILED(pShader->BindRawValue("g_vBrushPos", &m_vBrushPos, sizeof(_float4))))
         return E_FAIL;
     if (FAILED(pShader->BindRawValue("g_fBrushRange", &m_fBrushRange, sizeof(_float))))

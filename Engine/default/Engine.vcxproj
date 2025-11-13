@@ -60,6 +60,7 @@
     <ClInclude Include="..\public\ObjectManager.h" />
     <ClInclude Include="..\public\Panel.h" />
     <ClInclude Include="..\public\Part.h" />
+    <ClInclude Include="..\public\Physics.h" />
     <ClInclude Include="..\public\PickingManager.h" />
     <ClInclude Include="..\public\Pipeline.h" />
     <ClInclude Include="..\public\Projectile.h" />
@@ -71,6 +72,7 @@
     <ClInclude Include="..\public\Scene.h" />
     <ClInclude Include="..\public\SceneManager.h" />
     <ClInclude Include="..\public\Shader.h" />
+    <ClInclude Include="..\public\ShadowLight.h" />
     <ClInclude Include="..\public\ShadowLightManager.h" />
     <ClInclude Include="..\public\StateMachine.h" />
     <ClInclude Include="..\public\Terrain.h" />
@@ -123,6 +125,7 @@
     <ClCompile Include="..\private\ObjectManager.cpp" />
     <ClCompile Include="..\private\Panel.cpp" />
     <ClCompile Include="..\private\Part.cpp" />
+    <ClCompile Include="..\private\Physics.cpp" />
     <ClCompile Include="..\private\PickingManager.cpp" />
     <ClCompile Include="..\private\Pipeline.cpp" />
     <ClCompile Include="..\private\Projectile.cpp" />
@@ -134,6 +137,7 @@
     <ClCompile Include="..\private\Scene.cpp" />
     <ClCompile Include="..\private\SceneManager.cpp" />
     <ClCompile Include="..\private\Shader.cpp" />
+    <ClCompile Include="..\private\ShadowLight.cpp" />
     <ClCompile Include="..\private\ShadowLightManager.cpp" />
     <ClCompile Include="..\private\StateMachine.cpp" />
     <ClCompile Include="..\private\Terrain.cpp" />

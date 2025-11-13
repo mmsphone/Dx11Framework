@@ -9,6 +9,7 @@
 #include "FieldObject.h"
 #include "CamPanel.h"
 #include "AssetPanel.h"
+#include "LightPanel.h"
 
 MapScene::MapScene()
 	:Scene{}
@@ -43,14 +44,14 @@ HRESULT MapScene::Initialize()
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Texture_Default"), Texture::Create(TEXT("../bin/Resources/Textures/Default%d.jpg"), 2));
 
 	//Collision
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("CollisionAABB"), Collision::Create(AABB))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("CollisionAABB"), Collision::Create(COLLISIONTYPE_AABB))))
 		return E_FAIL;
 
 	//Model
 	ModelData* model = new ModelData();
 	IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", *model);
 	_matrix		PreTransformMatrix = XMMatrixIdentity();
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Model_Fiona"), Model::Create(MODELTYPE::ANIM, model, PreTransformMatrix))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Model_Fiona"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model, PreTransformMatrix))))
 		return E_FAIL;
 	
 
@@ -59,18 +60,6 @@ HRESULT MapScene::Initialize()
 	//m_pEngineUtility->AddObject(SCENE::MAP, TEXT("Terrain"), SCENE::MAP, TEXT("Terrain"));
 
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("FieldObject"), FieldObject::Create());
-	
-	//Light
-	LIGHT_DESC		LightDesc{};
-
-	LightDesc.eType = LIGHT::LIGHT_DIRECTIONAL;
-	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
-	LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
-	LightDesc.vAmbient = _float4(1.f, 1.f, 1.f, 1.f);
-	LightDesc.vSpecular = _float4(1.f, 1.f, 1.f, 1.f);
-
-	if (FAILED(m_pEngineUtility->AddLight(LightDesc)))
-		return E_FAIL;
 
 	//Cam
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("FreeCam"), FreeCam::Create())))
@@ -81,7 +70,7 @@ HRESULT MapScene::Initialize()
 	Desc.vAt = _float3(0.f, 0.f, 0.f);
 	Desc.fFovy = XMConvertToRadians(60.0f);
 	Desc.fNear = 0.1f;
-	Desc.fFar = 2000.f;
+	Desc.fFar = 500.f;
 	Desc.fSensor = 0.1f;
 	Desc.fSpeedPerSec = 40.f;
 	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
@@ -101,6 +90,10 @@ HRESULT MapScene::Initialize()
 	string strAssetPanel = "AssetPanel";
 	AssetPanel* pAssetPanel = AssetPanel::Create(strAssetPanel);
 	m_pEngineUtility->AddPanel(pAssetPanel->GetPanelName(), pAssetPanel);
+
+	string strLightPanel = "LightPanel";
+	LightPanel* pLightPanel = LightPanel::Create(strLightPanel);
+	m_pEngineUtility->AddPanel(pLightPanel->GetPanelName(), pLightPanel);
 
 	return S_OK;
 }
@@ -156,10 +149,10 @@ HRESULT MapScene::Render()
 		XMVECTOR up = xmWorld.r[1];
 		XMVECTOR look = xmWorld.r[2];
 
-		pTransform->SetState(RIGHT, right);
-		pTransform->SetState(UP, up);
-		pTransform->SetState(LOOK, look);
-		pTransform->SetState(POSITION, t);
+		pTransform->SetState(MATRIXROW_RIGHT, right);
+		pTransform->SetState(MATRIXROW_UP, up);
+		pTransform->SetState(MATRIXROW_LOOK, look);
+		pTransform->SetState(MATRIXROW_POSITION, t);
 	}
 
 	return S_OK;

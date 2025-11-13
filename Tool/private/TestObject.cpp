@@ -27,7 +27,7 @@ HRESULT TestObject::Initialize(void* pArg)
     
     Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
 
-    pTransform->SetState(STATE::POSITION, XMVectorSet(
+    pTransform->SetState(MATRIXROW::MATRIXROW_POSITION, XMVectorSet(
         0.f,
         0.f,
         0.f,
@@ -59,6 +59,7 @@ void TestObject::LateUpdate(_float fTimeDelta)
 
     /* 렌더러의 그룹들 중 어떤 순서로 그려져야할지 적절한 위치에 추가해준다. */
     m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::SHADOWLIGHT, this);
 
     __super::LateUpdate(fTimeDelta);
 }
@@ -136,5 +137,4 @@ Object* TestObject::Clone(void* pArg)
 void TestObject::Free()
 {
     __super::Free();
-
 }

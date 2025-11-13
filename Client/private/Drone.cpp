@@ -63,10 +63,6 @@ void Drone::Update(_float fTimeDelta)
     StateMachine* pSM = dynamic_cast<StateMachine*>(FindComponent(TEXT("StateMachine")));
     if (pSM != nullptr)
         pSM->Update(fTimeDelta);
-
-    Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    if(pModel != nullptr)
-        pModel->PlayAnimation(fTimeDelta);
 }
 
 void Drone::LateUpdate(_float fTimeDelta)
@@ -119,11 +115,11 @@ HRESULT Drone::RenderShadow(_uint iIndex)
 
     if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW, iIndex))))
+    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW, iIndex))))
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION, iIndex))))
+    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION, iIndex))))
         return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_ShadowLightFarDistance", m_pEngineUtility->GetShadowLightFarDistancePtr(iIndex), sizeof(_float))))
+    if (FAILED(pShader->BindRawValue("g_ShadowLightFarDistance", m_pEngineUtility->GetActiveShadowLightFarDistancePtr(iIndex), sizeof(_float))))
         return E_FAIL;
 
     _uint       iNumMeshes = pModel->GetNumMeshes();
@@ -234,11 +230,14 @@ HRESULT Drone::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pDrone || !pModel)
-                return;
+
             pModel->SetAnimation(pDrone->FindAnimIndex("Roar"), false, 0.05f);
         },
-        nullptr,
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            pModel->PlayAnimation(fTimeDelta);
+        },
         nullptr
     });
 
@@ -246,11 +245,14 @@ HRESULT Drone::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pDrone || !pModel)
-                return;
+
             pModel->SetAnimation(pDrone->FindAnimIndex("Idle"), true, 0.1f);
         },
-        nullptr,
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            pModel->PlayAnimation(fTimeDelta);
+        },
         nullptr
     });
 
@@ -258,15 +260,16 @@ HRESULT Drone::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pDrone || !pModel)
-                return;
+
             pModel->SetAnimation(pDrone->FindAnimIndex("Walk"), true, 0.1f);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
-            if (!pDrone)
-                return;
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
             pDrone->Move(fTimeDelta);
+            pDrone->Rotate(fTimeDelta);
+            pModel->PlayAnimation(fTimeDelta);
         },
         nullptr
     });
@@ -275,21 +278,24 @@ HRESULT Drone::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pDrone || !pModel)
-                return;
+
             pModel->SetAnimation(pDrone->FindAnimIndex("Attack"), false, 0.05f, true);
             pDrone->m_targetAttackable = true;
         },
         [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pDrone || !pModel)
-                return;
+
             if (pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.6f)
             {
                 pDrone->Attack();
                 pDrone->m_targetAttackable = false;
             }
+            else if (pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.2f)
+            {
+                pDrone->Rotate(fTimeDelta);
+            }
+            pModel->PlayAnimation(fTimeDelta);
         },
         nullptr
     });
@@ -298,11 +304,14 @@ HRESULT Drone::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pDrone || !pModel)
-                return;
+
             pModel->SetAnimation(pDrone->FindAnimIndex("Hit"), false, 0.05f, true);
         },
-        nullptr,
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            pModel->PlayAnimation(fTimeDelta);
+        },
         nullptr
     });
 
@@ -310,15 +319,14 @@ HRESULT Drone::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pDrone || !pModel)
-                return;
+
             pModel->SetAnimation(pDrone->FindAnimIndex("Die"), false, 0.05f);
         },
-        [](Object* owner, StateMachine* sm, _float /*dt*/) {
-            auto* mdl = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!mdl) 
-                return;
-            if (mdl->isAnimFinished())
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+            
+            pModel->PlayAnimation(fTimeDelta);
+            if (pModel->isAnimFinished())
                 owner->SetDead(true);
         },
         nullptr
@@ -570,11 +578,11 @@ void Drone::SetUpAIInputData()
     Transform* pTransform = dynamic_cast<Transform*>(pPlayerPos->FindComponent(TEXT("Transform")));
     if (!pTransform)
         return;
-    m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(POSITION));
+    m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(MATRIXROW_POSITION));
 
     m_pAIInputCache->SetData("SightRange", _float{ 6.f });
     m_pAIInputCache->SetData("FovDegree", _float{ 360.f });
-    m_pAIInputCache->SetData("AttackRange", _float{ 1.5f });
+    m_pAIInputCache->SetData("AttackRange", _float{ 1.3f });
     m_pAIInputCache->SetData("ChasePersistTime", _float{ 3.f });
 }
 
@@ -592,7 +600,7 @@ HRESULT Drone::SetUpAIProcess()
             Transform* tf = dynamic_cast<Transform*>(this->FindComponent(TEXT("Transform")));
 
             // DronePos
-            if (tf) in.SetData("DronePos", tf->GetState(POSITION));
+            if (tf) in.SetData("DronePos", tf->GetState(MATRIXROW_POSITION));
 
             const AIValue* pDronePos = in.GetPtr("DronePos");
             const AIValue* pPlayerPos = in.GetPtr("PlayerPos");
@@ -620,7 +628,7 @@ HRESULT Drone::SetUpAIProcess()
                 bool inFov = true;
                 if (fovDeg < 359.f && tf)
                 {
-                    _vector look = tf->GetState(LOOK);
+                    _vector look = tf->GetState(MATRIXROW_LOOK);
                     _vector toT = XMVector3Normalize(playerPos - dronePos);
                     look = XMVector3Normalize(XMVectorSet(XMVectorGetX(look), 0.f, XMVectorGetZ(look), 0.f));
                     toT = XMVector3Normalize(XMVectorSet(XMVectorGetX(toT), 0.f, XMVectorGetZ(toT), 0.f));
@@ -710,28 +718,82 @@ HRESULT Drone::SetUpAIProcess()
 void Drone::Move(_float fTimeDelta)
 {
     Transform* playerTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    if (!playerTransform || !m_isMove) return;
+    if (!playerTransform || !m_isMove) 
+        return;
 
-    _vector prePos = playerTransform->GetState(POSITION);
+    _vector prePos = playerTransform->GetState(MATRIXROW_POSITION);
 
     float amp = m_isSprint ? 1.4f : 1.f;
     playerTransform->Translate(m_aimDir, fTimeDelta * amp);
 
-    _vector newPos = playerTransform->GetState(POSITION);
+    _vector newPos = playerTransform->GetState(MATRIXROW_POSITION);
     if (!m_pEngineUtility->IsInCell(newPos))
-        playerTransform->SetState(POSITION, prePos);
+        playerTransform->SetState(MATRIXROW_POSITION, prePos);
 
-    _vector baseLook = XMVectorSet(0.f, 0.f, 1.f, 0.f);
-    _vector dir = XMVectorSetY(m_aimDir, 0.f);
-    if (!XMVector3Equal(dir, XMVectorZero()))
+}
+
+void Drone::Rotate(_float fTimeDelta)
+{
+    Transform* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!tf) return;
+
+    // 1) 목표 방향: 우선 m_aimDir, 없으면 플레이어 향하도록 계산
+    _vector desiredDir = m_aimDir;
+    if (XMVector3Equal(desiredDir, XMVectorZero()))
     {
-        float dot = std::clamp(XMVectorGetX(XMVector3Dot(baseLook, dir)), -1.0f, 1.0f);
-        float ang = acosf(dot);
-        _vector axis = XMVector3Cross(baseLook, dir);
-        if (XMVectorGetY(axis) < 0.f) 
-            ang = -ang;
-        
-        playerTransform->RotateRadian(XMVectorSet(0.f, 1.f, 0.f, 0.f), XMConvertToRadians(180.f) + ang);
+        const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+        if (Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0))
+            if (Transform* pPT = dynamic_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform"))))
+                desiredDir = XMVector3Normalize(XMVectorSetY(pPT->GetState(MATRIXROW_POSITION) - tf->GetState(MATRIXROW_POSITION), 0.f));
+    }
+    if (XMVector3Equal(desiredDir, XMVectorZero()))
+        return;
+
+    desiredDir = XMVector3Normalize(desiredDir);
+
+    // 2) 현재/목표 yaw (모델 전방이 -Z라면 +PI 보정)
+    const float baseOffset = XM_PI;
+
+    _vector curLook = XMVector3Normalize(XMVectorSetY(tf->GetState(MATRIXROW_LOOK), 0.f));
+    float curYaw = atan2f(XMVectorGetX(curLook), XMVectorGetZ(curLook));                 // [-PI,PI]
+    float dstYaw = baseOffset + atan2f(XMVectorGetX(desiredDir), XMVectorGetZ(desiredDir));
+    while (dstYaw > XM_PI) dstYaw -= XM_2PI;
+    while (dstYaw < -XM_PI) dstYaw += XM_2PI;
+
+    // 3) 목표가 의미 있게 바뀌면 재보간 시작
+    float shortestDelta = dstYaw - m_yawTarget;
+    while (shortestDelta > XM_PI) shortestDelta -= XM_2PI;
+    while (shortestDelta < -XM_PI) shortestDelta += XM_2PI;
+
+    const float reTargetEps = XMConvertToRadians(2.0f);
+    if (!m_yawInterpActive || fabsf(shortestDelta) > reTargetEps)
+    {
+        m_yawInterpActive = true;
+        m_yawInterpT = 0.f;
+        m_yawStart = curYaw;
+        m_yawTarget = dstYaw;
+    }
+
+    // 4) 보간 진행
+    if (m_yawInterpActive)
+    {
+        m_yawInterpT += max(0.f, fTimeDelta);
+        float t = std::clamp(m_yawInterpT / max(1e-4f, m_yawInterpDur), 0.f, 1.f);
+        t = std::clamp(t, 0.f, 1.f);
+        const float s = t * t * (3.f - 2.f * t);
+
+        float shortestDelta = m_yawTarget - m_yawStart;
+        while (shortestDelta > XM_PI) shortestDelta -= XM_2PI;
+        while (shortestDelta < -XM_PI) shortestDelta += XM_2PI;
+
+        float yawNow = m_yawStart + shortestDelta * s;
+        while (yawNow > XM_PI) yawNow -= XM_2PI;
+        while (yawNow < -XM_PI) yawNow += XM_2PI;
+
+        // 절대 yaw를 세팅하는 방식(너의 Transform이 플레이어 코드와 동일 동작 가정)
+        tf->RotateRadian(_vector{ 0.f,1.f,0.f,0.f }, yawNow);
+
+        if (t >= 1.f) m_yawInterpActive = false;
     }
 }
 
@@ -739,7 +801,7 @@ void Drone::Attack()
 {
     // 히트박스 파라미터(필요시 조절)
     const float hitOffset = -0.6f;   // 드론 위치에서 전방 얼마나 떨어진 지점에 중심을 둘지
-    const float hitRadius = 0.9f;   // 구 반지름
+    const float hitRadius = 0.7f;   // 구 반지름
     const float damage = 15.f;   // 대미지량
 
     Transform* pDroneTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
@@ -758,17 +820,17 @@ void Drone::Attack()
         return;
 
     // 전방 오프셋 + 구 히트박스
-    _vector lookXZ = XMVector3Normalize(XMVectorSetY(pDroneTransform->GetState(LOOK), 0.f));
-    _vector center = pDroneTransform->GetState(POSITION) + XMVectorScale(lookXZ, hitOffset);
+    _vector lookXZ = XMVector3Normalize(XMVectorSetY(pDroneTransform->GetState(MATRIXROW_LOOK), 0.f));
+    _vector center = pDroneTransform->GetState(MATRIXROW_POSITION) + XMVectorScale(lookXZ, hitOffset);
 
     // 거리 체크(간단히 3D 거리. 필요하면 XZ 평면 거리로 바꿔도 됨)
-    const _float distance = XMVectorGetX(XMVector3Length(pPlayerTransform->GetState(POSITION) - center));
+    const _float distance = XMVectorGetX(XMVector3Length(pPlayerTransform->GetState(MATRIXROW_POSITION) - center));
     if (distance <= hitRadius)
     {
         ApplyDamageToPlayer(pPlayerInfo, damage);
         if (Player* player = dynamic_cast<Player*>(pPlayer))
         {
-            _vector dirKB = XMVector3Normalize(XMVectorSetY(pPlayerTransform->GetState(POSITION) - pDroneTransform->GetState(POSITION), 0.f));
+            _vector dirKB = XMVector3Normalize(XMVectorSetY(pPlayerTransform->GetState(MATRIXROW_POSITION) - pDroneTransform->GetState(MATRIXROW_POSITION), 0.f));
             const float kbPower = 3.0f;
             const float kbTime = 0.2f;
             player->SetHit(dirKB, kbPower, kbTime);

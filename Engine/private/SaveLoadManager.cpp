@@ -4,6 +4,8 @@
 
 #include "object.h"
 #include "layer.h"
+#include "Light.h"
+#include "ShadowLight.h"
 
 SaveLoadManager::SaveLoadManager()
     :m_pEngineUtility{ EngineUtility::GetInstance()}
@@ -272,6 +274,135 @@ HRESULT SaveLoadManager::SaveMapData(const std::string& path)
     }
 
     f.close();
+    return S_OK;
+}
+
+HRESULT SaveLoadManager::SaveLights(const std::string& path)
+{
+    std::ofstream f(path, std::ios::binary);
+    if (!f.is_open())
+    {
+        MessageBoxA(nullptr, "Failed to open file for writing.", "Save Error", MB_OK);
+        return E_FAIL;
+    }
+
+    list<Light*> lights = m_pEngineUtility->GetAllLights();
+    list<LIGHT_DESC> lightDescs{};
+    for (auto& light : lights)
+    {
+        LIGHT_DESC lightDesc{};
+        lightDesc = *light->GetLight();
+        lightDescs.push_back(lightDesc);
+    }
+     list<ShadowLight*> shadowLights = m_pEngineUtility->GetAllShadowLights();
+     list<SHADOW_DESC> shadowLightDescs{};
+     for (auto& shadowlight : shadowLights)
+     {
+         SHADOW_DESC shadowLightDesc{};
+         shadowLightDesc = *shadowlight->GetShadowLight();
+         shadowLightDescs.push_back(shadowLightDesc);
+     }
+
+    //lightDescs랑 shadowLightDescs 데이터들을 바이너리화해서 저장
+    _uint lightCount = (_uint)lightDescs.size();
+    _uint shadowCount = (_uint)shadowLightDescs.size();
+    f.write((const char*)&lightCount, sizeof(_uint));
+    f.write((const char*)&shadowCount, sizeof(_uint));
+
+    for (const auto& L : lightDescs)
+    {
+        // enum은 고정폭으로 보관
+        uint32_t eTypeU32 = static_cast<uint32_t>(L.eType);
+        f.write((const char*)&eTypeU32, sizeof(uint32_t));
+
+        f.write((const char*)&L.vDiffuse, sizeof(XMFLOAT4));
+        f.write((const char*)&L.vAmbient, sizeof(XMFLOAT4));
+        f.write((const char*)&L.vSpecular, sizeof(XMFLOAT4));
+
+        f.write((const char*)&L.vDirection, sizeof(XMFLOAT4));
+
+        f.write((const char*)&L.vPosition, sizeof(XMFLOAT4));
+        f.write((const char*)&L.fRange, sizeof(float));
+
+        f.write((const char*)&L.fInnerCone, sizeof(float));  // Spot 아니면 0
+        f.write((const char*)&L.fOuterCone, sizeof(float));  // Spot 아니면 0
+    }
+
+    for (const auto& S : shadowLightDescs)
+    {
+        f.write((const char*)&S.vEye, sizeof(XMFLOAT3));
+        f.write((const char*)&S.vAt, sizeof(XMFLOAT3));
+
+        f.write((const char*)&S.fFovy, sizeof(float));
+        f.write((const char*)&S.fNear, sizeof(float));
+        f.write((const char*)&S.fFar, sizeof(float));
+        f.write((const char*)&S.fAspect, sizeof(float)); // 0 저장 시 로드시 화면비로 대체 가능
+    }
+
+    f.close();
+    return S_OK;
+}
+
+HRESULT SaveLoadManager::ReadyLightsFromFile(const std::string& path)
+{
+    std::ifstream f(path, std::ios::binary);
+    if (!f.is_open())
+        return E_FAIL;
+
+    _uint lightCount = 0, shadowCount = 0;
+    f.read((char*)&lightCount, sizeof(_uint));
+    f.read((char*)&shadowCount, sizeof(_uint));
+    if (!f) return E_FAIL;
+
+    // 현재 화면비(Aspect==0 저장된 항목 대체용)
+    _uint iNumView = 1;
+    D3D11_VIEWPORT view{};
+    m_pEngineUtility->GetContext()->RSGetViewports(&iNumView, &view);
+    const float aspectNow = view.Width / view.Height;
+
+    // 1) 라이트들
+    for (_uint i = 0; i < lightCount; ++i)
+    {
+        LIGHT_DESC L{}; // 기본 0
+        uint32_t eTypeU32 = 0;
+
+        f.read((char*)&eTypeU32, sizeof(uint32_t));               L.eType = (LIGHT)eTypeU32;
+
+        f.read((char*)&L.vDiffuse, sizeof(XMFLOAT4));
+        f.read((char*)&L.vAmbient, sizeof(XMFLOAT4));
+        f.read((char*)&L.vSpecular, sizeof(XMFLOAT4));
+
+        f.read((char*)&L.vDirection, sizeof(XMFLOAT4));
+
+        f.read((char*)&L.vPosition, sizeof(XMFLOAT4));
+        f.read((char*)&L.fRange, sizeof(float));
+
+        f.read((char*)&L.fInnerCone, sizeof(float));
+        f.read((char*)&L.fOuterCone, sizeof(float));
+        if (!f) return E_FAIL;
+
+        if (FAILED(m_pEngineUtility->AddLight(L)))
+            return E_FAIL;
+    }
+
+    // 2) 섀도우들
+    for (_uint i = 0; i < shadowCount; ++i)
+    {
+        SHADOW_DESC S{}; // 기본 0
+        f.read((char*)&S.vEye, sizeof(XMFLOAT3));
+        f.read((char*)&S.vAt, sizeof(XMFLOAT3));
+        f.read((char*)&S.fFovy, sizeof(float));
+        f.read((char*)&S.fNear, sizeof(float));
+        f.read((char*)&S.fFar, sizeof(float));
+        f.read((char*)&S.fAspect, sizeof(float));
+        if (!f) return E_FAIL;
+
+        if (S.fAspect == 0.0f) S.fAspect = aspectNow;
+
+        if (FAILED(m_pEngineUtility->AddShadowLight(S)))
+            return E_FAIL;
+    }
+
     return S_OK;
 }
 

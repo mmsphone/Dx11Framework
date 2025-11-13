@@ -13,7 +13,7 @@ public:
 	HRESULT Initialize(_uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor);
 #ifdef _DEBUG
 	HRESULT ReadyRenderTargetDebug(_float fX, _float fY, _float fSizeX, _float fSizeY);
-	HRESULT Render(class Shader* pShader, class VIBufferRect* pVIBuffer);
+	HRESULT RenderDebug(class Shader* pShader, class VIBufferRect* pVIBuffer);
 #endif
 	HRESULT BindRenderTargetShaderResource(class Shader* pShader, const _char* pConstantName);
 	HRESULT CopyResource(ID3D11Texture2D* pOut);

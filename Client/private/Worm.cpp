@@ -1,5 +1,9 @@
-#include "Worm.h"
+Ôªø#include "Worm.h"
+
 #include "EngineUtility.h"
+
+#include "Worm_Projectile.h"
+#include "Layer.h"
 
 Worm::Worm() 
     : ObjectTemplate{} 
@@ -60,10 +64,6 @@ void Worm::Update(_float fTimeDelta)
     StateMachine* pSM = dynamic_cast<StateMachine*>(FindComponent(TEXT("StateMachine")));
     if (pSM != nullptr)
         pSM->Update(fTimeDelta);
-
-    Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    if (pModel != nullptr)
-        pModel->PlayAnimation(fTimeDelta);
 }
 
 void Worm::LateUpdate(_float fTimeDelta)
@@ -116,11 +116,11 @@ HRESULT Worm::RenderShadow(_uint iIndex)
 
     if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW, iIndex))))
+    if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW, iIndex))))
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetShadowTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION, iIndex))))
+    if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetActiveShadowLightTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION, iIndex))))
         return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_ShadowLightFarDistance", m_pEngineUtility->GetShadowLightFarDistancePtr(iIndex), sizeof(_float))))
+    if (FAILED(pShader->BindRawValue("g_ShadowLightFarDistance", m_pEngineUtility->GetActiveShadowLightFarDistancePtr(iIndex), sizeof(_float))))
         return E_FAIL;
 
     _uint       iNumMeshes = pModel->GetNumMeshes();
@@ -223,16 +223,21 @@ HRESULT Worm::SetUpStateMachine()
     if (!pSM || !pModel)
         return E_FAIL;
     
-    //ªÛ≈¬ µÓ∑œ
+    //ÏÉÅÌÉú Îì±Î°ù
     pSM->RegisterState("Roar", {
         [](Object* owner, StateMachine* sm) {
             Worm* pWorm = dynamic_cast<Worm*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pWorm || !pModel)
-                return;
+
             pModel->SetAnimation(pWorm->FindAnimIndex("Roar"), false, 0.05f);
         },
-        nullptr,
+         [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
+            Worm* pWorm = dynamic_cast<Worm*>(owner);
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            pWorm->Rotate(fTimeDelta);
+            pModel->PlayAnimation(fTimeDelta);
+        },
         nullptr
     });
 
@@ -240,30 +245,15 @@ HRESULT Worm::SetUpStateMachine()
        [](Object* owner, StateMachine* sm) {
            Worm* pWorm = dynamic_cast<Worm*>(owner);
            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-           if (!pWorm || !pModel)
-               return;
+
            pModel->SetAnimation(pWorm->FindAnimIndex("Idle"), true, 0.1f);
        },
-       [](Object* owner, StateMachine* /*sm*/, _float /*dt*/) {
-            auto* worm = dynamic_cast<Worm*>(owner);
-            if (!worm) return;
+       [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
+            Worm* pWorm = dynamic_cast<Worm*>(owner);
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
 
-            Transform* tf = dynamic_cast<Transform*>(owner->FindComponent(TEXT("Transform")));
-            if (!tf) return;
-
-            // m_moveDir¿ª ¡∂¡ÿ ∫§≈Õ∑Œ ¿Á»∞øÎ
-            _vector dir = XMVectorSetY(worm->m_aimDir, 0.f);
-            if (!XMVector3Equal(dir, XMVectorZero()))
-            {
-                _vector baseLook = XMVectorSet(0.f, 0.f, 1.f, 0.f);
-                float dot = std::clamp(XMVectorGetX(XMVector3Dot(baseLook, XMVector3Normalize(dir))), -1.0f, 1.0f);
-                float ang = acosf(dot);
-                _vector axis = XMVector3Cross(baseLook, dir);
-                if (XMVectorGetY(axis) < 0.f) ang = -ang;
-
-                // ¿¸πÊ√‡¿Ã -Z∏È +180 ¿Ø¡ˆ(µÂ∑–∞˙ µø¿œ«— √‡ ±‚¡ÿ ∞°¡§)
-                tf->RotateRadian(XMVectorSet(0.f, 1.f, 0.f, 0.f), XMConvertToRadians(180.f) + ang);
-            }
+            pWorm->Rotate(fTimeDelta);
+            pModel->PlayAnimation(fTimeDelta);
         },
        nullptr
     });
@@ -272,20 +262,23 @@ HRESULT Worm::SetUpStateMachine()
             [](Object* owner, StateMachine* sm) {
                 Worm* pWorm = dynamic_cast<Worm*>(owner);
                 Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-                if (!pWorm || !pModel)
-                    return;
+
                 pModel->SetAnimation(pWorm->FindAnimIndex("Attack"), false, 0.05f, true);
                 pWorm->m_targetAttackable = true;
             },
             [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
                 Worm* pWorm = dynamic_cast<Worm*>(owner);
                 Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-                if (!pWorm || !pModel)
-                    return;
-                if (pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.3f)
+
+                pModel->PlayAnimation(fTimeDelta);
+                if (pWorm->m_targetAttackable && pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.4f)
                 {
                     pWorm->Shoot();
                     pWorm->m_targetAttackable = false;
+                }
+                else if (pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.2f)
+                {
+                    pWorm->Rotate(fTimeDelta);
                 }
             },
             nullptr
@@ -295,11 +288,14 @@ HRESULT Worm::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Worm* pWorm = dynamic_cast<Worm*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pWorm || !pModel)
-                return;
+
             pModel->SetAnimation(pWorm->FindAnimIndex("Hit"), false, 0.05f, true);
         },
-        nullptr,
+        [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
+            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            pModel->PlayAnimation(fTimeDelta);
+        },
         nullptr
     });
 
@@ -311,17 +307,17 @@ HRESULT Worm::SetUpStateMachine()
                 return;
             pModel->SetAnimation(pWorm->FindAnimIndex("Die"), false, 0.05f);
         },
-        [](Object* owner, StateMachine* sm, _float /*dt*/) {
-            auto* mdl = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!mdl)
-                return;
-            if (mdl->isAnimFinished())
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            auto* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            pModel->PlayAnimation(fTimeDelta * 3.5f); // Worm ÏÇ¨Îßù Ïï†ÎãàÎ©îÏù¥ÏÖòÏù¥ ÎÑàÎ¨¥ Í∏∏Ïñ¥ÏÑú Îπ†Î•¥Í≤å Ïû¨ÏÉù
+            if (pModel->isAnimFinished())
                 owner->SetDead(true);
         },
         nullptr
     });
     
-    //¿¸¿Ã µÓ∑œ
+    //Ï†ÑÏù¥ Îì±Î°ù
     //Roar ->
     pSM->AddTransition("Roar", "Idle", FindPriorityIndex("Idle"),
         [](Object* owner, StateMachine* sm) {
@@ -497,7 +493,7 @@ void Worm::SetUpAIInputData()
     Transform* pTransform = dynamic_cast<Transform*>(pPlayerPos->FindComponent(TEXT("Transform")));
     if (!pTransform)
         return;
-    m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(POSITION));
+    m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(MATRIXROW_POSITION));
 
     m_pAIInputCache->SetData("SightRange", _float{ 8.f });
     m_pAIInputCache->SetData("FovDegree", _float{ 360.f });
@@ -508,23 +504,19 @@ void Worm::SetUpAIInputData()
 HRESULT Worm::SetUpAIProcess()
 {
     AIController* pAI = dynamic_cast<AIController*>(FindComponent(TEXT("AIController")));
-    if (!pAI)
-        return E_FAIL;
+    if (!pAI) return E_FAIL;
 
     AIPROCESS_DESC proc{};
 
-    // [1] SENSE: ¿‘∑¬ ∫∏∞≠∏∏ ¥„¥Á (thisø°º≠ Transform ¡∂»∏)
+    // [1] SENSE
     proc.sense = [this](AIINPUT_DESC& in, _float /*dt*/, _float time)
         {
             Transform* tf = dynamic_cast<Transform*>(this->FindComponent(TEXT("Transform")));
-
-            // WormPos
-            if (tf) in.SetData("WormPos", tf->GetState(POSITION));
+            if (tf) in.SetData("WormPos", tf->GetState(MATRIXROW_POSITION));
 
             const AIValue* pWormPos = in.GetPtr("WormPos");
             const AIValue* pPlayerPos = in.GetPtr("PlayerPos");
 
-            // ±‚∫ª ∞°Ω√º∫ false
             in.SetData("Visible", _bool{ false });
 
             if (pWormPos && pPlayerPos)
@@ -532,21 +524,18 @@ HRESULT Worm::SetUpAIProcess()
                 const _vector wormPos = std::get<_vector>(*pWormPos);
                 const _vector playerPos = std::get<_vector>(*pPlayerPos);
 
-                // ∞≈∏Æ
                 const _float distance = XMVectorGetX(XMVector3Length(playerPos - wormPos));
                 in.SetData("Distance", _float{ distance });
 
-                // ∆ƒ∂ÛπÃ≈Õ(æ¯¿∏∏È ±‚∫ª∞™)
                 const float sightRange = in.GetPtr("SightRange") ? std::get<_float>(*in.GetPtr("SightRange")) : 8.f;
                 const float fovDeg = in.GetPtr("FovDegree") ? std::get<_float>(*in.GetPtr("FovDegree")) : 360.f;
 
-                // ∞°Ω√º∫ (XZ ∆Ú∏È FOV)
                 bool inRangeSight = (distance <= sightRange);
 
                 bool inFov = true;
                 if (fovDeg < 359.f && tf)
                 {
-                    _vector look = tf->GetState(LOOK);
+                    _vector look = tf->GetState(MATRIXROW_LOOK);
                     _vector toT = XMVector3Normalize(playerPos - wormPos);
                     look = XMVector3Normalize(XMVectorSet(XMVectorGetX(look), 0.f, XMVectorGetZ(look), 0.f));
                     toT = XMVector3Normalize(XMVectorSet(XMVectorGetX(toT), 0.f, XMVectorGetZ(toT), 0.f));
@@ -561,58 +550,48 @@ HRESULT Worm::SetUpAIProcess()
             }
         };
 
-    // [2] DECIDE: ∆ƒª˝ ∆«¥‹(out: inRange/tracking/isMove/attack)
+    // [2] DECIDE
     proc.decide = [this](const AIINPUT_DESC& in, AIOUTPUT_DESC& out, _float /*dt*/, _float time)
         {
             out.SetData("isAttack", _bool{ false });
 
-            const AIValue* pWormPos = in.GetPtr("DronePos");
+            const AIValue* pWormPos = in.GetPtr("WormPos"); // ‚òÖ fix
             const AIValue* pPlayerPos = in.GetPtr("PlayerPos");
-            if (!pWormPos || !pPlayerPos) 
-                return;
+            if (!pWormPos || !pPlayerPos) return;
 
             const bool  visible = in.GetPtr("Visible") ? std::get<_bool>(*in.GetPtr("Visible")) : false;
             const float distance = in.GetPtr("Distance") ? std::get<_float>(*in.GetPtr("Distance")) : 1e9f;
-            const float atkRange = in.GetPtr("AttackRange") ? std::get<_float>(*in.GetPtr("AttackRange")) : 9.f;
-            const float cooldown = in.GetPtr("AttackCooldown") ? std::get<_float>(*in.GetPtr("AttackCooldown")) : 1.6f;
+            const float atkRange = in.GetPtr("AttackRange") ? std::get<_float>(*in.GetPtr("AttackRange")) : 4.f;
 
-            float nextT = -1e9f;
+            // InfoÏóêÏÑú Ïø®Îã§Ïö¥ ÏùΩÍ∏∞
+            float nextT = -1e9f, cooldown = 1.6f;
             if (Info* info = dynamic_cast<Info*>(this->FindComponent(TEXT("Info"))))
             {
-                const InfoValue* pN = info->GetInfo().GetPtr("NextAttackT");
-                if (pN) nextT = std::get<_float>(*pN);
+                auto desc = info->GetInfo();
+                if (auto pN = desc.GetPtr("NextAttackT"))    nextT = *std::get_if<_float>(pN);
+                if (auto pC = desc.GetPtr("AttackCooldown")) cooldown = *std::get_if<_float>(pC);
             }
 
             const bool inRange = (distance <= atkRange);
             const bool canShoot = (time >= nextT);
 
-            if (visible && inRange && canShoot)
+            // Ìï≠ÏÉÅ aimDir Ïú†ÏßÄ(Í∞ÄÏãú Ï§ëÏóî Î∞îÎùºÎ≥¥Í∏∞)
             {
-                // ¡∂¡ÿ πÊ«‚(ºˆ∆Ú)
                 const _vector wormPos = std::get<_vector>(*pWormPos);
                 const _vector playerPos = std::get<_vector>(*pPlayerPos);
                 _vector aim = XMVector3Normalize(playerPos - wormPos);
                 aim = XMVector3Normalize(XMVectorSet(XMVectorGetX(aim), 0.f, XMVectorGetZ(aim), 0.f));
-
-                out.SetData("isAttack", _bool{ true });
-                out.SetData("aimDir", aim); // ªÛ≈¬∏”Ω≈ø°º≠ »∏¿¸/πﬂªÁ ≈∏¿Ãπ÷ø° ªÁøÎ
-                out.SetData("attackCooldown", _float{ cooldown });
+                out.SetData("aimDir", aim);
             }
-            else
+
+            if (visible && inRange && canShoot)
             {
-                // ∞°Ω√ ¡ﬂ¿Ã∏È πŸ∂Û∫∏±‚∏∏ «œµµ∑œ aimDir¿∫ ∞Ëº” ≥ª∫∏≥ª ¡‹
-                if (visible)
-                {
-                    const _vector wormPos = std::get<_vector>(*pWormPos);
-                    const _vector playerPos = std::get<_vector>(*pPlayerPos);
-                    _vector aim = XMVector3Normalize(playerPos - wormPos);
-                    aim = XMVector3Normalize(XMVectorSet(XMVectorGetX(aim), 0.f, XMVectorGetZ(aim), 0.f));
-                    out.SetData("aimDir", aim);
-                }
+                out.SetData("isAttack", _bool{ true });
+                out.SetData("attackCooldown", _float{ cooldown }); // (ÏÑ†ÌÉù) AttackÏóêÏÑú Ï∞∏Í≥† Í∞ÄÎä•
             }
         };
 
-    // [3] ACT: √‚∑¬ ∫∏¡§
+    // [3] ACT
     proc.act = [this](AIOUTPUT_DESC& out, _float /*dt*/, _float /*time*/)
         {
             if (auto p = out.GetPtr("aimDir")) {
@@ -622,7 +601,7 @@ HRESULT Worm::SetUpAIProcess()
             }
         };
 
-    // [4] APPLY: Drone ∏‚πˆ π›øµ
+    // [4] APPLY
     proc.applyOutput = [this](const AIOUTPUT_DESC& out)
         {
             m_isAttack = false;
@@ -634,7 +613,146 @@ HRESULT Worm::SetUpAIProcess()
     return S_OK;
 }
 
+void Worm::Rotate(_float fTimeDelta)
+{
+    Transform* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!tf) return;
+
+    // 1) ÏõêÌïòÎäî Î™©Ìëú Î∞©Ìñ•(ÏàòÌèâ)
+    _vector desiredDir = m_aimDir;
+
+    if (XMVector3Equal(desiredDir, XMVectorZero()))
+    {
+        // m_aimDirÏù¥ ÎπÑÏñ¥ÏûàÏúºÎ©¥ ÌîåÎ†àÏù¥Ïñ¥ ÏúÑÏπò Í∏∞Î∞ò Í≥ÑÏÇ∞
+        const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+        if (Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0))
+        {
+            if (Transform* pPT = dynamic_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform"))))
+            {
+                _vector wormPos = tf->GetState(MATRIXROW_POSITION);
+                _vector playerPos = pPT->GetState(MATRIXROW_POSITION);
+                desiredDir = XMVector3Normalize(XMVectorSetY(playerPos - wormPos, 0.f));
+            }
+        }
+    }
+
+    if (XMVector3Equal(desiredDir, XMVectorZero()))
+        return;
+
+    desiredDir = XMVector3Normalize(desiredDir);
+
+    // 2) ÌòÑÏû¨/Î™©Ìëú yaw Í≥ÑÏÇ∞ (Î™®Îç∏ Ï†ÑÎ∞© -Z Î≥¥Ï†ï: +PI)
+    const float baseOffset = XM_PI;
+
+    _vector curLook = XMVector3Normalize(XMVectorSetY(tf->GetState(MATRIXROW_LOOK), 0.f));
+    float curYaw = atan2f(XMVectorGetX(curLook), XMVectorGetZ(curLook));     // [-PI,PI]
+    float dstYaw = baseOffset + atan2f(XMVectorGetX(desiredDir), XMVectorGetZ(desiredDir));
+    while (dstYaw > XM_PI) dstYaw -= XM_2PI;
+    while (dstYaw < -XM_PI) dstYaw += XM_2PI;
+
+    float shortestDelta = dstYaw - m_yawTarget;
+    while (shortestDelta > XM_PI) shortestDelta -= XM_2PI;
+    while (shortestDelta < -XM_PI) shortestDelta += XM_2PI;
+
+    // 3) Î™©ÌëúÍ∞Ä Î∞îÎÄåÏóàÏúºÎ©¥ ÏÉà Î≥¥Í∞Ñ ÏãúÏûë
+    const float deltaNow = fabsf(shortestDelta);
+    const float reTargetEps = XMConvertToRadians(2.0f); // 2ÎèÑ Ïù¥ÏÉÅ Ï∞®Ïù¥ÎÇòÎ©¥ Ïû¨ÌÉÄÍπÉÌåÖ
+    if (!m_yawInterpActive || deltaNow > reTargetEps)
+    {
+        m_yawInterpActive = true;
+        m_yawInterpT = 0.f;
+        m_yawStart = curYaw;
+        m_yawTarget = dstYaw;
+    }
+
+    // 4) Î≥¥Í∞Ñ ÏßÑÌñâ
+    if (m_yawInterpActive)
+    {
+        m_yawInterpT += max(0.f, fTimeDelta);
+        float t = std::clamp(m_yawInterpT / max(1e-4f, m_yawInterpDur), 0.f, 1.f);
+        t = std::clamp(t, 0.f, 1.f);
+        float s = t * t * (3.f - 2.f * t);
+
+        // ÏµúÎã®Í∞Å Í∏∞Ï§ÄÏúºÎ°ú Î≥¥Í∞Ñ
+        float shortestDelta = m_yawTarget - m_yawStart;
+        while (shortestDelta > XM_PI) shortestDelta -= XM_2PI;
+        while (shortestDelta < -XM_PI) shortestDelta += XM_2PI;
+        float d = shortestDelta;
+
+        float yawNow = m_yawStart + d * s;
+        while (yawNow > XM_PI) yawNow -= XM_2PI;
+        while (yawNow < -XM_PI) yawNow += XM_2PI;
+
+        // Ï†àÎåÄ yaw ÏÑ§Ï†ï(ÎÑàÏùò Transform::RotateRadianÏù¥ Ï†àÎåÄÍ∞Å ÏÑ∏ÌåÖ Î∞©ÏãùÏù¥ÎùºÎäî Ï†ÑÏ†ú‚ÄîÌîåÎ†àÏù¥Ïñ¥ ÏΩîÎìúÏôÄ ÎèôÏùº Ìå®ÌÑ¥)
+        tf->RotateRadian(_vector{ 0.f,1.f,0.f,0.f }, yawNow);
+
+        if (t >= 1.f) {
+            m_yawInterpActive = false;
+        }
+    }
+}
+
 void Worm::Shoot()
 {
+    Transform* pWormTF = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!pWormTF) return;
 
+    const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+    Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
+    if (!pPlayer) return;
+
+    Transform* pPlayerTF = dynamic_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform")));
+    if (!pPlayerTF) return;
+
+    const _vector wormPos = pWormTF->GetState(MATRIXROW_POSITION);
+    const _vector playerPos = pPlayerTF->GetState(MATRIXROW_POSITION);
+
+    _vector moveDir = XMVector3Normalize(XMVectorSetY(playerPos - wormPos, 0.f));
+    if (XMVector3Equal(moveDir, XMVectorZero()))
+        moveDir = XMVectorSet(0.f, 0.f, 1.f, 0.f);
+
+    _vector spawnPos = wormPos;
+    bool setBySocket = false;
+
+    // Î™®Îç∏ ÏÜåÏºì ÏãúÎèÑ (Ïòà: "mouth" ÎòêÎäî "muzzle" Ïù¥Î¶Ñ Í∞ÄÏ†ï)
+    if (Model* mdl = dynamic_cast<Model*>(FindComponent(TEXT("Model"))))
+    {
+        const _float4x4* pNodeMat = mdl->GetSocketBoneMatrixPtr("Head");
+        if (pNodeMat)
+        {
+            _matrix mNode = XMLoadFloat4x4(pNodeMat);
+            _matrix mWorld = XMLoadFloat4x4(pWormTF->GetWorldMatrixPtr());
+            spawnPos = XMVector3TransformCoord(mNode.r[3], mWorld);
+            setBySocket = true;
+        }
+    }
+
+    if (!setBySocket)
+    {
+        return;
+    }
+
+    _vector aimPos = XMVectorSetY(playerPos, XMVectorGetY(playerPos) + 0.2f);
+
+    Projectile::PROJECTILE_DESC Desc{};
+    Desc.moveDir = aimPos - spawnPos;
+    Desc.accTime = 0.f;
+    Desc.damageAmount = 10.f;
+    Desc.faction = FACTION_MONSTER;
+    Desc.hitRadius = 0.6f;
+    Desc.lifeTime = 2.0f;
+    Desc.fSpeedPerSec = 20.0f;
+
+    if (FAILED(m_pEngineUtility->AddObject(sceneId, TEXT("Worm_Projectile"), sceneId, TEXT("Projectile"), &Desc)))
+        return;
+
+    {
+        auto* pProjLayer = m_pEngineUtility->FindLayer(sceneId, TEXT("Projectile"));
+        if (pProjLayer && !pProjLayer->GetAllObjects().empty())
+        {
+            Object* pNewProj = pProjLayer->GetAllObjects().back();
+            if (Transform* pProjTF = dynamic_cast<Transform*>(pNewProj->FindComponent(TEXT("Transform"))))
+                pProjTF->SetState(MATRIXROW_POSITION, spawnPos);
+        }
+    }
 }

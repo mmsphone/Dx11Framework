@@ -42,7 +42,7 @@ HRESULT Mesh::InitializePrototype(MODELTYPE eType, const MeshData& mesh, const v
     m_eIndexFormat = DXGI_FORMAT_R32_UINT;
     m_ePrimitive = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-    HRESULT hr = (eType == MODELTYPE::NONANIM) ?
+    HRESULT hr = (eType == MODELTYPE::MODELTYPE_NONANIM) ?
         ReadyVertexBufferForNonAnim(mesh, PreTransformMatrix) :
         ReadyVertexBufferForAnim(mesh, Bones);
 
@@ -103,7 +103,18 @@ HRESULT Mesh::ReadyVertexBufferForNonAnim(const MeshData& mesh, _fmatrix PreTran
             vertices[i].vTexcoord = mesh.texcoords[i];
 
         if (i < mesh.tangents.size())
+        {
             vertices[i].vTangent = mesh.tangents[i];
+            XMStoreFloat3(&vertices[i].vTangent,
+                XMVector3TransformNormal(XMLoadFloat3(&vertices[i].vTangent), PreTransformMatrix));
+        }
+
+        if (i < mesh.binormals.size())
+        {
+            vertices[i].vBinormal = mesh.binormals[i];
+            XMStoreFloat3(&vertices[i].vBinormal,
+                XMVector3TransformNormal(XMLoadFloat3(&vertices[i].vBinormal), PreTransformMatrix));
+        }
     }
 
     D3D11_SUBRESOURCE_DATA VertexInitialData{};

@@ -222,34 +222,42 @@ void EngineUtility::SetMouseVisible(_bool bVisible)
 {
 	m_pInput->SetMouseVisible(bVisible);
 }
+
 _bool EngineUtility::IsKeyDown(_ubyte byKeyID) const
 {
 	return m_pInput->IsKeyDown(byKeyID);
 }
+
 _bool EngineUtility::IsKeyPressed(_ubyte byKeyID) const
 {
 	return m_pInput->IsKeyPressed(byKeyID);
 }
+
 _bool EngineUtility::IsKeyReleased(_ubyte byKeyID) const
 {
 	return m_pInput->IsKeyReleased(byKeyID);
 }
+
 _bool EngineUtility::IsKeyUp(_ubyte byKeyID) const
 {
 	return m_pInput->IsKeyUp(byKeyID);
 }
+
 _bool EngineUtility::IsMouseDown(MOUSEKEYSTATE eMouse) const
 {
 	return m_pInput->IsMouseDown(eMouse);
 }
+
 _bool EngineUtility::IsMousePressed(MOUSEKEYSTATE eMouse) const
 {
 	return m_pInput->IsMousePressed(eMouse);
 }
+
 _bool EngineUtility::IsMouseReleased(MOUSEKEYSTATE eMouse) const
 {
 	return m_pInput->IsMouseReleased(eMouse);
 }
+
 _bool EngineUtility::IsMouseUp(MOUSEKEYSTATE eMouse) const
 {
 	return m_pInput->IsMouseUp(eMouse);
@@ -325,6 +333,7 @@ std::vector<class Object*> EngineUtility::GetAllObjects(_uint iSceneId)
 {
 	return m_pObjectManager->GetAllObjects(iSceneId);
 }
+
 void EngineUtility::ClearDeadObjects()
 {
 	m_pObjectManager->ClearDeadObjects();
@@ -340,6 +349,7 @@ const _float4x4* EngineUtility::GetTransformFloat4x4Ptr(D3DTS eState)
 
 	return m_pPipeLine->GetTransformFloat4x4Ptr(eState);
 }
+
 _matrix EngineUtility::GetTransformMatrix(D3DTS eState)
 {
 	return m_pPipeLine->GetTransformMatrix(eState);
@@ -385,9 +395,44 @@ HRESULT EngineUtility::AddLight(const LIGHT_DESC& LightDesc)
 	return m_pLightManager->AddLight(LightDesc);
 }
 
+HRESULT EngineUtility::RemoveLight(_uint iIndex)
+{
+	return m_pLightManager->RemoveLight(iIndex);
+}
+
+const list<class Light*>& EngineUtility::GetAllLights()
+{
+	return m_pLightManager->GetAllLights();
+}
+
+const list<class Light*>& EngineUtility::GetActiveLights()
+{
+	return m_pLightManager->GetActiveLights();
+}
+
+void EngineUtility::ClearLights()
+{
+	m_pLightManager->ClearLights();
+}
+
 HRESULT EngineUtility::RenderLights(class Shader* pShader, class VIBufferRect* pVIBuffer)
 {
 	return m_pLightManager->RenderLights(pShader, pVIBuffer);
+}
+
+void EngineUtility::SetLightActive(_uint iIndex, _bool bActive)
+{
+	return m_pLightManager->SetLightActive(iIndex, bActive);
+}
+
+void EngineUtility::SetLightActive(Light* pLight, _bool bActive)
+{
+	return m_pLightManager->SetLightActive(pLight, bActive);
+}
+
+void EngineUtility::SetActiveLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxLights)
+{
+	return m_pLightManager->SetActiveLightsByDistance(vPos, fMaxDistance, iMaxLights);
 }
 
 HRESULT EngineUtility::AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath)
@@ -417,10 +462,12 @@ HRESULT EngineUtility::ShutdownIMGUI()
 {
 	return m_pIMGUIManager->Shutdown();
 }
+
 HRESULT EngineUtility::AddPanel(const string& PanelName, class Panel* pPanel) 
 {
 	return m_pIMGUIManager->AddPanel(PanelName, pPanel);
 }
+
 HRESULT EngineUtility::RemovePanel(const string& PanelName)
 {
 	return m_pIMGUIManager->RemovePanel(PanelName);
@@ -435,6 +482,7 @@ HRESULT EngineUtility::ClearPanels()
 {
 	return m_pIMGUIManager->ClearPanels();
 }
+
 HRESULT EngineUtility::SetPanelOpen(const string& PanelName, bool open)
 {
 	return m_pIMGUIManager->SetPanelOpen(PanelName, open);
@@ -470,6 +518,7 @@ void EngineUtility::ClearGizmoState()
 	m_pIMGUIManager->ClearGizmoTarget();
 }
 #endif
+
 RAY EngineUtility::GetRay()
 {
 	return m_pPickingManager->GetRay();
@@ -512,14 +561,17 @@ _float EngineUtility::GetGridCellSize()
 {
 	return m_pGridManager->GetGridCellSize();
 }
+
 void EngineUtility::SetGridCellSize(_float cellSize)
 {
 	m_pGridManager->SetGridCellSize(cellSize);
 }
+
 _uint EngineUtility::GetNumGridCells()
 {
 	return m_pGridManager->GetNumGridCells();
 }
+
 void EngineUtility::SetNumGridCells(_uint iNumGridCells)
 {
 	m_pGridManager->SetNumGridCells(iNumGridCells);
@@ -529,10 +581,12 @@ void EngineUtility:: SetMarkerPosition(const _float3& vPos)
 {
 	m_pGridManager->SetMarkerPosition(vPos);
 }
+
 void EngineUtility::ClearMarker()
 {
 	m_pGridManager->ClearMarker();
 }
+
 _float3 EngineUtility::GetMarkerPosition() const
 {
 	return m_pGridManager->GetMarkerPosition();
@@ -542,44 +596,69 @@ _bool EngineUtility::IsMark() const
 {
 	return m_pGridManager->IsMark();
 }
+
 #ifdef _DEBUG
 HRESULT EngineUtility::RenderNavigation()
 {
 	return m_pNavigationManager->Render();
 }
 #endif
+
 void EngineUtility::AddTempPoint(const _float3& point)
 {
 	m_pNavigationManager->AddTempPoint(point);
 }
+
 void EngineUtility::ClearTempPoints()
 {
 	m_pNavigationManager->ClearTempPoints();
 }
+
+void EngineUtility::RemoveCell(_int cellIndex)
+{
+	m_pNavigationManager->RemoveCell(cellIndex);
+}
+
 void EngineUtility::RemoveRecentCell()
 {
 	m_pNavigationManager->RemoveRecentCell();
 }
+
 void EngineUtility::ClearCells()
 {
 	m_pNavigationManager->ClearCells();
 }
+
 void EngineUtility::SaveCells(const _char* pNavigationDataFile)
 {
 	m_pNavigationManager->SaveCells(pNavigationDataFile);
 }
+
 void EngineUtility::LoadCells(const _char* pNavigationDataFilePath)
 {
 	m_pNavigationManager->LoadCells(pNavigationDataFilePath);
 }
+
 _bool EngineUtility::IsInCell(_fvector vWorldPos, _int* pOutCellIndex)
 {
 	return m_pNavigationManager->IsInCell(vWorldPos, pOutCellIndex);
 }
+
+_float EngineUtility::GetHeightPosOnCell(_vector* pPos, const _int& pCellIndex)
+{
+	return m_pNavigationManager->GetHeightPosOnCell(pPos, pCellIndex);
+}
+
 _bool EngineUtility::SetHeightOnCell(_fvector vWorldPos, _vector* pOutAdjustedPos)
 {
 	return m_pNavigationManager->SetHeightOnCell(vWorldPos, pOutAdjustedPos);
 }
+
+_bool EngineUtility::GetSlideVectorOnCell(_fvector pos, _fvector delta, _int cellIndex, _vector* outSlideVector) const
+{
+	return m_pNavigationManager->GetSlideVectorOnCell(pos, delta, cellIndex, outSlideVector);
+}
+
 const vector<class Cell*>& EngineUtility::GetCells() const
 {
 	return m_pNavigationManager->GetCells();
@@ -613,6 +692,16 @@ std::vector<MAP_OBJECTDATA> EngineUtility::LoadMapData(const std::string& path)
 HRESULT EngineUtility::SaveMapData(const std::string& path)
 {
 	return m_pSaveLoadManager->SaveMapData(path);
+}
+
+HRESULT EngineUtility::SaveLights(const std::string& path)
+{
+	return m_pSaveLoadManager->SaveLights(path);
+}
+
+HRESULT EngineUtility::ReadyLightsFromFile(const std::string& path)
+{
+	return m_pSaveLoadManager->ReadyLightsFromFile(path);
 }
 
 HRESULT EngineUtility::AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor)
@@ -651,30 +740,35 @@ HRESULT EngineUtility::ReadyRenderTargetDebug(const _wstring& strRenderTargetTag
 	return m_pRenderTargetManager->ReadyRenderTargetDebug(strRenderTargetTag, fX, fY, fSizeX, fSizeY);
 }
 
-HRESULT EngineUtility::RenderRenderTargetGroup(const _wstring& strRenderTargetGroupTag, class Shader* pShader, class VIBufferRect* pVIBuffer)
+HRESULT EngineUtility::RenderDebugRenderTargetGroup(const _wstring& strRenderTargetGroupTag, class Shader* pShader, class VIBufferRect* pVIBuffer)
 {
-	return m_pRenderTargetManager->RenderRenderTargetGroup(strRenderTargetGroupTag, pShader, pVIBuffer);
+	return m_pRenderTargetManager->RenderDebugRenderTargetGroup(strRenderTargetGroupTag, pShader, pVIBuffer);
 }
 #endif
+
+const SHADOW_DESC* EngineUtility::GetShadowLight(_uint iIndex)
+{
+	return m_pShadowLightManager->GetShadowLight(iIndex);
+}
 
 HRESULT EngineUtility::AddShadowLight(const SHADOW_DESC& ShadowDesc)
 {
 	return m_pShadowLightManager->AddShadowLight(ShadowDesc);
 }
 
-const _float4x4* EngineUtility::GetShadowTransformFloat4x4Ptr(D3DTS eState, _uint iIndex)
+HRESULT EngineUtility::RemoveShadowLight(_uint iIndex)
 {
-	return m_pShadowLightManager->GetShadowTransformFloat4x4Ptr(eState, iIndex);
+	return m_pShadowLightManager->RemoveShadowLight(iIndex);
 }
 
-const _float3* EngineUtility::GetShadowLightPositionPtr(_uint iIndex)
+const list<class ShadowLight*>& EngineUtility::GetAllShadowLights()
 {
-	return m_pShadowLightManager->GetShadowLightPositionPtr(iIndex);
+	return m_pShadowLightManager->GetAllShadowLights();
 }
 
-const _float* EngineUtility::GetShadowLightFarDistancePtr(_uint iIndex)
+const list<class ShadowLight*>& EngineUtility::GetActiveShadowLights()
 {
-	return m_pShadowLightManager->GetShadowLightFarDistancePtr(iIndex);
+	return m_pShadowLightManager->GetActiveShadowLights();
 }
 
 void EngineUtility::ClearShadowLights()
@@ -682,7 +776,37 @@ void EngineUtility::ClearShadowLights()
 	return m_pShadowLightManager->ClearShadowLights();
 }
 
-_uint EngineUtility::GetNumShadowLights()
+const _float4x4* EngineUtility::GetActiveShadowLightTransformFloat4x4Ptr(D3DTS eState, _uint iIndex)
 {
-	return m_pShadowLightManager->GetNumShadowLights();
+	return m_pShadowLightManager->GetActiveShadowLightTransformFloat4x4Ptr(eState, iIndex);
+}
+
+const _float3* EngineUtility::GetActiveShadowLightPositionPtr(_uint iIndex)
+{
+	return m_pShadowLightManager->GetActiveShadowLightPositionPtr(iIndex);
+}
+
+const _float* EngineUtility::GetActiveShadowLightFarDistancePtr(_uint iIndex)
+{
+	return m_pShadowLightManager->GetActiveShadowLightFarDistancePtr(iIndex);
+}
+
+_uint EngineUtility::GetNumActiveShadowLights()
+{
+	return m_pShadowLightManager->GetNumActiveShadowLights();
+}
+
+void EngineUtility::SetShadowLightActive(_uint iIndex, _bool bActive)
+{
+	return m_pShadowLightManager->SetShadowLightActive(iIndex, bActive);
+}
+
+void EngineUtility::SetShadowLightActive(class ShadowLight* pShadowLight, _bool bActive)
+{
+	return m_pShadowLightManager->SetShadowLightActive(pShadowLight, bActive);
+}
+
+void EngineUtility::SetActiveShadowLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxCount)
+{
+	return m_pShadowLightManager->SetActiveShadowLightsByDistance(vPos, fMaxDistance, iMaxCount);
 }

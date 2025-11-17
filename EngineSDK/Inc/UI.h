@@ -2,6 +2,8 @@
 
 #include "Object.h"
 
+NS_BEGIN(Engine)
+
 class ENGINE_DLL UI abstract : public Object
 {
 public:
@@ -9,6 +11,7 @@ public:
 	{
 		_float fX;
 		_float fY;
+		_float fZ;
 		_float fSizeX;
 		_float fSizeY;
 	}UI_DESC;
@@ -25,6 +28,8 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	void ApplyRectFromControl(const UIControlDesc& desc);
+
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free() override;
 
@@ -33,8 +38,10 @@ protected:
 
 protected:
 	_float						m_fX, m_fY, m_fSizeX, m_fSizeY;
+	_float						m_fZ;
 	_float4x4					m_ViewMatrix{}, m_ProjMatrix{};
 
 	_float						m_fViewportSizeX{}, m_fViewportSizeY{};
 };
 
+NS_END

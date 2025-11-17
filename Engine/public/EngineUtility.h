@@ -76,6 +76,9 @@ public:
 
 	//RenderManager
 	HRESULT JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObject);
+#ifdef _DEBUG
+	void RenderDebug();
+#endif
 
 	//Pipeline
 	const _float4x4* GetTransformFloat4x4Ptr(D3DTS eState);
@@ -168,6 +171,9 @@ public:
 	HRESULT SaveMapData(const std::string& path);
 	HRESULT SaveLights(const std::string& path);
 	HRESULT ReadyLightsFromFile(const std::string& path);
+	HRESULT SaveTriggerBoxes(const std::string& path);
+	HRESULT LoadTriggerBoxes(const std::string& path);
+	HRESULT BuildUIFromRes(const std::string& path, const struct UIPrototypeTags& protoTags, std::vector<class UI*>& outUIObjects);
 
 	//RenderTargetManager
 	HRESULT AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor);
@@ -196,6 +202,23 @@ public:
 	void SetShadowLightActive(class ShadowLight* pShadowLight, _bool bActive);
 	void SetActiveShadowLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxCount = 4);
 
+	//SpawnerManager
+	void AddSpawner(class Spawner* pSpawner);
+	void Spawn(_uint iSpawnerIndex);
+	void RemoveSpawner(_uint iSpawnerIndex);
+	void ClearSpawners();
+	const vector<Spawner*>& GetSpawners() const;
+	
+	//TriggerBoxManager
+	HRESULT AddTriggerBox(class TriggerBox* pTriggerBox);
+	HRESULT RemoveTriggerBox(_uint index);
+	void ClearTriggerBoxes();
+	void UpdateTriggers(); 
+	void RenderTriggerBoxes();
+	const vector<class TriggerBox*>& GetTriggerBoxes() const;
+
+	//Frustum
+	_bool IsIn_Frustum_WorldSpace(_fvector vWorldPos, _float fRadius = 0.f);
 
 private:
 	class Graphic* m_pGraphic = { nullptr };
@@ -215,6 +238,9 @@ private:
 	class SaveLoadManager* m_pSaveLoadManager = { nullptr };
 	class RenderTargetManager* m_pRenderTargetManager = { nullptr };
 	class ShadowLightManager* m_pShadowLightManager = { nullptr };
+	class SpawnerManager* m_pSpawnerManager = { nullptr };
+	class TriggerBoxManager* m_pTriggerBoxManager = { nullptr };
+	class Frustum* m_pFrustum = { nullptr };
 };
 
 NS_END

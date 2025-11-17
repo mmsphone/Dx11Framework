@@ -42,6 +42,9 @@ HRESULT Worm::Initialize(void* pArg)
     if (m_pAIInputCache == nullptr)
         m_pAIInputCache = new AIINPUT_DESC{};
 
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    pTransform->SetScale(scaleOffset, scaleOffset, scaleOffset);
+
     return S_OK;
 }
 
@@ -64,12 +67,20 @@ void Worm::Update(_float fTimeDelta)
     StateMachine* pSM = dynamic_cast<StateMachine*>(FindComponent(TEXT("StateMachine")));
     if (pSM != nullptr)
         pSM->Update(fTimeDelta);
+
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 }
 
 void Worm::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this);
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::SHADOWLIGHT, this);
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
+    {
+        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
+        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
+    }
 
     __super::LateUpdate(fTimeDelta);
 }
@@ -101,6 +112,11 @@ HRESULT Worm::Render()
             pModel->Render(i);
         }
     }
+
+#ifdef _DEBUG
+    Collision* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision")));
+    pCollision->Render();
+#endif
 
     return S_OK;
 }
@@ -189,6 +205,13 @@ HRESULT Worm::ReadyComponents()
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("AIController"), TEXT("AIController"), nullptr, nullptr)))
         return E_FAIL;
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("Info"), TEXT("Info"), nullptr, nullptr)))
+        return E_FAIL;
+
+    CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
+    OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
+    XMStoreFloat3(&OBBDesc.vExtents, _vector{ 0.2f, 1.f, 0.2f } / scaleOffset);
+    OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
         return E_FAIL;
 
     return S_OK;
@@ -480,6 +503,7 @@ HRESULT Worm::SetUpInfo()
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
     desc.SetData("IsHit", _bool{ false });
+    desc.SetData("Faction", FACTION_MONSTER);
     pInfo->BindInfoDesc(desc);
 
     return S_OK;
@@ -732,7 +756,7 @@ void Worm::Shoot()
         return;
     }
 
-    _vector aimPos = XMVectorSetY(playerPos, XMVectorGetY(playerPos) + 0.2f);
+    _vector aimPos = XMVectorSetY(playerPos, XMVectorGetY(playerPos) + 0.5f);
 
     Projectile::PROJECTILE_DESC Desc{};
     Desc.moveDir = aimPos - spawnPos;

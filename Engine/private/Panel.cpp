@@ -1,4 +1,5 @@
-﻿#pragma once
+﻿#include "Panel.h"
+#pragma once
 #include "Panel.h"
 
 #include "EngineUtility.h"

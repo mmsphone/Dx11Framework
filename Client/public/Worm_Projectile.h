@@ -25,7 +25,7 @@ public:
 private:
     HRESULT ReadyComponents();
     _bool TryApplyHitTo(Object* pTarget);
-    void HitProjectile(const _vector& projectilePos, _float& fHitRadius, vector<Object*>& out);
+    void HitProjectile(vector<Object*>& out);
 };
 
 NS_END

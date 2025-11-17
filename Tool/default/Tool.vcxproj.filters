@@ -62,6 +62,9 @@
     <Filter Include="05.Panel\MapPanel">
       <UniqueIdentifier>{6801a911-a092-465f-b48d-ee5854641a8a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05.Panel\TriggerBoxPanel">
+      <UniqueIdentifier>{7cca0167-9501-4b5e-8f00-4ab68d0a905d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -120,6 +123,9 @@
     </ClInclude>
     <ClInclude Include="..\public\LightPanel.h">
       <Filter>05.Panel\LightPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TriggerBoxPanel.h">
+      <Filter>05.Panel\TriggerBoxPanel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -204,6 +210,9 @@
     </ClCompile>
     <ClCompile Include="..\private\LightPanel.cpp">
       <Filter>05.Panel\LightPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TriggerBoxPanel.cpp">
+      <Filter>05.Panel\TriggerBoxPanel</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

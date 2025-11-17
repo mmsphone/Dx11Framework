@@ -211,6 +211,36 @@
     <Filter Include="04.ForUtility\ShadowLight">
       <UniqueIdentifier>{6aa6f114-529d-404c-b427-e309276c4460}</UniqueIdentifier>
     </Filter>
+    <Filter Include="04.ForUtility\Effect">
+      <UniqueIdentifier>{db212250-1b81-47d5-9876-3d8f24a35bf7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\SpawnerManager">
+      <UniqueIdentifier>{fae5f011-bd6c-4932-b987-961796953363}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\Spawner">
+      <UniqueIdentifier>{64bae399-a8fb-416a-9294-5365f6f8c5d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\TriggerBox">
+      <UniqueIdentifier>{303ca810-af1f-4499-87f8-54c182c71bf9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\TriggerBoxManager">
+      <UniqueIdentifier>{90a3de74-818a-46c1-8de8-d5516933959c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\Frustum">
+      <UniqueIdentifier>{081666eb-7673-4128-9120-2b5e6d354157}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\UI\UIButton">
+      <UniqueIdentifier>{9f7fe573-824f-405b-ab1a-4440bedf4956}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\UI\UILabel">
+      <UniqueIdentifier>{79afa25e-e799-4035-ac95-4496a4ecb40a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\UI\UIImage">
+      <UniqueIdentifier>{c03499ed-2b77-4aa9-ae54-3d80d757d72d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="04.ForUtility\UI\UIPanel">
+      <UniqueIdentifier>{0bdeabee-f31e-4b18-a6d0-fcc596d294ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -422,6 +452,36 @@
     </ClInclude>
     <ClInclude Include="..\public\ShadowLight.h">
       <Filter>04.ForUtility\ShadowLight</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Effect.h">
+      <Filter>04.ForUtility\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SpawnerManager.h">
+      <Filter>03.Utility\SpawnerManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Spawner.h">
+      <Filter>04.ForUtility\Spawner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TriggerBox.h">
+      <Filter>04.ForUtility\TriggerBox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\TriggerBoxManager.h">
+      <Filter>03.Utility\TriggerBoxManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Frustum.h">
+      <Filter>03.Utility\Frustum</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIButton.h">
+      <Filter>04.ForUtility\UI\UIButton</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UILabel.h">
+      <Filter>04.ForUtility\UI\UILabel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIImage.h">
+      <Filter>04.ForUtility\UI\UIImage</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIPanel.h">
+      <Filter>04.ForUtility\UI\UIPanel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -638,6 +698,36 @@
     <ClCompile Include="..\private\ShadowLight.cpp">
       <Filter>04.ForUtility\ShadowLight</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\Effect.cpp">
+      <Filter>04.ForUtility\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SpawnerManager.cpp">
+      <Filter>03.Utility\SpawnerManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Spawner.cpp">
+      <Filter>04.ForUtility\Spawner</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TriggerBox.cpp">
+      <Filter>04.ForUtility\TriggerBox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\TriggerBoxManager.cpp">
+      <Filter>03.Utility\TriggerBoxManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Frustum.cpp">
+      <Filter>03.Utility\Frustum</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIButton.cpp">
+      <Filter>04.ForUtility\UI\UIButton</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UILabel.cpp">
+      <Filter>04.ForUtility\UI\UILabel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIImage.cpp">
+      <Filter>04.ForUtility\UI\UIImage</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIPanel.cpp">
+      <Filter>04.ForUtility\UI\UIPanel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli">
@@ -673,6 +763,12 @@
       <Filter>07.Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\Shader\Shader_InstancingPosTex.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_VtxProjectile.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_VtxBloodHit.hlsl">
       <Filter>07.Shaders</Filter>
     </FxCompile>
   </ItemGroup>

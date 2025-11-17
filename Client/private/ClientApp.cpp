@@ -49,6 +49,8 @@ HRESULT ClientApp::Render()
 
 #ifdef _DEBUG
 	m_pEngineUtility->RenderNavigation();
+	m_pEngineUtility->RenderTriggerBoxes();
+	m_pEngineUtility->RenderDebug();
 #endif
 
 	/* 후면버퍼를 전면으로 보여준다. */

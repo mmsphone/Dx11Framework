@@ -43,19 +43,21 @@ void ToolApp::Update(_float fTimeDelta)
 
 HRESULT ToolApp::Render()
 {
-	_float4		vClearColor = _float4(0.f, 0.f, 1.f, 1.f);
+	_float4		vClearColor = _float4(0.f, 0.f, 0.f, 1.f);
 
 	/* 백, 깊이버퍼를 초기화한다. */
 	m_pEngineUtility->BeginDraw(&vClearColor);
 
 #ifdef _DEBUG
-	m_pEngineUtility->RenderGrid();
+	//m_pEngineUtility->RenderGrid();
 #endif
 	/* 객체들을 그린다. */
 	m_pEngineUtility->Draw();
 
 #ifdef _DEBUG
-	m_pEngineUtility->RenderNavigation();
+	//m_pEngineUtility->RenderNavigation();
+	//m_pEngineUtility->RenderTriggerBoxes();
+	//m_pEngineUtility->RenderDebug();
 #endif
 
 	m_pEngineUtility->RenderIMGUI();

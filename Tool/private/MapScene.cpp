@@ -10,6 +10,7 @@
 #include "CamPanel.h"
 #include "AssetPanel.h"
 #include "LightPanel.h"
+#include "TriggerBoxPanel.h"
 
 MapScene::MapScene()
 	:Scene{}
@@ -95,6 +96,10 @@ HRESULT MapScene::Initialize()
 	LightPanel* pLightPanel = LightPanel::Create(strLightPanel);
 	m_pEngineUtility->AddPanel(pLightPanel->GetPanelName(), pLightPanel);
 
+	string strTriggerBoxPanel = "TiggerBoxPanel";
+	TriggerBoxPanel* pTriggerBoxPanel = TriggerBoxPanel::Create(strTriggerBoxPanel);
+	m_pEngineUtility->AddPanel(pTriggerBoxPanel->GetPanelName(), pTriggerBoxPanel);
+
 	return S_OK;
 }
 void MapScene::Update(_float fTimeDelta)
@@ -103,7 +108,7 @@ void MapScene::Update(_float fTimeDelta)
 HRESULT MapScene::Render()
 {
 	auto [target, op] = m_pEngineUtility->GetGizmoState();
-	if (!target)
+	if (!target || target->IsDead())
 		return S_OK;
 
 	Transform* pTransform = dynamic_cast<Transform*>(target->FindComponent(TEXT("Transform")));

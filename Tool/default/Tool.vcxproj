@@ -156,6 +156,7 @@
     <ClInclude Include="..\public\TestObject.h" />
     <ClInclude Include="..\public\ToolApp.h" />
     <ClInclude Include="..\public\Tool_Defines.h" />
+    <ClInclude Include="..\public\TriggerBoxPanel.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -184,6 +185,7 @@
     <ClCompile Include="..\private\TestTerrain.cpp" />
     <ClCompile Include="..\private\TestObject.cpp" />
     <ClCompile Include="..\private\ToolApp.cpp" />
+    <ClCompile Include="..\private\TriggerBoxPanel.cpp" />
     <ClCompile Include="Tool.cpp" />
   </ItemGroup>
   <ItemGroup>

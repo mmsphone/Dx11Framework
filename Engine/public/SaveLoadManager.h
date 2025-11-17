@@ -17,6 +17,12 @@ public:
 	HRESULT SaveLights(const std::string& path);
 	HRESULT ReadyLightsFromFile(const std::string& path);
 
+	HRESULT SaveTriggerBoxes(const std::string& path);
+	HRESULT LoadTriggerBoxes(const std::string& path);
+	
+	HRESULT BuildUIFromRes(const std::string& path, const UIPrototypeTags& protoTags, std::vector<class UI*>& outUIObjects);
+	HRESULT LoadUIFromRes(const std::string& path, vector<UIControlDesc>& outControls);
+
 	static SaveLoadManager* Create();
 	virtual void Free() override;
 

@@ -16,6 +16,12 @@
 #include "SMG_Projectile.h"
 #include "Weapon_AR.h"
 #include "Worm_Projectile.h"
+#include "BloodHitEffect.h"
+#include "Spawner.h"
+#include "TriggerBox.h"
+#include "Door.h"
+#include "Panel.h"
+#include "Console.h"
 
 Loader::Loader()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
@@ -96,6 +102,10 @@ HRESULT Loader::LoadingForLogo()
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_InstancingPos"), Shader::Create(TEXT("../bin/Shader/Shader_InstancingPos.hlsl"), VTXPOS_INSTANCEPARTICLE::Elements, VTXPOS_INSTANCEPARTICLE::iNumElements))))
 		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxProjectile"), Shader::Create(TEXT("../bin/Shader/Shader_VtxProjectile.hlsl"), VTXPOS_INSTANCEPARTICLE::Elements, VTXPOS_INSTANCEPARTICLE::iNumElements))))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxBloodHit"), Shader::Create(TEXT("../bin/Shader/Shader_VtxBloodHit.hlsl"), VTXPOSTEX_INSTANCEWORLD::Elements, VTXPOSTEX_INSTANCEWORLD::iNumElements))))
+		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
 
@@ -108,6 +118,13 @@ HRESULT Loader::LoadingForLogo()
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Physics"), Physics::Create())))
 		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("CollisionAABB"), Collision::Create(COLLISIONTYPE_AABB))))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("CollisionOBB"), Collision::Create(COLLISIONTYPE_OBB))))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("CollisionSphere"), Collision::Create(COLLISIONTYPE_SPHERE))))
+		return E_FAIL;
+
 	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("FreeCam"), FreeCam::Create())))
 		return E_FAIL;
@@ -134,7 +151,13 @@ HRESULT Loader::LoadingForLogo()
 HRESULT Loader::LoadingForGamePlay()
 {
  	lstrcpy(m_szLoading, TEXT("텍스처 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_Bullet"), Texture::Create(TEXT("../bin/Resources/Textures/Snow/Snow.png"), 1))))
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodCore"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodCore.png"), 1))))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodSprite"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodSprite.png"), 1))))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodSpray1"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodTexture1.png"), 1))))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodSpray2"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodTexture2.png"), 1))))
 		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
@@ -156,17 +179,81 @@ HRESULT Loader::LoadingForGamePlay()
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Weapon_AR/Weapon_AR.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Weapon_AR"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
-	VIBufferInstancingPoint::POINT_INSTANCE_DESC ParticleDesc{};
-	ParticleDesc.iNumInstance = 1;
-	ParticleDesc.vScale = _float2(0.3f, 0.3f);
-	ParticleDesc.vCenter = _float3(0.f, 0.f, 0.f);
-	ParticleDesc.vPivot = _float3(0.f, 0.f, 0.f);
-	ParticleDesc.vRange = _float3(0.0f, 0.0f, 0.0f);
-	ParticleDesc.vLifeTime = _float2(2.f, 2.f);
-	ParticleDesc.vSpeed = _float2(2.f, 4.f);
-	ParticleDesc.isLoop = true;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_Particle_Bullet"), VIBufferInstancingPoint::Create(&ParticleDesc))))
+	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Door/Door.bin");
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Door"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
+	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Panel/Panel.bin");
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Panel"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
+		return E_FAIL;
+	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Console/Console.bin");
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Console"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
+		return E_FAIL;
+
+	{
+		VIBufferInstancingPoint::POINT_INSTANCE_DESC pointDesc{};
+		pointDesc.iNumInstance = 1;
+		pointDesc.vScale = _float2(0.3f, 0.3f);
+		pointDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		pointDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		pointDesc.vRange = _float3(0.0f, 0.0f, 0.0f);
+		pointDesc.vLifeTime = _float2(2.f, 2.f);
+		pointDesc.vSpeed = _float2(2.f, 4.f);
+		pointDesc.isLoop = true;
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_Particle_Bullet"), VIBufferInstancingPoint::Create(&pointDesc))))
+			return E_FAIL;
+	}
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 1;
+		rectDesc.vScale = _float2(1.f, 1.f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.f, 0.f, 0.f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(0.f, 0.f);
+		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.isLoop = false;
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodCore"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 1;
+		rectDesc.vScale = _float2(1.f, 1.f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.f, 0.f, 0.f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(0.f, 0.f);
+		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.isLoop = false;
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSprite"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 200;
+		rectDesc.vScale = _float2(0.1f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.2f, 0.1f, 0.2f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(3.0f, 4.0f);
+		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.isLoop = false;
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSpray1"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 200;
+		rectDesc.vScale = _float2(0.1f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(00.2f, 0.1f, 0.2f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(3.0f, 4.0f);
+		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.isLoop = false;
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSpray2"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
 
 	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("GameScene1_Map"), GameScene1_Map::Create())))
@@ -185,19 +272,106 @@ HRESULT Loader::LoadingForGamePlay()
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Worm_Projectile"), Worm_Projectile::Create())))
 		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("BloodHitEffect"), BloodHitEffect::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Door"), Door::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Panel"), Panel::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Console"), Console::Create())))
+		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
 	std::vector<MAP_OBJECTDATA> mapData = m_pEngineUtility->LoadMapData("../bin/data/GameScene1_Map.dat");
 	std::unordered_map<std::string, std::pair<std::wstring, std::wstring>> nameMap = {
 		{ "GameScene1", {		L"GameScene1_Map",	L"Map" } },
 		{ "Player_Male", {		L"Player",			L"Player" } },
-		{ "Monster_Drone", {	L"Drone",			L"Drone" } },
-		{ "Monster_Worm", {		L"Worm",			L"Worm" } },
-		{ "Monster_Shieldbug", {L"Shieldbug",		L"Shieldbug" } },
+		{ "Door", {				L"Door",			L"Door" } },
+		{ "Panel", {			L"Panel",			L"Panel" } },
+		{ "Console", {			L"Console",			L"Console" } },
 	};
 	if (FAILED(LoadMapObjects(SCENE::GAMEPLAY, mapData, nameMap)))
 		return E_FAIL;
-	m_pEngineUtility->LoadCells("../bin/data/GameScene1_Navigation.dat");	
+
+	lstrcpy(m_szLoading, TEXT("지형 로딩 중..."));
+	m_pEngineUtility->LoadCells("../bin/data/GameScene1_Navigation.dat");
+	
+	lstrcpy(m_szLoading, TEXT("몬스터 스포너 로딩 중..."));
+	{
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-110.f, 18.f, -172.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-109.f, 18.f, -170.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-106.f, 18.f, -172.f, 1.f));
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+	{
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-121.f, 18.f, -157.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-120.f, 18.f, -155.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-119.f, 18.f, -157.f, 1.f));
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+	{
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-118.5f, 18.f, -134.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-122.5f, 19.5f, -138.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-126.f, 18.f, -125.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-126.5f, 19.5f, -116.f, 1.f));
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+	{
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-130.f, 17.f, -90.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-127.5f, 17.f, -85.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-134.f, 17.f, -84.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-122.f, 17.f, -87.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-139.3f, 17.f, -85.7f, 1.f));
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+	{
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-127.f, 17.f, -69.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-130.f, 17.f, -76.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-135.f, 17.f, -69.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-142.f, 17.f, -63.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-145.f, 17.f, -69.f, 1.f));
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+	{
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-138.f, 17.f, -53.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-146.f, 17.f, -50.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-138.f, 17.f, -45.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-141.f, 17.f, -36.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-154.f, 17.f, -45.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-154.f, 17.f, -36.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-150.f, 17.f, -26.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-143.f, 16.f, -29.f, 1.f));
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+	{
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-134.f, 16.f, 3.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-125.f, 16.f, 4.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-132.5f, 16.f, 13.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-126.f, 16.5f, 11.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-128.f, 16.5f, 20.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-122.f, 16.f, 15.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-127.f, 16.5f, 16.5f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-122.f, 16.5f, 22.5f, 1.f));
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+
+	lstrcpy(m_szLoading, TEXT("트리거 박스 로딩 중..."));
+	m_pEngineUtility->LoadTriggerBoxes("../bin/data/GameScene1_TriggerBoxes.dat");
+	vector<TriggerBox*> TriggerBoxes = m_pEngineUtility->GetTriggerBoxes();
+	TriggerBoxes[0]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(0); });
+	TriggerBoxes[1]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(1); });
+	TriggerBoxes[2]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(2); });
+	TriggerBoxes[3]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(3); });
+	TriggerBoxes[4]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(4); });
+	TriggerBoxes[5]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(5); });
+	TriggerBoxes[6]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(6); });
 
 	lstrcpy(m_szLoading, TEXT("로딩 완료"));
 	m_isFinished = true;

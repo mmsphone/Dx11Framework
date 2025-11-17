@@ -58,8 +58,8 @@ void TestObject::LateUpdate(_float fTimeDelta)
 {
 
     /* 렌더러의 그룹들 중 어떤 순서로 그려져야할지 적절한 위치에 추가해준다. */
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this);
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::SHADOWLIGHT, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
 
     __super::LateUpdate(fTimeDelta);
 }
@@ -101,7 +101,7 @@ HRESULT TestObject::ReadyComponents()
         return E_FAIL;
 
     /* For.Com_Shader */
-    if (FAILED(AddComponent(SCENE::MODEL, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
 
     return S_OK;

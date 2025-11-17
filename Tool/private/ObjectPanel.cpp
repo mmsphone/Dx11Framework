@@ -24,6 +24,9 @@ HRESULT ObjectPanel::Initialize(Object* pTarget)
 
 void ObjectPanel::OnRender()
 {
+    if (m_pTargetObject == nullptr)
+        return;
+
     static _bool bActiveGuizmo = true;
     ImGui::SeparatorText("Gizmo Mode");
     static ImGuizmo::OPERATION gizmoOp = ImGuizmo::TRANSLATE;
@@ -178,9 +181,10 @@ void ObjectPanel::OnRender()
     // --------------------------
     if (ImGui::Button("Delete Object"))
     {
-        SetOpen(false);
+        //SetOpen(false);
         m_pEngineUtility->ClearGizmoState();
         m_pTargetObject->SetDead(true);
+        m_pTargetObject = nullptr;
     }
 }
 

@@ -107,6 +107,13 @@ void* Collision::GetLocalCollisionBox(COLLISIONTYPE eType)
 #ifdef _DEBUG
 HRESULT Collision::Render()
 {
+    //GS 백업, 비우기
+    auto pContext = m_pEngineUtility->GetContext();
+    ID3D11GeometryShader* pOldGS = nullptr;
+    pContext->GSGetShader(&pOldGS, nullptr, 0);
+    pContext->GSSetShader(nullptr, nullptr, 0);
+
+    //충돌체 랜더링
     m_pEffect->SetWorld(XMMatrixIdentity());
     m_pEffect->SetView(m_pEngineUtility->GetTransformMatrix(D3DTS::D3DTS_VIEW));
     m_pEffect->SetProjection(m_pEngineUtility->GetTransformMatrix(D3DTS::D3DTS_PROJECTION));
@@ -120,6 +127,10 @@ HRESULT Collision::Render()
     m_pCollisionBox->Render(m_pBatch, true == m_isIntersected ? XMVectorSet(1.f, 0.f, 0.f, 1.f) : XMVectorSet(0.f, 1.f, 0.f, 1.f));
 
     m_pBatch->End();
+
+    //GS 다시 세팅
+    pContext->GSSetShader(pOldGS, nullptr, 0);
+    SafeRelease(pOldGS);
 
     return S_OK;
 }

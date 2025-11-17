@@ -51,7 +51,7 @@ void Background::Update(_float fTimeDelta)
 
 void Background::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::UI, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_UI, this);
 
     __super::LateUpdate(fTimeDelta);
 }

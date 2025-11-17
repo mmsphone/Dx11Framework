@@ -94,8 +94,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         {
             pEngineUtility->UpdateTimeDelta(TEXT("Timer_60"));
 
-
-            pMainApp->Update(pEngineUtility->GetTimeDelta(TEXT("Timer_60")));
+            _float fTimeDelta = pEngineUtility->GetTimeDelta(TEXT("Timer_60"));
+            if (fTimeDelta > 1.f / 60.f)
+                fTimeDelta = 1.f / 60.f;
+            pMainApp->Update(fTimeDelta);
             pMainApp->Render();
 
             fTimeAcc = 0.f;

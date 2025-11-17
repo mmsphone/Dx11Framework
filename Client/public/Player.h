@@ -61,6 +61,7 @@ private:
     _vector m_kbDir = {};     // 정규화된 XZ 방향
     float   m_kbPower = 0.f;
 
+    _float scaleOffset = 0.025f;
 };
 
 NS_END

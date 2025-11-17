@@ -3,6 +3,7 @@
 
 namespace Engine
 {
+	//엔진용 데이터
 	typedef struct tagEngineDesc
 	{
 		HINSTANCE		hInstance;
@@ -13,35 +14,7 @@ namespace Engine
 		unsigned int	iNumLevels;
 	}ENGINE_DESC;
 
-	typedef struct tagShadowDesc
-	{
-		XMFLOAT3 vEye;
-		XMFLOAT3 vAt;
-
-		float fFovy;
-		float fNear;
-		float fFar;
-		float fAspect;
-	} SHADOW_DESC;
-
-	typedef struct tagLightDesc
-	{
-		LIGHT			eType;
-
-		XMFLOAT4		vDiffuse;
-		XMFLOAT4		vAmbient;
-		XMFLOAT4		vSpecular;
-
-		XMFLOAT4		vDirection;
-
-		XMFLOAT4		vPosition;
-		float			fRange;
-
-		float			fInnerCone;
-		float			fOuterCone;
-
-	}LIGHT_DESC;
-
+	//InputLayout - POS
 	typedef struct tagVertexPostion
 	{
 		XMFLOAT3		vPosition;
@@ -51,6 +24,7 @@ namespace Engine
 		};
 	}VTXPOS;
 
+	//InputLayout - POS + TEX
 	typedef struct tagVertexPostionTexcoord
 	{
 		XMFLOAT3		vPosition;
@@ -63,6 +37,7 @@ namespace Engine
 		};
 	}VTXPOSTEX;
 
+	//InputLayout - POS + TEX (이름만 다름)
 	typedef struct tagVertexCube
 	{
 		XMFLOAT3		vPosition;
@@ -75,6 +50,7 @@ namespace Engine
 		};
 	}VTXCUBE;
 
+	//InputLayout - POS + NOR + TEX
 	typedef struct tagVertexPostionNormalTexcoord
 	{
 		XMFLOAT3		vPosition;
@@ -89,6 +65,7 @@ namespace Engine
 		};
 	}VTXNORTEX;
 
+	//InputLayout - POS + NOR + TEX + TAN + BINOR
 	typedef struct tagVertexMesh
 	{
 		XMFLOAT3		vPosition;
@@ -107,6 +84,7 @@ namespace Engine
 		};
 	}VTXMESH;
 
+	//InputLayout - POS + NOR + TEX + TAN + BINOR + BLENDINDEX + BLENDWEIGHT
 	typedef struct tagVertexSkinnedMesh
 	{
 		XMFLOAT3		vPosition;
@@ -131,12 +109,7 @@ namespace Engine
 		};
 	}VTXSKINMESH;
 
-	typedef struct tagVertexInstanceParticle
-	{
-		XMFLOAT4			vRight, vUp, vLook, vTranslation;
-		XMFLOAT2			vLifeTime;
-	}VTXINSTANCEPARTICLE;
-
+	//InputLayout - ??
 	typedef struct tagVertexPosTexInstanceParticle
 	{
 		static const unsigned int					iNumElements = { 7 };
@@ -152,6 +125,7 @@ namespace Engine
 		};
 	}VTXPOSTEX_INSTANCEPARTICLE;
 
+	//InputLayout - ??
 	typedef struct tagVertexPosInstanceParticle
 	{
 		static const unsigned int					iNumElements = { 6 };
@@ -167,17 +141,42 @@ namespace Engine
 		};
 	}VTXPOS_INSTANCEPARTICLE;
 
+	//InputLayout - POS + TEX + WORLD
+	typedef struct tagVertexPostexInstanceWorld
+	{
+		static const unsigned int					iNumElements = { 6 };
+		static constexpr D3D11_INPUT_ELEMENT_DESC		Elements[iNumElements] = {
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA,   0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA,   0 },
+
+			{ "WORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0,  D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+			{ "WORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		};
+	}VTXPOSTEX_INSTANCEWORLD;
+
+	//파티클 인스턴스 행렬 연산용 데이터 구조체
+	typedef struct tagVertexInstanceParticle
+	{
+		XMFLOAT4			vRight, vUp, vLook, vTranslation;
+		XMFLOAT2			vLifeTime;
+	}VTXINSTANCEPARTICLE;
+
+	//매쉬 인스턴스 행렬 연산용 데이터 구조체
 	typedef struct tagVertexInstanceMesh
 	{
 		XMFLOAT4			vRight, vUp, vLook, vTranslation;
 	}VTXINSTANCEMESH;
 
+	//레이 구조체
 	typedef struct tagRay
 	{
 		XMFLOAT3 origin;
 		XMFLOAT3 direction;
 	}RAY;
 
+	//피킹 결과
 	typedef struct tagPickResult
 	{
 		bool hit = false;
@@ -186,6 +185,42 @@ namespace Engine
 		PICKTYPE pickType = PICKTYPE_END;
 	}PICK_RESULT;
 
+	//빛 데이터
+	typedef struct tagLightDesc
+	{
+		// 빛 타입
+		LIGHT			eType;
+
+		//빛 기본 정보
+		XMFLOAT4		vDiffuse;
+		XMFLOAT4		vAmbient;
+		XMFLOAT4		vSpecular;
+
+		//방향성라이트
+		XMFLOAT4		vDirection;
+
+		//포인트라이트
+		XMFLOAT4		vPosition;
+		float			fRange;
+
+		//스포트라이트
+		float			fInnerCone;
+		float			fOuterCone;
+	}LIGHT_DESC;
+
+	//그림자 광원 데이터
+	typedef struct tagShadowDesc
+	{
+		XMFLOAT3 vEye;
+		XMFLOAT3 vAt;
+
+		float fFovy;
+		float fNear;
+		float fFar;
+		float fAspect;
+	} SHADOW_DESC;
+
+	//맵 데이터
 	typedef struct tagMapObjectData
 	{
 		std::string objectName;
@@ -193,12 +228,14 @@ namespace Engine
 		XMFLOAT4X4   worldMatrix;
 	}MAP_OBJECTDATA;
 
+	//이벤트 데이터
 	struct EventData {
 		std::string name;
 		float fParam{ 0.f };
 		void* pParam{ nullptr };	
 	};
 
+	//상태머신 상태 함수
 	struct StateProc {
 		std::function<void(class Object*, class StateMachine*)>                      enter;
 		std::function<void(class Object*, class StateMachine*, float)>               update;
@@ -206,6 +243,7 @@ namespace Engine
 		std::function<bool(class Object*, class StateMachine*, const EventData&)>    onEvent;
 	};
 
+	//상태머신 전이 데이터
 	struct Transition {
 		std::function<bool(class Object* pOwner, class StateMachine* stateMachine)> condition;
 		std::string nextState;
@@ -213,12 +251,76 @@ namespace Engine
 		bool restartFlag = false;
 	};
 
+	//데미지 연산 데이터
 	struct DamageDesc {
 		float      amount = 0.f;            // 피해량
 		FACTION     sourceFaction = FACTION_NEUTRAL;
 		class Object* pSource = nullptr;       // 타격 오브젝트
 		XMVECTOR     hitPos = XMVectorZero(); // 피격 위치
 		XMVECTOR     hitDir = XMVectorZero(); // 피격 시 방향
+	};
+
+	//스포너 몹 데이터
+	typedef struct tagSpawnerMobDesc {
+		_uint iSceneId;
+		_wstring prototypeKey;
+		_wstring layerKey;
+		_float3 position;
+	}SPAWNER_MOB_DESC;
+
+	//트리거박스 데이터
+	typedef struct tagTriggerBoxDesc
+	{
+		_float3 center;
+		_float3 Extents;
+	}TRIGGERBOX_DESC;
+
+	//UI용 KeyValue 데이터구조
+	typedef struct tagUIKeyValue
+	{
+		string                 key;
+		string                 value;
+		vector<tagUIKeyValue*> children;
+
+		bool IsLeaf() const { return children.empty(); }
+
+		// 편의 함수: 자식 중 key 일치하는 첫 번째 노드 찾기
+		tagUIKeyValue* FindChild(const std::string& childKey) const
+		{
+			for (auto& child : const_cast<vector<tagUIKeyValue*>&>(children))
+			{
+				if (_stricmp(child->key.c_str(), childKey.c_str()) == 0)
+					return child;
+			}
+			return nullptr;
+		}
+	}UI_KV;
+
+	//UI용 컨트롤 데이터 구조
+	struct UIControlDesc
+	{
+		UICONTROLTYPE   type = UICONTROLTYPE::UI_UNKNOWN;
+
+		std::string     name;       // "name" 또는 "fieldName" 등
+		std::string     id;         // ControlName (고유 id 느낌)
+		std::string     text;       // labelText
+		std::string     image;      // image (vgui/xxx)
+		std::string     command;    // 버튼 command
+
+		int             x = 0;
+		int             y = 0;
+		int             w = 0;
+		int             h = 0;
+
+	};
+
+	struct UIPrototypeTags
+	{
+		const _tchar* layerTag = TEXT("Layer_UI");        // UI를 올릴 레이어 태그
+		const _tchar* buttonProto = TEXT("Prototype_UI_Button");
+		const _tchar* labelProto = TEXT("Prototype_UI_Label");
+		const _tchar* imageProto = TEXT("Prototype_UI_Image");
+		const _tchar* panelProto = TEXT("Prototype_UI_Panel");
 	};
 }
 

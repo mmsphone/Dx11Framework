@@ -65,7 +65,7 @@ HRESULT GameScene::ReadyLayerCamera()
 	if (pTransform == nullptr)
 		return E_FAIL;
 	Desc.pTarget = pPlayer;
-	Desc.offset = _vector{ 0.f, 10.f, -8.f, 0.f };
+	Desc.offset = _vector{ 0.f, 8.f, -5.f, 0.f };
 	XMStoreFloat3(&Desc.vAt, pTransform->GetState(MATRIXROW_POSITION));
 	XMStoreFloat3(&Desc.vEye, pTransform->GetState(MATRIXROW_POSITION) + Desc.offset);
 	Desc.fFovy = XMConvertToRadians(60.0f);

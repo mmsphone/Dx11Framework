@@ -64,6 +64,8 @@ private:
     _float m_yawInterpDur = 0.2f;   // 보간 시간(튜닝)
     _float m_yawStart = 0.f;     // 시작 yaw
     _float m_yawTarget = 0.f;     // 목표 yaw
+
+    _float scaleOffset = 0.020f;
 };
 
 NS_END

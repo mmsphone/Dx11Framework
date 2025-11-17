@@ -4,7 +4,7 @@
 
 NS_BEGIN(Engine)
 
-class ENGINE_DLL CVIBufferInstancingRect final : public VIBufferInstancing
+class ENGINE_DLL VIBufferInstancingRect final : public VIBufferInstancing
 {
 public:
 	typedef struct tagRectInstance final : public VIBufferInstancing::INSTANCE_DESC
@@ -16,9 +16,9 @@ public:
 	}RECT_INSTANCE_DESC;
 
 private:
-	CVIBufferInstancingRect();
-	CVIBufferInstancingRect(const CVIBufferInstancingRect& Prototype);
-	virtual ~CVIBufferInstancingRect() = default;
+	VIBufferInstancingRect();
+	VIBufferInstancingRect(const VIBufferInstancingRect& Prototype);
+	virtual ~VIBufferInstancingRect() = default;
 
 public:
 	virtual HRESULT InitializePrototype(const INSTANCE_DESC* pDesc) override;
@@ -37,7 +37,7 @@ private:
 
 
 public:
-	static CVIBufferInstancingRect* Create(const INSTANCE_DESC* pDesc);
+	static VIBufferInstancingRect* Create(const INSTANCE_DESC* pDesc);
 	virtual Component* Clone(void* pArg) override;
 	virtual void Free() override;
 };

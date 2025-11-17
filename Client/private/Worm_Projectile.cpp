@@ -1,8 +1,9 @@
-#include "Worm_Projectile.h"
+Ôªø#include "Worm_Projectile.h"
 
 #include "EngineUtility.h"
 
 #include "Player.h"
+#include "BloodHitEffect.h"
 
 Worm_Projectile::Worm_Projectile()
     : Projectile{}
@@ -27,20 +28,21 @@ HRESULT Worm_Projectile::Initialize(void* pArg)
 
 void Worm_Projectile::Update(_float fTimeDelta)
 {
-    // ºˆ∏Ì, ¿Ãµø √≥∏Æ ªÛ¿ß ≈¨∑°Ω∫ø°º≠ «‘
+    // ÏàòÎ™Ö, Ïù¥Îèô Ï≤òÎ¶¨ ÏÉÅÏúÑ ÌÅ¥ÎûòÏä§ÏóêÏÑú Ìï®
     __super::Update(fTimeDelta);
     if (IsDead())
         return;
 
-    // √Êµπ √º≈©
-    Transform* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    if (!tf || m_desc.hitRadius <= 0.f)
+    // Ï∂©Îèå Ï≤¥ÌÅ¨
+    Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    if (m_desc.hitRadius <= 0.f)
         return;
 
-    const _vector center = tf->GetState(MATRIXROW_POSITION);
+    pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 
     std::vector<Object*> hits;
-    HitProjectile(center, m_desc.hitRadius, hits);
+    HitProjectile(hits);
 
     for (Object* obj : hits)
     {
@@ -56,24 +58,19 @@ void Worm_Projectile::Update(_float fTimeDelta)
 
 void Worm_Projectile::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(NONBLEND, this);
+    m_pEngineUtility->JoinRenderGroup(RENDER_BLEND, this);
 
     __super::LateUpdate(fTimeDelta);
 }
 
 HRESULT Worm_Projectile::Render()
 {
-    Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    Shader* pShader = dynamic_cast<Shader*>(FindComponent(TEXT("Shader")));
-    VIBufferInstancingPoint* pVIBuffer = dynamic_cast<VIBufferInstancingPoint*>(FindComponent(TEXT("VIBuffer")));
-    Texture* pTexture = dynamic_cast<Texture*>(FindComponent(TEXT("Texture")));
-
-    if (!pTransform || !pShader || !pVIBuffer || !pTexture)
-        return E_FAIL;
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Shader* pShader = static_cast<Shader*>(FindComponent(TEXT("Shader")));
+    VIBufferInstancingPoint* pVIBuffer = static_cast<VIBufferInstancingPoint*>(FindComponent(TEXT("VIBuffer")));
 
     if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
-
     if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS_VIEW))))
         return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS_PROJECTION))))
@@ -81,13 +78,34 @@ HRESULT Worm_Projectile::Render()
     if (FAILED(pShader->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))
         return E_FAIL;
 
-    if (FAILED(pTexture->BindRenderTargetShaderResource(pShader, "g_Texture", 0)))
+    _float4 bulletColor = { 0.2f, 1.0f, 0.2f, 1.0f }; // Ï¥àÎ°ù
+    if (FAILED(pShader->BindRawValue("g_vProjectileColor", &bulletColor, sizeof(_float4))))
+        return E_FAIL;
+
+    _vector vDir = XMVector3Normalize(m_desc.moveDir);
+    _float3 dir3{};
+    XMStoreFloat3(&dir3, vDir);
+    if (FAILED(pShader->BindRawValue("g_vProjectileDir", &dir3, sizeof(_float3))))
+        return E_FAIL;
+
+    _float trailLen = min(m_desc.accTime * m_desc.fSpeedPerSec, 1.5f);
+    if (FAILED(pShader->BindRawValue("g_fTrailLength", &trailLen, sizeof(_float))))
+        return E_FAIL;
+
+    // Ï¥ùÏïå ÏÇ¨Í∞ÅÌòï ÌÅ¨Í∏∞
+    _float projectileSize = 0.05f;
+    if (FAILED(pShader->BindRawValue("g_fProjectileSize", &projectileSize, sizeof(_float))))
         return E_FAIL;
 
     pShader->Begin(0);
 
     pVIBuffer->BindBuffers();
     pVIBuffer->Render();
+
+#ifdef _DEBUG
+    Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    pCollision->Render();
+#endif
 
     return S_OK;
 }
@@ -125,9 +143,13 @@ HRESULT Worm_Projectile::ReadyComponents()
 {
     if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("VIBuffer_Particle_Bullet"), TEXT("VIBuffer"), nullptr, nullptr)))
         return E_FAIL;
-    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Texture_Bullet"), TEXT("Texture"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_VtxProjectile"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
-    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_InstancingPos"), TEXT("Shader"), nullptr, nullptr)))
+
+    CollisionBoxSphere::COLLISIONSPHERE_DESC     SphereDesc{};
+    SphereDesc.vCenter = _float3(0.f, 0.f, 0.f);
+    SphereDesc.fRadius = 0.15f;
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionSphere"), TEXT("Collision"), nullptr, &SphereDesc)))
         return E_FAIL;
 
     return S_OK;
@@ -135,13 +157,13 @@ HRESULT Worm_Projectile::ReadyComponents()
 
 _bool Worm_Projectile::TryApplyHitTo(Object* pTarget)
 {
-    // ¥ÎªÛ Info
+    // ÎåÄÏÉÅ Info
     Info* pInfo = dynamic_cast<Info*>(pTarget->FindComponent(TEXT("Info")));
     if (!pInfo) return false;
 
     const INFO_DESC& d = pInfo->GetInfo();
 
-    // FACTION ±◊∑Ï¿∏∑Œ µø¿œ ±◊∑Ï ≈∏∞› ¡¶ø‹
+    // FACTION Í∑∏Î£πÏúºÎ°ú ÎèôÏùº Í∑∏Î£π ÌÉÄÍ≤© Ï†úÏô∏
     _int tgtFaction = 0;
     if (const InfoValue* v = d.GetPtr("Faction"))
         if (const _int* pf = std::get_if<_int>(v)) tgtFaction = *pf;
@@ -149,7 +171,7 @@ _bool Worm_Projectile::TryApplyHitTo(Object* pTarget)
     if (tgtFaction != 0 && (_int)m_desc.faction != 0 && tgtFaction == (_int)m_desc.faction)
         return false;
 
-    // π´¿˚ √º≈©
+    // Î¨¥Ï†Å Ï≤¥ÌÅ¨
     _float invincibleLeft = 0.f;
     if (const InfoValue* v = d.GetPtr("InvincibleLeft"))
         if (const _float* pf = std::get_if<_float>(v)) invincibleLeft = *pf;
@@ -157,7 +179,7 @@ _bool Worm_Projectile::TryApplyHitTo(Object* pTarget)
     if (invincibleLeft > 0.f)
         return false;
 
-    // µ•πÃ¡ˆ ¿˚øÎ
+    // Îç∞ÎØ∏ÏßÄ Ï†ÅÏö©
     if (Player* player = dynamic_cast<Player*>(pTarget))
     {
         _vector dirKB = XMVector3Normalize(XMVectorSetY(m_desc.moveDir, 0.f));
@@ -185,39 +207,44 @@ _bool Worm_Projectile::TryApplyHitTo(Object* pTarget)
         if (auto pT = Desc.GetPtr("Time"))
             Desc.SetData("LastHit", *std::get_if<_float>(pT));
 
+        {
+            BloodHitEffect::BLOODHITEFFECT_DESC desc{};
+            desc.fLifeTime = 0.25f;
+            desc.bLoop = false;
+            desc.bAutoKill = true;
+            desc.fRotationPerSec = 0.f;
+            desc.fSpeedPerSec = 0.f;
+            XMStoreFloat3(&desc.vCenterWS, static_cast<Transform*>(pTarget->FindComponent(TEXT("Transform")))->GetState(MATRIXROW_POSITION));
+            desc.baseColor = _float4(1.0f, 0.2f, 0.2f, 1.f);
+
+            m_pEngineUtility->AddObject(SCENE::GAMEPLAY, TEXT("BloodHitEffect"), SCENE::GAMEPLAY, TEXT("Effect"), &desc);
+        }
+
         return true;
     }
     return false;
 }
 
-void Worm_Projectile::HitProjectile(const _vector& projectilePos, _float& fHitRadius, vector<Object*>& out)
+void Worm_Projectile::HitProjectile(vector<Object*>& out)
 {
-    //∞·∞˙∞™ √ ±‚»≠
+    Collision* pMyCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    //Í≤∞Í≥ºÍ∞í Ï¥àÍ∏∞Ìôî
     out.clear();
 
-    //∞¥√º ∞°¡Æø¿±‚
+    //Í∞ùÏ≤¥ Í∞ÄÏ†∏Ïò§Í∏∞
     vector<Object*> pObjects = m_pEngineUtility->GetAllObjects(m_pEngineUtility->GetCurrentSceneId());
 
-    //¡∂∞« ∑Á«¡
-    const _float r2 = fHitRadius * fHitRadius;
-    const _float invScaleY = 1.f / 2.f; // y√‡ ∆«¡§∏∏ ¡∂±› ¥√∏≤ 1.f->2.f 
+    //Ï°∞Í±¥ Î£®ÌîÑ
     for (auto& object : pObjects)
     {
         if (object == nullptr || object->IsDead() || object == this)
             continue;
 
-        Transform* pTransform = dynamic_cast<Transform*>(object->FindComponent(TEXT("Transform")));
-        if (pTransform == nullptr)
+        Collision* pOtherCol = dynamic_cast<Collision*>(object->FindComponent(TEXT("Collision")));
+        if (!pOtherCol)
             continue;
 
-        const _vector delta = pTransform->GetState(MATRIXROW_POSITION) - projectilePos;
-
-        const _float dx = XMVectorGetX(delta);
-        const _float dy = XMVectorGetY(delta) * invScaleY;
-        const _float dz = XMVectorGetZ(delta);
-
-        const _float distance = dx * dx + dy * dy + dz * dz;
-        if (distance <= r2)
+        if (pMyCollision->Intersect(pOtherCol))
             out.push_back(object);
     }
 }

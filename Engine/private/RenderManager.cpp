@@ -127,12 +127,33 @@ void RenderManager::Draw()
     RenderUI();
 
     m_pEngineUtility->SnapDepthForPicking();
-#ifdef _DEBUG
-	Render();
-#endif
 }
 
 #ifdef _DEBUG
+void RenderManager::RenderDebug()
+{
+	for (auto& pDebugComponent : m_DebugComponents)
+	{
+		pDebugComponent->Render();
+		SafeRelease(pDebugComponent);
+	}
+	m_DebugComponents.clear();
+
+	if (FAILED(m_pShader->BindMatrix("g_ViewMatrix", &m_ViewMatrix)))
+		return;
+	if (FAILED(m_pShader->BindMatrix("g_ProjMatrix", &m_ProjMatrix)))
+		return;
+
+	if (FAILED(m_pVIBuffer->BindBuffers()))
+		return;
+
+	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_Objects"), m_pShader, m_pVIBuffer)))
+		return;
+	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_LightAcc"), m_pShader, m_pVIBuffer)))
+		return;
+	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_ShadowLight"), m_pShader, m_pVIBuffer)))
+		return;
+}
 HRESULT RenderManager::AddDebugComponent(Component* pDebugComponent)
 {
 	m_DebugComponents.push_back(pDebugComponent);
@@ -158,7 +179,7 @@ void RenderManager::Free()
 {
     __super::Free();
     
-	for (_uint i = RENDERGROUP::PRIORITY; i < RENDERGROUP::RENDERGROUP_END; ++i)
+	for (_uint i = RENDERGROUP::RENDER_PRIORITY; i < RENDERGROUP::RENDERGROUP_END; ++i)
 	{
 		for (auto& pObject : m_RenderObjects[i])
 		{
@@ -176,14 +197,14 @@ void RenderManager::Free()
 
 void RenderManager::RenderPriority()
 {
-    for (auto& pObject : m_RenderObjects[RENDERGROUP::PRIORITY])
+    for (auto& pObject : m_RenderObjects[RENDERGROUP::RENDER_PRIORITY])
     {
         if(pObject!= nullptr && pObject->IsDead() == false)
             pObject->Render();
 
         SafeRelease(pObject);
     }
-    m_RenderObjects[RENDERGROUP::PRIORITY].clear();
+    m_RenderObjects[RENDERGROUP::RENDER_PRIORITY].clear();
 }
 
 void RenderManager::RenderShadowLight()
@@ -198,7 +219,7 @@ void RenderManager::RenderShadowLight()
 
 	ChangeViewportSize(g_iMaxWidth, g_iMaxHeight);
 	_uint iNumShadowLights = m_pEngineUtility->GetNumActiveShadowLights();
-	for (auto& pRenderObject : m_RenderObjects[SHADOWLIGHT])
+	for (auto& pRenderObject : m_RenderObjects[RENDER_SHADOWLIGHT])
 	{
 		if (nullptr != pRenderObject && pRenderObject->IsDead() == false)
 		{
@@ -208,7 +229,7 @@ void RenderManager::RenderShadowLight()
 
 		SafeRelease(pRenderObject);
 	}
-	m_RenderObjects[SHADOWLIGHT].clear();
+	m_RenderObjects[RENDER_SHADOWLIGHT].clear();
 
 	if (FAILED(m_pEngineUtility->EndRenderTargetGroup()))
 		return;
@@ -221,14 +242,14 @@ void RenderManager::RenderNonBlend()
 	if (FAILED(m_pEngineUtility->BeginRenderTargetGroup(TEXT("RenderTargetGroup_Objects"))))
 		return;
 
-    for (auto& pObject : m_RenderObjects[NONBLEND])
+    for (auto& pObject : m_RenderObjects[RENDER_NONBLEND])
     {
         if (pObject != nullptr && pObject->IsDead() == false)
             pObject->Render();
 
         SafeRelease(pObject);
     }
-    m_RenderObjects[NONBLEND].clear();
+    m_RenderObjects[RENDER_NONBLEND].clear();
 
 	if (FAILED(m_pEngineUtility->EndRenderTargetGroup()))
 		return;
@@ -355,38 +376,38 @@ void RenderManager::RenderCombined()
 
 void RenderManager::RenderNonLights()
 {
-	for (auto& pRenderObject : m_RenderObjects[NONLIGHT])
+	for (auto& pRenderObject : m_RenderObjects[RENDER_NONLIGHT])
 	{
 		if (nullptr != pRenderObject && pRenderObject->IsDead() == false)
 			pRenderObject->Render();
 
 		SafeRelease(pRenderObject);
 	}
-	m_RenderObjects[NONLIGHT].clear();
+	m_RenderObjects[RENDER_NONLIGHT].clear();
 
 
 }
 
 void RenderManager::RenderBlend()
 {
-    for (auto& pObject : m_RenderObjects[BLEND])
+    for (auto& pObject : m_RenderObjects[RENDER_BLEND])
     {
         if (pObject != nullptr && pObject->IsDead() == false)
             pObject->Render();
         SafeRelease(pObject);
     }
-    m_RenderObjects[BLEND].clear();
+    m_RenderObjects[RENDER_BLEND].clear();
 }
 
 void RenderManager::RenderUI()
 {
-    for (auto& pObject : m_RenderObjects[UI])
+    for (auto& pObject : m_RenderObjects[RENDER_UI])
     {
         if (pObject != nullptr && pObject->IsDead() == false)
             pObject->Render();
         SafeRelease(pObject);
     }
-    m_RenderObjects[UI].clear();
+    m_RenderObjects[RENDER_UI].clear();
 }
 
 HRESULT RenderManager::ReadyShadowDepthStencilView()
@@ -445,30 +466,3 @@ HRESULT RenderManager::ChangeViewportSize(_uint iWidth, _uint iHeight)
 		
 	return S_OK;
 }
-
-#ifdef _DEBUG
-void RenderManager::Render()
-{
-	for (auto& pDebugComponent : m_DebugComponents)
-	{
-		pDebugComponent->Render();	
-		SafeRelease(pDebugComponent);
-	}
-	m_DebugComponents.clear();
-
-	if (FAILED(m_pShader->BindMatrix("g_ViewMatrix", &m_ViewMatrix)))
-		return;
-	if (FAILED(m_pShader->BindMatrix("g_ProjMatrix", &m_ProjMatrix)))
-		return;
-
-	if (FAILED(m_pVIBuffer->BindBuffers()))
-		return;
-
-	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_Objects"), m_pShader, m_pVIBuffer)))
-		return;
-	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_LightAcc"), m_pShader, m_pVIBuffer)))
-		return;
-	if (FAILED(m_pEngineUtility->RenderDebugRenderTargetGroup(TEXT("RenderTargetGroup_ShadowLight"), m_pShader, m_pVIBuffer)))
-		return;
-}
-#endif

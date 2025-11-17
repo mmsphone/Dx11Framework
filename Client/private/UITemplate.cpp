@@ -40,7 +40,7 @@ HRESULT UITemplate::Initialize(void* pArg)
 
 void UITemplate::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::UI, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_UI, this);
 
     __super::LateUpdate(fTimeDelta);
 }

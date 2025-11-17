@@ -22,10 +22,14 @@ HRESULT UI::Initialize(void* pArg)
 	if (FAILED(__super::Initialize(pArg)))
 		return E_FAIL;
 
+    if (pArg == nullptr)
+        return E_FAIL;
+
     UI_DESC* pDesc = static_cast<UI_DESC*>(pArg);
 
     m_fX = pDesc->fX;
     m_fY = pDesc->fY;
+    m_fZ = pDesc->fZ;
     m_fSizeX = pDesc->fSizeX;
     m_fSizeY = pDesc->fSizeY;
 
@@ -56,11 +60,23 @@ void UI::Update(_float fTimeDelta)
 void UI::LateUpdate(_float fTimeDelta)
 {
     UpdateState();
+
+    m_pEngineUtility->JoinRenderGroup(RENDER_UI, this);
 }
 
 HRESULT UI::Render()
 {
 	return S_OK;
+}
+
+void UI::ApplyRectFromControl(const UIControlDesc& desc)
+{
+    m_fX = static_cast<_float>(desc.x);
+    m_fY = static_cast<_float>(desc.y);
+    m_fSizeX = static_cast<_float>(desc.w);
+    m_fSizeY = static_cast<_float>(desc.h);
+
+    UpdateState();
 }
 
 void UI::Free()
@@ -76,7 +92,7 @@ void UI::UpdateState()
     pTransform->SetState(MATRIXROW::MATRIXROW_POSITION, XMVectorSet(
         m_fX - m_fViewportSizeX * 0.5f,
         -m_fY + m_fViewportSizeY * 0.5f,
-        0.0f,
+        m_fZ,
         1.f
     ));
 }

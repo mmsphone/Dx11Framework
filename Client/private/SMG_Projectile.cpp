@@ -2,6 +2,8 @@
 
 #include "EngineUtility.h"
 
+#include "BloodHitEffect.h"
+
 SMG_Projectile::SMG_Projectile()
     : Projectile{}
 {
@@ -31,14 +33,16 @@ void SMG_Projectile::Update(_float fTimeDelta)
         return;
 
     // 충돌 체크
-    Transform* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    if (!tf || m_desc.hitRadius <= 0.f) 
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    if (m_desc.hitRadius <= 0.f) 
         return;
 
-    const _vector center = tf->GetState(MATRIXROW_POSITION);
+    pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
 
     std::vector<Object*> hits;
-    HitProjectile(center, m_desc.hitRadius, hits);
+    HitProjectile(hits);
 
     for (Object* obj : hits)
     {
@@ -50,28 +54,24 @@ void SMG_Projectile::Update(_float fTimeDelta)
             break;
         }
     }
+
 }
 
 void SMG_Projectile::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(NONBLEND, this);
+    m_pEngineUtility->JoinRenderGroup(RENDER_BLEND, this);
 
     __super::LateUpdate(fTimeDelta);
 }
 
 HRESULT SMG_Projectile::Render()
 {
-    Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    Shader* pShader = dynamic_cast<Shader*>(FindComponent(TEXT("Shader")));
-    VIBufferInstancingPoint* pVIBuffer = dynamic_cast<VIBufferInstancingPoint*>(FindComponent(TEXT("VIBuffer")));
-    Texture* pTexture = dynamic_cast<Texture*>(FindComponent(TEXT("Texture")));
-
-    if (!pTransform || !pShader || !pVIBuffer || !pTexture)
-        return E_FAIL;
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Shader* pShader = static_cast<Shader*>(FindComponent(TEXT("Shader")));
+    VIBufferInstancingPoint* pVIBuffer = static_cast<VIBufferInstancingPoint*>(FindComponent(TEXT("VIBuffer")));
 
     if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix")))
         return E_FAIL;
-
     if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS_VIEW))))
         return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS_PROJECTION))))
@@ -79,13 +79,36 @@ HRESULT SMG_Projectile::Render()
     if (FAILED(pShader->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))
         return E_FAIL;
 
-    if (FAILED(pTexture->BindRenderTargetShaderResource(pShader, "g_Texture", 0)))
+    _float4 bulletColor = { 1.0f, 0.5f, 0.2f, 1.0f }; // 오렌지색
+    if (FAILED(pShader->BindRawValue("g_vProjectileColor", &bulletColor, sizeof(_float4))))
+        return E_FAIL;
+
+    // 총알 진행 방향 (m_desc.moveDir 사용한다고 가정)
+    _vector vDir = XMVector3Normalize(m_desc.moveDir);
+    _float3 dir3{};
+    XMStoreFloat3(&dir3, vDir);
+    if (FAILED(pShader->BindRawValue("g_vProjectileDir", &dir3, sizeof(_float3))))
+        return E_FAIL;
+
+    // 잔상 길이 (월드 단위) – 게임 스케일 맞춰서 적당히 조절
+    _float trailLen = min(m_desc.accTime * m_desc.fSpeedPerSec, 1.5f);
+    if (FAILED(pShader->BindRawValue("g_fTrailLength", &trailLen, sizeof(_float))))
+        return E_FAIL;
+
+    // 총알 사각형 크기
+    _float projectileSize = 0.05f; 
+    if (FAILED(pShader->BindRawValue("g_fProjectileSize", &projectileSize, sizeof(_float))))
         return E_FAIL;
 
     pShader->Begin(0);
 
     pVIBuffer->BindBuffers();
     pVIBuffer->Render();
+
+#ifdef _DEBUG
+    Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    pCollision->Render();
+#endif
 
     return S_OK;
 }
@@ -123,9 +146,13 @@ HRESULT SMG_Projectile::ReadyComponents()
 {
     if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("VIBuffer_Particle_Bullet"), TEXT("VIBuffer"), nullptr, nullptr)))
         return E_FAIL;
-    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Texture_Bullet"), TEXT("Texture"), nullptr, nullptr)))
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_VtxProjectile"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
-    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_InstancingPos"), TEXT("Shader"), nullptr, nullptr)))
+
+    CollisionBoxSphere::COLLISIONSPHERE_DESC     SphereDesc{};
+    SphereDesc.vCenter = _float3(0.f, 0.f, 0.f);
+    SphereDesc.fRadius = 0.15f;
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionSphere"), TEXT("Collision"), nullptr, &SphereDesc)))
         return E_FAIL;
 
     return S_OK;
@@ -157,11 +184,24 @@ _bool SMG_Projectile::TryApplyHitTo(Object* pTarget)
 
     // 데미지 적용
     pInfo->AddHp(-m_desc.damageAmount);
+    {
+        BloodHitEffect::BLOODHITEFFECT_DESC desc{};
+        desc.fLifeTime = 0.25f;
+        desc.bLoop = false;
+        desc.bAutoKill = true;
+        desc.fRotationPerSec = 0.f;
+        desc.fSpeedPerSec = 0.f;
+        XMStoreFloat3(&desc.vCenterWS,static_cast<Transform*>(pTarget->FindComponent(TEXT("Transform")))->GetState(MATRIXROW_POSITION));
+        desc.baseColor = _float4(0.2f, 1.f, 0.2f, 1.f);
+
+        m_pEngineUtility->AddObject( SCENE::GAMEPLAY, TEXT("BloodHitEffect"), SCENE::GAMEPLAY, TEXT("Effect"), &desc);
+    }
     return true;
 }
 
-void SMG_Projectile::HitProjectile(const _vector& projectilePos, _float& fHitRadius, vector<Object*>& out)
+void SMG_Projectile::HitProjectile(vector<Object*>& out)
 {
+    Collision* pMyCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     //결과값 초기화
     out.clear();
 
@@ -169,25 +209,16 @@ void SMG_Projectile::HitProjectile(const _vector& projectilePos, _float& fHitRad
     vector<Object*> pObjects = m_pEngineUtility->GetAllObjects(m_pEngineUtility->GetCurrentSceneId());
 
     //조건 루프
-    const _float r2 = fHitRadius * fHitRadius;
-    const _float invScaleY = 1.f / 2.f; // y축 판정만 조금 늘림 1->1.5 
     for (auto& object : pObjects)
     {
         if (object == nullptr || object->IsDead() || object == this)
             continue;
 
-        Transform* pTransform = dynamic_cast<Transform*>(object->FindComponent(TEXT("Transform")));
-        if (pTransform == nullptr)
+        Collision* pOtherCol = dynamic_cast<Collision*>(object->FindComponent(TEXT("Collision")));
+        if (!pOtherCol)
             continue;
 
-        const _vector delta = pTransform->GetState(MATRIXROW_POSITION) - projectilePos;
-
-        const _float dx = XMVectorGetX(delta);
-        const _float dy = XMVectorGetY(delta) * invScaleY;
-        const _float dz = XMVectorGetZ(delta);
-
-        const _float distance = dx * dx + dy * dy + dz * dz;
-        if (distance <= r2)
+        if (pMyCollision->Intersect(pOtherCol))
             out.push_back(object);
     }
 }

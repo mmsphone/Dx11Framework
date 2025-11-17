@@ -14,7 +14,7 @@ GameScene1_Map::GameScene1_Map(const GameScene1_Map& Prototype)
 
 void GameScene1_Map::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
 
     __super::LateUpdate(fTimeDelta);
 }

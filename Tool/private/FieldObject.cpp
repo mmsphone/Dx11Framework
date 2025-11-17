@@ -66,10 +66,10 @@ void FieldObject::Update(_float fTimeDelta)
 
 void FieldObject::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
     Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
     if (pModel->GetModelData()->bones.size() > 0)
-        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::SHADOWLIGHT, this);
+        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
 
     __super::LateUpdate(fTimeDelta);
 }

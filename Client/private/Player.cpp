@@ -63,12 +63,16 @@ void Player::Update(_float fTimeDelta)
     _vector vPos = pTransform->GetState(MATRIXROW_POSITION);
     m_pEngineUtility->SetActiveLightsByDistance(vPos, 40.f);
     m_pEngineUtility->SetActiveShadowLightsByDistance(vPos, 20.f);
+
+    Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
 }
 
 void Player::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this); 
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::SHADOWLIGHT, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this); 
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
 
     __super::LateUpdate(fTimeDelta);
 }
@@ -104,6 +108,11 @@ HRESULT Player::Render()
             pModel->Render(i);
         }
     }
+
+#ifdef _DEBUG
+    Collision* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision")));
+    pCollision->Render();
+#endif
 
     return S_OK;
 }
@@ -184,6 +193,14 @@ HRESULT Player::ReadyComponents()
     desc.worldSizeOffset = 0.1f;
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("Physics"), TEXT("Physics"), nullptr, &desc)))
         return E_FAIL;
+
+    CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
+    OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
+    XMStoreFloat3(&OBBDesc.vExtents,_vector{ 0.25f, 1.f, 0.25f } / scaleOffset);
+    OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
+        return E_FAIL;
+
 
     return S_OK;
 }
@@ -291,15 +308,15 @@ HRESULT Player::SetUpStateMachine()
 
     pSM->RegisterState("Attack", {
         [](Object* owner, StateMachine* sm){
-            Player* pPlayer = dynamic_cast<Player*>(owner);
-            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
             if (!pPlayer || !pModel)
                 return;
             pModel->SetAnimation(pPlayer->FindAnimIndex("Attack"), false, 0.05f, true);
             pPlayer->Shoot();
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
-            Player* pPlayer = dynamic_cast<Player*>(owner);
+            Player* pPlayer = static_cast<Player*>(owner);
             if (!pPlayer)
                 return;
             pPlayer->Rotate(fTimeDelta);
@@ -452,6 +469,7 @@ HRESULT Player::SetUpInfo()
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
     desc.SetData("IsHit", _bool{ false });
+    desc.SetData("Faction", FACTION_PLAYER);
     pInfo->BindInfoDesc(desc);
 
     return S_OK;
@@ -501,8 +519,20 @@ void Player::Move(_float fTimeDelta)
     _vector delta = XMVectorScale(m_aimDir, fTimeDelta * moveAmp);
 
     _vector movePos = pTransform->GetState(MATRIXROW_POSITION);
-    _int cellIndex = -1;
 
+    Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+    pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+    list<Object*> doors = m_pEngineUtility->FindLayer(m_pEngineUtility->GetCurrentSceneId(), TEXT("Door"))->GetAllObjects();
+    for (auto& door : doors)
+    {
+        if (static_cast<Collision*>(door->FindComponent(TEXT("Collision")))->Intersect(pCollision))
+        {
+            pTransform->SetState(MATRIXROW_POSITION, prePos);
+            return;
+        }
+    }
+
+    _int cellIndex = -1;
     if (m_pEngineUtility->IsInCell(movePos, &cellIndex) == false) // 셀 밖 이동 금지
     {
         if (m_pEngineUtility->IsInCell(prePos, &cellIndex) == false) return;
@@ -521,62 +551,65 @@ void Player::Move(_float fTimeDelta)
     }
     else
     {
-    // ----- 히스테리시스 & 계단 허용 파라미터 -----
-    const _float snapBand      = 0.05f; // 스냅 접촉 밴드(지면으로 붙일 때)
-    const _float releaseBand   = 0.10f; // 해제 밴드(지면에서 떨어졌다고 판정)
-    const _float stepUpMax     = 0.20f; // 한 프레임 올라탈 수 있는 최대 높이
-    const _float stepDownSnap  = 0.20f; // 한 프레임 내려가며 따라붙는 최대 높이
+        // ----- 히스테리시스 & 계단 허용 파라미터 -----
+        const _float snapBand = 0.05f; // 스냅 접촉 밴드(지면으로 붙일 때)
+        const _float releaseBand = 0.10f; // 해제 밴드(지면에서 떨어졌다고 판정)
+        const _float stepUpMax = 0.20f; // 한 프레임 올라탈 수 있는 최대 높이
+        const _float stepDownSnap = 0.20f; // 한 프레임 내려가며 따라붙는 최대 높이
 
-    _float cellPosY = m_pEngineUtility->GetHeightPosOnCell(&movePos, cellIndex);
-    _float curY     = XMVectorGetY(movePos);
-    _float dy       = cellPosY - curY; // (+) 위에 있음, (-) 아래에 있음
+        _float cellPosY = m_pEngineUtility->GetHeightPosOnCell(&movePos, cellIndex);
+        _float curY = XMVectorGetY(movePos);
+        _float dy = cellPosY - curY; // (+) 위에 있음, (-) 아래에 있음
 
-    // 1) 올라탈 수 없는 큰 단차면 이동 거부(원위치)
-    if (dy > stepUpMax) {
-        pTransform->SetState(MATRIXROW_POSITION, prePos);
-        return;
-    }
+        // 1) 올라탈 수 없는 큰 단차면 이동 거부(원위치)
+        if (dy > stepUpMax)
+        {
+            pTransform->SetState(MATRIXROW_POSITION, prePos);
+            return;
+        }
 
-    // 2) 지상 상태일 때
-    if (pPhysics->IsOnGround())
-    {
-        if (dy >= -snapBand) {
-            // 거의 같은 높이거나 약간 위: 스냅
-            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
-            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
-            pPhysics->SetOnGround(true);
+        // 2) 지상 상태일 때
+        if (pPhysics->IsOnGround())
+        {
+            if (dy >= -snapBand) {
+                // 거의 같은 높이거나 약간 위: 스냅
+                _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+                pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+                pPhysics->SetOnGround(true);
+            }
+            else if (-dy <= stepDownSnap) {
+                // 작게 내려가는 계단: 스냅해서 따라감
+                _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+                pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+                pPhysics->SetOnGround(true);
+            }
+            else if (-dy > releaseBand) {
+                pTransform->SetState(MATRIXROW_POSITION, movePos + m_aimDir * 0.1f);
+                pPhysics->SetOnGround(false);
+            }
+            else {
+                // 스냅/해제 중간 구간: 마지막 상태 유지(지상)로 안정화
+                _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+                pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+                pPhysics->SetOnGround(true);
+            }
         }
-        else if (-dy <= stepDownSnap) {
-            // 작게 내려가는 계단: 스냅해서 따라감
-            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
-            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
-            pPhysics->SetOnGround(true);
-        }
-        else if (-dy > releaseBand) {
-            pTransform->SetState(MATRIXROW_POSITION, movePos + m_aimDir * 0.1f);
-            pPhysics->SetOnGround(false);
-        }
-        else {
-            // 스냅/해제 중간 구간: 마지막 상태 유지(지상)로 안정화
-            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
-            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
-            pPhysics->SetOnGround(true);
+        // 3) 공중 상태일 때: 더 엄격하게 붙여줌(바닥에 거의 닿았을 때만)
+        else
+        {
+            if (dy >= -snapBand) {
+                _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
+                pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+                pPhysics->SetOnGround(true);
+            }
+            else
+            {
+                // 계속 낙하: XZ 이동만 반영, Y는 물리에서 처리
+                pTransform->SetState(MATRIXROW_POSITION, movePos);
+                pPhysics->SetOnGround(false);
+            }
         }
     }
-    // 3) 공중 상태일 때: 더 엄격하게 붙여줌(바닥에 거의 닿았을 때만)
-    else
-    {
-        if (dy >= -snapBand) {
-            _vector fixedPos{}; m_pEngineUtility->SetHeightOnCell(movePos, &fixedPos);
-            pTransform->SetState(MATRIXROW_POSITION, fixedPos);
-            pPhysics->SetOnGround(true);
-        } else {
-            // 계속 낙하: XZ 이동만 반영, Y는 물리에서 처리
-            pTransform->SetState(MATRIXROW_POSITION, movePos);
-            pPhysics->SetOnGround(false);
-        }
-    }
-}
 }
 
 void Player::Rotate(_float fTimeDelta)
@@ -732,8 +765,8 @@ void Player::HitBack(_float fTimeDelta)
 {
     m_isMove = false;
 
-    auto* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    if (tf)
+    auto* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (pTransform)
     {
         // 선형 감쇠(ease-out): 남은 시간 비율
         const float dt = max(0.f, fTimeDelta);
@@ -741,12 +774,23 @@ void Player::HitBack(_float fTimeDelta)
         const float speed = m_kbPower * t; // 남을수록 감속
 
         // 충돌/네비 체크
-        _vector prePos = tf->GetState(MATRIXROW_POSITION);
-        tf->Translate(m_kbDir, speed * dt);
+        _vector prePos = pTransform->GetState(MATRIXROW_POSITION);
+        pTransform->Translate(m_kbDir, speed * dt);
 
-        _vector newPos = tf->GetState(MATRIXROW_POSITION);
+        _vector newPos = pTransform->GetState(MATRIXROW_POSITION);
         if (!m_pEngineUtility->IsInCell(newPos))
-            tf->SetState(MATRIXROW_POSITION, prePos);
+            pTransform->SetState(MATRIXROW_POSITION, prePos);
+
+        Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+        pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+        list<Object*> doors = m_pEngineUtility->FindLayer(m_pEngineUtility->GetCurrentSceneId(), TEXT("Door"))->GetAllObjects();
+        for (auto& door : doors)
+        {
+            if (static_cast<Collision*>(door->FindComponent(TEXT("Collision")))->Intersect(pCollision))
+            {
+                pTransform->SetState(MATRIXROW_POSITION, prePos);
+            }
+        }
 
         m_kbRemain -= dt;
         if (m_kbRemain <= 0.f)

@@ -48,8 +48,8 @@ void Weapon_AR::Update(_float fTimeDelta)
 
 void Weapon_AR::LateUpdate(_float fTimeDelta)
 {
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::NONBLEND, this);
-    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::SHADOWLIGHT, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
+    m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
 
     __super::LateUpdate(fTimeDelta);
 }

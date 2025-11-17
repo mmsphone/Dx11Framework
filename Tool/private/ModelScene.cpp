@@ -9,6 +9,11 @@
 #include "ModelPanel.h"
 #include "CamPanel.h"
 
+#include "UIButton.h"
+#include "UILabel.h"
+#include "UIImage.h"
+#include "UIPanel.h"
+
 ModelScene::ModelScene()
 	:Scene{}
 {
@@ -18,34 +23,33 @@ ModelScene::ModelScene()
 HRESULT ModelScene::Initialize()
 {
 	// Buffer
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("VIBuffer_Rect"),	VIBufferRect::Create());
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("VIBuffer_Cube"),	VIBufferCube::Create());
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("VIBufferRect"),	VIBufferRect::Create());
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("VIBufferCube"),	VIBufferCube::Create());
 	
 	//Shader
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxPosTex"), 
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxPosTex"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"),	VTXPOSTEX::Elements, VTXPOSTEX::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxNorTex"),
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxNorTex"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxNorTex.hlsl"),	VTXNORTEX::Elements, VTXNORTEX::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxMesh"),
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxMesh"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"),	VTXMESH::Elements, VTXMESH::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxAnimMesh"),
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxAnimMesh"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxAnimMesh.hlsl"),	VTXSKINMESH::Elements, VTXSKINMESH::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Shader_VtxCube"),
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxCube"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxCube.hlsl"),	VTXCUBE::Elements, VTXCUBE::iNumElements));
 	
 	//Model
-	ModelData* model = new ModelData();
-	IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", *model);
-	_matrix		PreTransformMatrix = XMMatrixIdentity();
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Model_Fiona"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model, PreTransformMatrix))))
-		return E_FAIL;
+	//ModelData* model = new ModelData();
+	//IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", *model);
+	//_matrix		PreTransformMatrix = XMMatrixIdentity();
+	//if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Model_Fiona"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model, PreTransformMatrix))))
+	//	return E_FAIL;
 	//Object
-	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("TestObject"), TestObject::Create());
-	m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("TestObject"), SCENE::MODEL, TEXT("TestObject"));
+	//m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("TestObject"), TestObject::Create());
+	//m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("TestObject"), SCENE::MODEL, TEXT("TestObject"));
 	
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("FreeCam"), FreeCam::Create())))
-		return E_FAIL;
-	
+	//if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("FreeCam"), FreeCam::Create())))
+	//	return E_FAIL;
 	//FreeCam::FREECAM_DESC			Desc{};
 	//Desc.vEye = _float3(0.f, 0.f, 0.f);
 	//Desc.vAt = _float3(0.f, 0.f, 1.f);
@@ -55,30 +59,50 @@ HRESULT ModelScene::Initialize()
 	//Desc.fSensor = 0.1f;
 	//Desc.fSpeedPerSec = 40.f;
 	//Desc.fRotationPerSec = XMConvertToRadians(120.0f);
-	//
 	//if (FAILED(m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("FreeCam"), SCENE::MODEL, TEXT("Cam"), &Desc)))
 	//	return E_FAIL;
-	
-	//Light
 	//LIGHT_DESC		LightDesc{};
-	//
 	//LightDesc.eType = LIGHT::LIGHT_DIRECTIONAL;
 	//LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);
 	//LightDesc.vDiffuse = _float4(1.f, 1.f, 1.f, 1.f);
 	//LightDesc.vAmbient = _float4(1.f, 1.f, 1.f, 1.f);
 	//LightDesc.vSpecular = _float4(1.f, 1.f, 1.f, 1.f);
-	//
 	//if (FAILED(m_pEngineUtility->AddLight(LightDesc)))
 	//	return E_FAIL;
 
 	//IMGUI Panel
-	string strModelPanel = "ModelPanel";
-	ModelPanel* pModelPanel = ModelPanel::Create(strModelPanel);
-	m_pEngineUtility->AddPanel(pModelPanel->GetPanelName(), pModelPanel);
+	//string strModelPanel = "ModelPanel";
+	//ModelPanel* pModelPanel = ModelPanel::Create(strModelPanel);
+	//m_pEngineUtility->AddPanel(pModelPanel->GetPanelName(), pModelPanel);
 	
 	//string strCamPanel = "ModelCamPanel";
 	//CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MODEL);
 	//m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);
+
+	//Font
+	m_pEngineUtility->AddFont(L"Font_Default", L"../bin/Resources/Fonts/155.spritefont");
+
+	//UI
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIButton"), UIButton::Create());
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UILabel"), UILabel::Create());
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIImage"), UIImage::Create());
+	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIPanel"), UIPanel::Create());
+
+	vector<UI*> m_gameLobbyUI;
+	const std::string uiResPath = "../bin/Resources/UI/gamelobby/gamelobby.res";
+	UIPrototypeTags tags;
+	tags.layerTag = TEXT("UI");              // UI용 레이어 이름
+	tags.buttonProto = TEXT("UIButton");   // UIButton 프로토타입
+	tags.labelProto = TEXT("UILabel");    // UILabel 프로토타입
+	tags.imageProto = TEXT("UIImage");    // UIImage 프로토타입
+	tags.panelProto = TEXT("UIPanel");    // UIPanel 프로토타입
+
+	if (FAILED(m_pEngineUtility->BuildUIFromRes(uiResPath, tags, m_gameLobbyUI)))
+	{
+		OutputDebugStringA("[UI] Failed to build GameLobby UI from res\n");
+		return E_FAIL;
+	}
+
 
 	return S_OK;
 }

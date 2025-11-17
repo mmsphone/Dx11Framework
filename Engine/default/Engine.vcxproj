@@ -35,6 +35,7 @@
     <ClInclude Include="..\public\Container.h" />
     <ClInclude Include="..\public\CustomFont.h" />
     <ClInclude Include="..\public\DebugDraw.h" />
+    <ClInclude Include="..\public\Effect.h" />
     <ClInclude Include="..\public\EngineUtility.h" />
     <ClInclude Include="..\public\Engine_Defines.h" />
     <ClInclude Include="..\public\Engine_Enum.h" />
@@ -43,6 +44,7 @@
     <ClInclude Include="..\public\Engine_Struct.h" />
     <ClInclude Include="..\public\Engine_Typedef.h" />
     <ClInclude Include="..\public\FontManager.h" />
+    <ClInclude Include="..\public\Frustum.h" />
     <ClInclude Include="..\public\Graphic.h" />
     <ClInclude Include="..\public\GridManager.h" />
     <ClInclude Include="..\public\IMGUIManager.h" />
@@ -74,13 +76,21 @@
     <ClInclude Include="..\public\Shader.h" />
     <ClInclude Include="..\public\ShadowLight.h" />
     <ClInclude Include="..\public\ShadowLightManager.h" />
+    <ClInclude Include="..\public\Spawner.h" />
+    <ClInclude Include="..\public\SpawnerManager.h" />
     <ClInclude Include="..\public\StateMachine.h" />
     <ClInclude Include="..\public\Terrain.h" />
     <ClInclude Include="..\public\Texture.h" />
     <ClInclude Include="..\public\TimeManager.h" />
     <ClInclude Include="..\public\Timer.h" />
     <ClInclude Include="..\public\Transform.h" />
+    <ClInclude Include="..\public\TriggerBox.h" />
+    <ClInclude Include="..\public\TriggerBoxManager.h" />
     <ClInclude Include="..\public\UI.h" />
+    <ClInclude Include="..\public\UIButton.h" />
+    <ClInclude Include="..\public\UIImage.h" />
+    <ClInclude Include="..\public\UILabel.h" />
+    <ClInclude Include="..\public\UIPanel.h" />
     <ClInclude Include="..\public\VertexIndexBuffer.h" />
     <ClInclude Include="..\public\VIBufferCell.h" />
     <ClInclude Include="..\public\VIBufferCube.h" />
@@ -107,8 +117,10 @@
     <ClCompile Include="..\private\Container.cpp" />
     <ClCompile Include="..\private\CustomFont.cpp" />
     <ClCompile Include="..\private\DebugDraw.cpp" />
+    <ClCompile Include="..\private\Effect.cpp" />
     <ClCompile Include="..\private\EngineUtility.cpp" />
     <ClCompile Include="..\private\FontManager.cpp" />
+    <ClCompile Include="..\private\Frustum.cpp" />
     <ClCompile Include="..\private\Graphic.cpp" />
     <ClCompile Include="..\private\GridManager.cpp" />
     <ClCompile Include="..\private\IMGUIManager.cpp" />
@@ -139,13 +151,21 @@
     <ClCompile Include="..\private\Shader.cpp" />
     <ClCompile Include="..\private\ShadowLight.cpp" />
     <ClCompile Include="..\private\ShadowLightManager.cpp" />
+    <ClCompile Include="..\private\Spawner.cpp" />
+    <ClCompile Include="..\private\SpawnerManager.cpp" />
     <ClCompile Include="..\private\StateMachine.cpp" />
     <ClCompile Include="..\private\Terrain.cpp" />
     <ClCompile Include="..\private\Texture.cpp" />
     <ClCompile Include="..\private\TimeManager.cpp" />
     <ClCompile Include="..\private\Timer.cpp" />
     <ClCompile Include="..\private\Transform.cpp" />
+    <ClCompile Include="..\private\TriggerBox.cpp" />
+    <ClCompile Include="..\private\TriggerBoxManager.cpp" />
     <ClCompile Include="..\private\UI.cpp" />
+    <ClCompile Include="..\private\UIButton.cpp" />
+    <ClCompile Include="..\private\UIImage.cpp" />
+    <ClCompile Include="..\private\UILabel.cpp" />
+    <ClCompile Include="..\private\UIPanel.cpp" />
     <ClCompile Include="..\private\VertexIndexBuffer.cpp" />
     <ClCompile Include="..\private\VIBufferCell.cpp" />
     <ClCompile Include="..\private\VIBufferCube.cpp" />
@@ -173,10 +193,12 @@
     <FxCompile Include="..\bin\Shader\Shader_InstancingPosTex.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_SphereSky.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxAnimMesh.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_VtxBloodHit.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxCube.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxMesh.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxNorTex.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_VtxPosTex.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_VtxProjectile.hlsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

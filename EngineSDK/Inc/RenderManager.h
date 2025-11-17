@@ -20,6 +20,7 @@ public:
 	void Draw();
 
 #ifdef _DEBUG
+	void RenderDebug();
 	HRESULT AddDebugComponent(class Component* pDebugComponent);
 #endif
 
@@ -38,10 +39,6 @@ private:
 
 	HRESULT ReadyShadowDepthStencilView();
 	HRESULT ChangeViewportSize(_uint iWidth, _uint iHeight);
-
-#ifdef _DEBUG
-	void Render();
-#endif
 
 private:
 	class EngineUtility* m_pEngineUtility = { nullptr };

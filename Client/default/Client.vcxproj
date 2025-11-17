@@ -152,8 +152,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Background.h" />
+    <ClInclude Include="..\public\BloodHitEffect.h" />
     <ClInclude Include="..\public\ChaseCam.h" />
+    <ClInclude Include="..\public\Console.h" />
+    <ClInclude Include="..\public\Door.h" />
     <ClInclude Include="..\public\Drone.h" />
+    <ClInclude Include="..\public\EffectTemplate.h" />
     <ClInclude Include="..\public\GameScene1_Map.h" />
     <ClInclude Include="..\public\Client_Defines.h" />
     <ClInclude Include="..\public\ContainerTemplate.h" />
@@ -165,6 +169,7 @@
     <ClInclude Include="..\public\LogoScene.h" />
     <ClInclude Include="..\public\ClientApp.h" />
     <ClInclude Include="..\public\ObjectTemplate.h" />
+    <ClInclude Include="..\public\Panel.h" />
     <ClInclude Include="..\public\PartTemplate.h" />
     <ClInclude Include="..\public\Player.h" />
     <ClInclude Include="..\public\Shieldbug.h" />
@@ -180,8 +185,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\private\Background.cpp" />
+    <ClCompile Include="..\private\BloodHitEffect.cpp" />
     <ClCompile Include="..\private\ChaseCam.cpp" />
+    <ClCompile Include="..\private\Console.cpp" />
+    <ClCompile Include="..\private\Door.cpp" />
     <ClCompile Include="..\private\Drone.cpp" />
+    <ClCompile Include="..\private\EffectTemplate.cpp" />
     <ClCompile Include="..\private\GameScene1_Map.cpp" />
     <ClCompile Include="..\private\ContainerTemplate.cpp" />
     <ClCompile Include="..\private\FixedCam.cpp" />
@@ -192,6 +201,7 @@
     <ClCompile Include="..\private\LogoScene.cpp" />
     <ClCompile Include="..\private\ClientApp.cpp" />
     <ClCompile Include="..\private\ObjectTemplate.cpp" />
+    <ClCompile Include="..\private\Panel.cpp" />
     <ClCompile Include="..\private\PartTemplate.cpp" />
     <ClCompile Include="..\private\Player.cpp" />
     <ClCompile Include="..\private\Shieldbug.cpp" />

@@ -2,12 +2,12 @@
 
 #include "EngineUtility.h"
 
-CVIBufferInstancingRect::CVIBufferInstancingRect()
+VIBufferInstancingRect::VIBufferInstancingRect()
     : VIBufferInstancing{  }
 {
 }
 
-CVIBufferInstancingRect::CVIBufferInstancingRect(const CVIBufferInstancingRect& Prototype)
+VIBufferInstancingRect::VIBufferInstancingRect(const VIBufferInstancingRect& Prototype)
     : VIBufferInstancing{ Prototype }
     , m_pInstanceVertices{ Prototype.m_pInstanceVertices }
     , m_pSpeeds{ Prototype.m_pSpeeds }
@@ -16,7 +16,7 @@ CVIBufferInstancingRect::CVIBufferInstancingRect(const CVIBufferInstancingRect& 
 {
 }
 
-HRESULT CVIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
+HRESULT VIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
 {
     const RECT_INSTANCE_DESC* pInstanceDesc = static_cast<const RECT_INSTANCE_DESC*>(pDesc);
 
@@ -139,7 +139,7 @@ HRESULT CVIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
     return S_OK;
 }
 
-HRESULT CVIBufferInstancingRect::Initialize(void* pArg)
+HRESULT VIBufferInstancingRect::Initialize(void* pArg)
 {
     D3D11_SUBRESOURCE_DATA      InstanceInitialData{};
     InstanceInitialData.pSysMem = m_pInstanceVertices;
@@ -150,7 +150,7 @@ HRESULT CVIBufferInstancingRect::Initialize(void* pArg)
     return S_OK;
 }
 
-void CVIBufferInstancingRect::Drop(_float fTimeDelta)
+void VIBufferInstancingRect::Drop(_float fTimeDelta)
 {
     D3D11_MAPPED_SUBRESOURCE        SubResource{};
     m_pEngineUtility->GetContext()->Map(m_pVBInstance, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &SubResource);
@@ -173,7 +173,7 @@ void CVIBufferInstancingRect::Drop(_float fTimeDelta)
 
 }
 
-void CVIBufferInstancingRect::Spread(_float fTimeDelta)
+void VIBufferInstancingRect::Spread(_float fTimeDelta)
 {
     D3D11_MAPPED_SUBRESOURCE        SubResource{};
     m_pEngineUtility->GetContext()->Map(m_pVBInstance, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &SubResource);
@@ -199,9 +199,9 @@ void CVIBufferInstancingRect::Spread(_float fTimeDelta)
     m_pEngineUtility->GetContext()->Unmap(m_pVBInstance, 0);
 }
 
-CVIBufferInstancingRect* CVIBufferInstancingRect::Create(const INSTANCE_DESC* pDesc)
+VIBufferInstancingRect* VIBufferInstancingRect::Create(const INSTANCE_DESC* pDesc)
 {
-    CVIBufferInstancingRect* pInstance = new CVIBufferInstancingRect();
+    VIBufferInstancingRect* pInstance = new VIBufferInstancingRect();
 
     if (FAILED(pInstance->InitializePrototype(pDesc)))
     {
@@ -213,9 +213,9 @@ CVIBufferInstancingRect* CVIBufferInstancingRect::Create(const INSTANCE_DESC* pD
 }
 
 
-Component* CVIBufferInstancingRect::Clone(void* pArg)
+Component* VIBufferInstancingRect::Clone(void* pArg)
 {
-    CVIBufferInstancingRect* pInstance = new CVIBufferInstancingRect(*this);
+    VIBufferInstancingRect* pInstance = new VIBufferInstancingRect(*this);
 
     if (FAILED(pInstance->Initialize(pArg)))
     {
@@ -226,7 +226,7 @@ Component* CVIBufferInstancingRect::Clone(void* pArg)
     return pInstance;
 }
 
-void CVIBufferInstancingRect::Free()
+void VIBufferInstancingRect::Free()
 {
     __super::Free();
 

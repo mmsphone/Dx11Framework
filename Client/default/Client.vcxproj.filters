@@ -91,6 +91,21 @@
     <Filter Include="01.Define">
       <UniqueIdentifier>{6fb1720a-b832-4938-b66c-594e71a5007e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="06.Object\Effect">
+      <UniqueIdentifier>{0d66ce6b-a1b6-4867-ba00-34908d30730e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="05.Template\EffectTemplate">
+      <UniqueIdentifier>{ba06b505-232f-416a-9b28-428f743d234c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Object\Door">
+      <UniqueIdentifier>{3b200a34-e1f7-47e8-96b8-f5c37dcf4f86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Object\Panel">
+      <UniqueIdentifier>{6bb43ae3-3b36-4d75-adfe-62caea8b6539}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Object\Console">
+      <UniqueIdentifier>{bd6969ab-c9f9-48cb-ab9a-47daa3fb9024}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h">
@@ -170,6 +185,21 @@
     </ClInclude>
     <ClInclude Include="..\public\Worm_Projectile.h">
       <Filter>06.Object\Projectile\Worm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BloodHitEffect.h">
+      <Filter>06.Object\Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\EffectTemplate.h">
+      <Filter>05.Template\EffectTemplate</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Door.h">
+      <Filter>06.Object\Object\Door</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Panel.h">
+      <Filter>06.Object\Object\Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Console.h">
+      <Filter>06.Object\Object\Console</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -251,6 +281,21 @@
     </ClCompile>
     <ClCompile Include="..\private\Worm_Projectile.cpp">
       <Filter>06.Object\Projectile\Worm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BloodHitEffect.cpp">
+      <Filter>06.Object\Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\EffectTemplate.cpp">
+      <Filter>05.Template\EffectTemplate</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Door.cpp">
+      <Filter>06.Object\Object\Door</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Panel.cpp">
+      <Filter>06.Object\Object\Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Console.cpp">
+      <Filter>06.Object\Object\Console</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

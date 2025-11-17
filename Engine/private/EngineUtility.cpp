@@ -17,6 +17,9 @@
 #include "SaveLoadManager.h"
 #include "RenderTargetManager.h"
 #include "ShadowLightManager.h"
+#include "SpawnerManager.h"
+#include "TriggerBoxManager.h"
+#include "Frustum.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -77,6 +80,15 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 	m_pShadowLightManager = ShadowLightManager::Create();
 	CHECKNULLPTR(m_pShadowLightManager) return E_FAIL;
 
+	m_pSpawnerManager = SpawnerManager::Create();
+	CHECKNULLPTR(m_pSpawnerManager) return E_FAIL;
+
+	m_pTriggerBoxManager = TriggerBoxManager::Create();
+	CHECKNULLPTR(m_pTriggerBoxManager) return E_FAIL;
+
+	m_pFrustum = Frustum::Create();
+	CHECKNULLPTR(m_pFrustum) return E_FAIL;
+
 	return S_OK;
 }
 
@@ -87,6 +99,7 @@ void EngineUtility::UpdateEngine(_float fTimeDelta)
 	m_pObjectManager->PriorityUpdate(fTimeDelta);
 	m_pPipeLine->Update();
 	m_pObjectManager->Update(fTimeDelta);
+	m_pTriggerBoxManager->UpdateTriggers();
 	m_pObjectManager->LateUpdate(fTimeDelta);
 
 	m_pSceneManager->Update(fTimeDelta);
@@ -117,6 +130,9 @@ HRESULT EngineUtility::EndDraw()
 
 void EngineUtility::ReleaseEngine()
 {
+	SafeRelease(m_pFrustum);
+	SafeRelease(m_pTriggerBoxManager);
+	SafeRelease(m_pSpawnerManager);
 	SafeRelease(m_pShadowLightManager);
 	SafeRelease(m_pSaveLoadManager);
 	SafeRelease(m_pNavigationManager);
@@ -343,6 +359,13 @@ HRESULT EngineUtility::JoinRenderGroup(RENDERGROUP eGroupID, class Object* pObje
 {
 	return m_pRenderManager->JoinRenderGroup(eGroupID, pObject);
 }
+
+#ifdef _DEBUG
+void EngineUtility::RenderDebug()
+{
+	return m_pRenderManager->RenderDebug();
+}
+#endif
 
 const _float4x4* EngineUtility::GetTransformFloat4x4Ptr(D3DTS eState)
 {
@@ -704,6 +727,20 @@ HRESULT EngineUtility::ReadyLightsFromFile(const std::string& path)
 	return m_pSaveLoadManager->ReadyLightsFromFile(path);
 }
 
+HRESULT EngineUtility::SaveTriggerBoxes(const std::string& path)
+{
+	return m_pSaveLoadManager->SaveTriggerBoxes(path);
+}
+
+HRESULT EngineUtility::LoadTriggerBoxes(const std::string& path)
+{
+	return m_pSaveLoadManager->LoadTriggerBoxes(path);
+}
+HRESULT EngineUtility::BuildUIFromRes(const std::string& path, const UIPrototypeTags& protoTags, std::vector<class UI*>& outUIObjects)
+{
+	return m_pSaveLoadManager->BuildUIFromRes(path, protoTags, outUIObjects);
+}
+
 HRESULT EngineUtility::AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor)
 {
 	return m_pRenderTargetManager->AddRenderTarget(strRenderTargetTag, iWidth, iHeight, ePixelFormat, vClearColor);
@@ -809,4 +846,64 @@ void EngineUtility::SetShadowLightActive(class ShadowLight* pShadowLight, _bool 
 void EngineUtility::SetActiveShadowLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxCount)
 {
 	return m_pShadowLightManager->SetActiveShadowLightsByDistance(vPos, fMaxDistance, iMaxCount);
+}
+
+void EngineUtility::AddSpawner(class Spawner* pSpawner)
+{
+	m_pSpawnerManager->AddSpawner(pSpawner);
+}
+
+void EngineUtility::Spawn(_uint iSpawnerIndex)
+{
+	m_pSpawnerManager->Spawn(iSpawnerIndex);
+}
+
+void EngineUtility::RemoveSpawner(_uint iSpawnerIndex)
+{
+	m_pSpawnerManager->RemoveSpawner(iSpawnerIndex);
+}
+
+void EngineUtility::ClearSpawners()
+{
+	m_pSpawnerManager->ClearSpawners();
+}
+
+const vector<Spawner*>& EngineUtility::GetSpawners() const
+{
+	return m_pSpawnerManager->GetSpawners();
+}
+
+HRESULT EngineUtility::AddTriggerBox(class TriggerBox* pTriggerBox)
+{
+	return m_pTriggerBoxManager->AddTriggerBox(pTriggerBox);
+}
+
+HRESULT EngineUtility::RemoveTriggerBox(_uint index)
+{
+	return m_pTriggerBoxManager->RemoveTriggerBox(index);
+}
+
+void EngineUtility::ClearTriggerBoxes()
+{
+	m_pTriggerBoxManager->ClearTriggerBoxes();
+}
+
+void EngineUtility::UpdateTriggers()
+{
+	m_pTriggerBoxManager->UpdateTriggers();
+}
+
+void EngineUtility::RenderTriggerBoxes()
+{
+	m_pTriggerBoxManager->RenderTriggerBoxes();
+}
+
+const vector<class TriggerBox*>& EngineUtility::GetTriggerBoxes() const
+{
+	return m_pTriggerBoxManager->GetTriggerBoxes();
+}
+
+_bool EngineUtility::IsIn_Frustum_WorldSpace(_fvector vWorldPos, _float fRadius)
+{
+	return m_pFrustum->IsIn_WorldSpace(vWorldPos, fRadius);
 }

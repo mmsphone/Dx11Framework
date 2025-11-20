@@ -12,7 +12,7 @@ class ENGINE_DLL Spawner final : public Base
 public:
 	HRESULT Initialize();
 
-	void AddSpawnerMob(const _uint& iSceneId, const _wstring& prototypeKey, const _wstring& layerKey, _fvector pos);
+	void AddSpawnerMob(const _uint& iSceneId, const _wstring& prototypeKey, const _wstring& layerKey, _fvector pos, _float3 randomRange = _float3{0.f, 0.f, 0.f});
 	void ClearSpawner();
 	void Spawn();
 

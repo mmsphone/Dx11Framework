@@ -103,8 +103,8 @@ public:
 	void SetActiveLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxLights = 5);
 
 	//FontManger
-	HRESULT AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath);
-	HRESULT DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor = XMVectorSet(1.f, 1.f, 1.f, 1.f));
+	HRESULT AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath, _float originFontSize = 32.f);
+	HRESULT DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor = XMVectorSet(1.f, 1.f, 1.f, 1.f), _float drawFontSize = 32.f);
 
 #ifdef _IMGUI
 	//IMGUIManager
@@ -173,7 +173,8 @@ public:
 	HRESULT ReadyLightsFromFile(const std::string& path);
 	HRESULT SaveTriggerBoxes(const std::string& path);
 	HRESULT LoadTriggerBoxes(const std::string& path);
-	HRESULT BuildUIFromRes(const std::string& path, const struct UIPrototypeTags& protoTags, std::vector<class UI*>& outUIObjects);
+	HRESULT SaveUI(const std::string& path);
+	HRESULT LoadUI(const std::string& path, _uint iSceneIndex = 0);
 
 	//RenderTargetManager
 	HRESULT AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor);
@@ -220,6 +221,11 @@ public:
 	//Frustum
 	_bool IsIn_Frustum_WorldSpace(_fvector vWorldPos, _float fRadius = 0.f);
 
+	//UIManager
+	void AddUI(_wstring tagUI, class UI* pUI);
+	class UI* FindUI(_wstring tagUI);
+	void ClearUIs();
+
 private:
 	class Graphic* m_pGraphic = { nullptr };
 	class Input* m_pInput = { nullptr };
@@ -241,6 +247,7 @@ private:
 	class SpawnerManager* m_pSpawnerManager = { nullptr };
 	class TriggerBoxManager* m_pTriggerBoxManager = { nullptr };
 	class Frustum* m_pFrustum = { nullptr };
+	class UIManager* m_pUIManager = { nullptr };
 };
 
 NS_END

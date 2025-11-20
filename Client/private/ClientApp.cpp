@@ -35,7 +35,7 @@ void ClientApp::Update(_float fTimeDelta)
 
 HRESULT ClientApp::Render()
 {
-	_float4		vClearColor = _float4(0.f, 0.f, 1.f, 1.f);
+	_float4		vClearColor = _float4(0.f, 0.f, 0.f, 1.f);
 
 	/* 백, 깊이버퍼를 초기화한다. */
 	m_pEngineUtility->BeginDraw(&vClearColor);
@@ -48,9 +48,9 @@ HRESULT ClientApp::Render()
 	m_pEngineUtility->Draw();
 
 #ifdef _DEBUG
-	m_pEngineUtility->RenderNavigation();
+	//m_pEngineUtility->RenderNavigation();
 	m_pEngineUtility->RenderTriggerBoxes();
-	m_pEngineUtility->RenderDebug();
+	//m_pEngineUtility->RenderDebug();
 #endif
 
 	/* 후면버퍼를 전면으로 보여준다. */

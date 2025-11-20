@@ -3,6 +3,8 @@
 #include "EngineUtility.h"
 
 #include "Player.h"
+#include "UIImage.h"
+#include "UILabel.h"
 
 Weapon_AR::Weapon_AR()
 	:PartTemplate{}
@@ -30,6 +32,9 @@ HRESULT Weapon_AR::Initialize(void* pArg)
     pModel->SetPreTransformRotation(_float3{90.f, 0.f ,0.f});
     pModel->SetAnimation(0, false, 0.f, false);
     pModel->PlayAnimation(0.0f);
+
+    if (FAILED(SetUpInfo()))
+        return E_FAIL;
 
     return S_OK;
 }
@@ -132,8 +137,28 @@ void Weapon_AR::Free()
 
 HRESULT Weapon_AR::ReadyComponents()
 {
-    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Model_Weapon_AR"), TEXT("Model"), nullptr, nullptr))) return E_FAIL;
-    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr))) return E_FAIL;
+    if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Model_Weapon_AR"), TEXT("Model"), nullptr, nullptr))) 
+        return E_FAIL;
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_VtxAnimMesh"), TEXT("Shader"), nullptr, nullptr))) 
+        return E_FAIL;
+    if (FAILED(AddComponent(SCENE::STATIC, TEXT("Info"), TEXT("Info"), nullptr, nullptr)))
+        return E_FAIL;
+
+    return S_OK;
+}
+
+HRESULT Weapon_AR::SetUpInfo()
+{
+    Info* pInfo = dynamic_cast<Info*>(FindComponent(TEXT("Info")));
+    if (!pInfo)
+        return E_FAIL;
+
+    INFO_DESC desc;
+    desc.SetData("MaxBullet", _int{ 30 });
+    desc.SetData("CurBullet", _int{ 30 });
+    desc.SetData("CurAmmo", _int{ 5 });
+    desc.SetData("Faction", FACTION_PLAYER);
+    pInfo->BindInfoDesc(desc);
 
     return S_OK;
 }

@@ -39,9 +39,10 @@ HRESULT NavigationManager::Render()
         return E_FAIL;
 
     m_pShader->Begin(0);
-    for (auto& pCell : m_Cells)
+    for (auto pCell : m_Cells)
     {
-        pCell->Render();
+        if(pCell != nullptr)
+            pCell->Render();
     }
     return S_OK;
 }

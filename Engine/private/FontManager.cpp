@@ -8,12 +8,12 @@ FontManager::FontManager()
 	SafeAddRef(m_pEngineUtility);
 }
 
-HRESULT FontManager::AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath)
+HRESULT FontManager::AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath, _float originFontSize)
 {
 	if (FindFont(strFontTag) != nullptr) // 이미 있다면
 		return E_FAIL;
 
-	CustomFont* pFont = CustomFont::Create(pFontFilePath);
+	CustomFont* pFont = CustomFont::Create(pFontFilePath, originFontSize);
 	if (pFont == nullptr)
 		return E_FAIL;
 
@@ -22,13 +22,13 @@ HRESULT FontManager::AddFont(const _wstring& strFontTag, const _tchar* pFontFile
 	return S_OK;
 }
 
-HRESULT FontManager::DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor)
+HRESULT FontManager::DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor, _float drawFontSize)
 {
 	CustomFont* pFont = FindFont(strFontTag);
 	if (pFont == nullptr) // 폰트가 없으면
 		return E_FAIL;
 
-	pFont->Draw(strText.c_str(), vPosition, vColor);
+	pFont->Draw(strText.c_str(), vPosition, vColor, drawFontSize);
 	return S_OK;
 }
 

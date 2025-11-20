@@ -43,7 +43,7 @@ void ToolApp::Update(_float fTimeDelta)
 
 HRESULT ToolApp::Render()
 {
-	_float4		vClearColor = _float4(0.f, 0.f, 0.f, 1.f);
+	_float4		vClearColor = _float4(0.f, 0.f, 1.f, 1.f);
 
 	/* 백, 깊이버퍼를 초기화한다. */
 	m_pEngineUtility->BeginDraw(&vClearColor);

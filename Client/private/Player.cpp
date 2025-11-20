@@ -5,6 +5,9 @@
 #include "Weapon_AR.h"
 #include "SMG_Projectile.h"
 #include "Layer.h"
+#include "UI.h"
+#include "UILabel.h"
+#include "UIImage.h"
 
 Player::Player()
     : ContainerTemplate{}
@@ -51,6 +54,10 @@ void Player::Update(_float fTimeDelta)
         HitBack(fTimeDelta);
     }
 
+    Info* pInfo = dynamic_cast<Info*>(FindComponent(TEXT("Info")));
+    if (pInfo != nullptr)
+        pInfo->Update(fTimeDelta);
+
     if (auto pSM = dynamic_cast<StateMachine*>(FindComponent(TEXT("StateMachine"))))
         pSM->Update(fTimeDelta);
 
@@ -67,6 +74,19 @@ void Player::Update(_float fTimeDelta)
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 
+
+    UI* hpFront = m_pEngineUtility->FindUI(L"playerHpFront");
+    if (hpFront)
+    {
+        Info* pInfo = static_cast<Info*>(FindComponent(TEXT("Info")));
+        INFO_DESC desc = pInfo->GetInfo();
+        _float curHP = *std::get_if<_float>(desc.GetPtr("CurHP"));
+        _float maxHP = *std::get_if<_float>(desc.GetPtr("MaxHP"));
+        _float hpRatio = curHP / maxHP;
+
+        static_cast<UIImage*>(hpFront)->SetRatio(hpRatio);
+    }
+    
 }
 
 void Player::LateUpdate(_float fTimeDelta)
@@ -666,6 +686,31 @@ void Player::Rotate(_float fTimeDelta)
 
 void Player::Shoot()
 {
+    Info* partInfo = dynamic_cast<Info*>(m_Parts.at(0)->FindComponent(TEXT("Info")));
+    if (partInfo)
+    {
+        INFO_DESC desc = partInfo->GetInfo();
+        _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
+        if (curBullet == 0)
+        {
+            _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
+            if (curAmmo == 0)
+                return;
+            _int newAmmoCount = curAmmo - 1;
+            desc.SetData("CurAmmo", newAmmoCount);
+            m_pEngineUtility->FindUI(L"ammo_front1")->SetVisible(newAmmoCount >= 1);
+            m_pEngineUtility->FindUI(L"ammo_front2")->SetVisible(newAmmoCount >= 2);
+            m_pEngineUtility->FindUI(L"ammo_front3")->SetVisible(newAmmoCount >= 3);
+            m_pEngineUtility->FindUI(L"ammo_front4")->SetVisible(newAmmoCount >= 4);
+            m_pEngineUtility->FindUI(L"ammo_front5")->SetVisible(newAmmoCount >= 5);
+
+            curBullet = *std::get_if<_int>(desc.GetPtr("MaxBullet"));
+        }
+        desc.SetData("CurBullet", curBullet - 1);
+        static_cast<UILabel*>(m_pEngineUtility->FindUI(L"bulletCount"))->SetText(to_wstring(curBullet));
+        partInfo->BindInfoDesc(desc);
+    }
+
     _float2 mouse = m_pEngineUtility->GetMousePos();
     float d01 = 1.f;
 
@@ -692,11 +737,19 @@ void Player::Shoot()
             P, V, XMMatrixIdentity()
         );
 
-        Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+        Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
         if (pTransform == nullptr)
             return;
         _vector playerPos = pTransform->GetState(MATRIXROW_POSITION);
-        _vector moveDir = pickPos - playerPos;
+
+        const _float4x4* pPartPosMatPtr = m_Parts.at(0)->GetCombinedWorldMatrix();        
+        _matrix pPartPosMat = XMLoadFloat4x4(pPartPosMatPtr);
+        const _float4x4* pMuzzlePosMatPtr = static_cast<Model*>(m_Parts.at(0)->FindComponent(TEXT("Model")))->GetSocketBoneMatrixPtr("muzzle");
+        _matrix pMuzzlePosMat = XMLoadFloat4x4(pMuzzlePosMatPtr);
+        
+        _vector muzzlePos = pMuzzlePosMat.r[3];
+        muzzlePos = XMVector3TransformCoord(muzzlePos, pPartPosMat);
+        _vector moveDir = pickPos - muzzlePos;
 
         Projectile::PROJECTILE_DESC Desc{};
         Desc.moveDir = moveDir;
@@ -711,17 +764,9 @@ void Player::Shoot()
         if (FAILED(m_pEngineUtility->AddObject(iCurSceneId, TEXT("SMG_Projectile"), iCurSceneId, TEXT("Projectile"), &Desc)))
             return;
 
-        const _float4x4* pPartPosMatPtr = m_Parts.at(0)->GetCombinedWorldMatrix();        
-        _matrix pPartPosMat = XMLoadFloat4x4(pPartPosMatPtr);
-        const _float4x4* pMuzzlePosMatPtr = static_cast<Model*>(m_Parts.at(0)->FindComponent(TEXT("Model")))->GetSocketBoneMatrixPtr("muzzle");
-        _matrix pMuzzlePosMat = XMLoadFloat4x4(pMuzzlePosMatPtr);
-        
-        _vector muzzlePos = pMuzzlePosMat.r[3];
-        muzzlePos = XMVector3TransformCoord(muzzlePos, pPartPosMat);
-
         static_cast<Transform*>(m_pEngineUtility->FindLayer(iCurSceneId, TEXT("Projectile"))->GetAllObjects().back()->FindComponent(TEXT("Transform")))->SetState(MATRIXROW_POSITION, muzzlePos);
         {
-            Transform* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+            Transform* tf = static_cast<Transform*>(FindComponent(TEXT("Transform")));
             if (tf)
             {
                 // 목표 방향: 수평화 후 정규화

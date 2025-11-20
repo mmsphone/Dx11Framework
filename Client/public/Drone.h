@@ -44,7 +44,7 @@ private:
     void Move(_float fTimeDelta);
     void Rotate(_float fTimeDelta);
     void Attack();
-    void ApplyDamageToPlayer(Info* info, _float damage);
+    _bool ApplyDamageToPlayer(Object* pTarget, Info* info, _float damage);
 
 private:
     unordered_map<string, _uint> m_animIndexMap;

@@ -21,10 +21,10 @@ HRESULT Background::Initialize(void* pArg)
 {
     BACKGROUND_DESC     Desc{};
 
-    Desc.fX = 150.0f;
-    Desc.fY = 150.0f;
-    Desc.fSizeX = 300.0f;
-    Desc.fSizeY = 300.0f;
+    Desc.x = 150.0f;
+    Desc.y = 150.0f;
+    Desc.w = 300.0f;
+    Desc.h = 300.0f;
 
     Desc.fSpeedPerSec = 5.f;
 
@@ -44,7 +44,7 @@ void Background::PriorityUpdate(_float fTimeDelta)
 
 void Background::Update(_float fTimeDelta)
 {
-    m_fX += 5.0f * fTimeDelta;
+    m_desc.x += 5.0f * fTimeDelta;
 
     __super::Update(fTimeDelta);
 }

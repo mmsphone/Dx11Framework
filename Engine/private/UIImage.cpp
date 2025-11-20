@@ -9,7 +9,7 @@ UIImage::UIImage()
 
 UIImage::UIImage(const UIImage& Prototype)
     : UI{ Prototype }
-    , m_imagePath{ Prototype.m_imagePath }
+    , m_pTexture { nullptr }
 {
 }
 
@@ -29,7 +29,11 @@ HRESULT UIImage::Initialize(void* pArg)
     if (FAILED(ReadyComponents()))
         return E_FAIL;
 
-    LoadTextureFromKey();
+    if (m_desc.imagePath.empty() == false)
+    {
+        if (FAILED(LoadTextureFromPath()))
+            return E_FAIL;
+    }
 
     return S_OK;
 }
@@ -51,43 +55,83 @@ void UIImage::LateUpdate(_float fTimeDelta)
 
 HRESULT UIImage::Render()
 {
+    if (m_desc.visible == false)
+        return S_OK;
+
     if (FAILED(__super::Render()))
         return E_FAIL;
 
-    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
-    VIBufferRect* pVIBuffer = static_cast<VIBufferRect*>(FindComponent(TEXT("VIBuffer")));
-    Shader* pShader = static_cast<Shader*>(FindComponent(TEXT("Shader")));
+    Transform* pTransform = static_cast<Transform*>(FindComponent(L"Transform"));
+    VIBufferRect* pVIBuffer = static_cast<VIBufferRect*>(FindComponent(L"VIBuffer"));
+    Shader* pShader = static_cast<Shader*>(FindComponent(L"Shader"));
 
-    if (FAILED(pShader->BindMatrix("g_WorldMatrix", pTransform->GetWorldMatrixPtr())))
+    if (FAILED(pShader->BindMatrix("g_WorldMatrix", pTransform->GetWorldMatrixPtr()))) 
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ViewMatrix", &m_ViewMatrix)))
+    if (FAILED(pShader->BindMatrix("g_ViewMatrix", &m_ViewMatrix))) 
         return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ProjMatrix", &m_ProjMatrix)))
+    if (FAILED(pShader->BindMatrix("g_ProjMatrix", &m_ProjMatrix))) 
         return E_FAIL;
 
     _float4 defaultColor = { 0.f, 0.f, 0.f, 0.f };
-    if (FAILED(pShader->BindRawValue("g_vDefaultColor", &defaultColor, sizeof(_float4))))
+    if (FAILED(pShader->BindRawValue("g_vDefaultColor", &defaultColor, sizeof(_float4)))) 
         return E_FAIL;
 
-    _bool bUse = true;
+    _bool bUse = (m_pTexture != nullptr);
+    if (FAILED(pShader->BindRawValue("g_bUseTex", &bUse, sizeof(_bool))))
+        return E_FAIL;
+
     if (m_pTexture)
-    {
-        if (FAILED(pShader->BindRawValue("g_bUseTex", &bUse, sizeof(_bool))))
-            return E_FAIL;
         m_pTexture->BindShaderResources(pShader, "g_Texture");
+   
+    _uint passIndex = 0;
+
+    pShader->BindRawValue("g_iMaskingType", &m_MaskingType, sizeof(_int));
+    if (m_MaskingType == 1)
+    {
+        _float4 scissorRect =
+        {
+            static_cast<_float>(m_scissorRect.left),
+            static_cast<_float>(m_scissorRect.top),
+            static_cast<_float>(m_scissorRect.right),
+            static_cast<_float>(m_scissorRect.bottom)
+        };
+
+        pShader->BindRawValue("g_vScissorRect", &scissorRect, sizeof(_float4));
+
+        passIndex = 2;   // ★ 마스크 패스
+    }
+    else if (m_MaskingType == 2)
+    {
+        pShader->BindRawValue("g_hpRatio", &m_Ratio, sizeof(_float));
+        passIndex = 2;
     }
     else
     {
-        bUse = false;
-        if (FAILED(pShader->BindRawValue("g_bUseTex", &bUse, sizeof(_bool))))
-            return E_FAIL;
+        passIndex = 0;   // 기본 UI 패스
     }
 
-    _uint passIdx = 0; // UI용 패스 인덱스 (Shader에서 정해둔 걸로)
-    pShader->Begin(passIdx);
+    pShader->Begin(passIndex);
+    pVIBuffer->BindBuffers();
     pVIBuffer->Render();
 
     return S_OK;
+}
+
+void UIImage::SetScissor(const D3D11_RECT& rect)
+{
+    m_scissorRect = rect;
+    m_MaskingType = 1;
+}
+
+void UIImage::SetRatio(const _float hpRatio)
+{
+    m_Ratio = hpRatio;
+    m_MaskingType = 2;
+}
+
+void UIImage::ClearMasking()
+{
+    m_MaskingType = 0;
 }
 
 UIImage* UIImage::Create()
@@ -116,14 +160,7 @@ void UIImage::Free()
 {
     __super::Free();
 
-    if (m_pTexture)
-        SafeRelease(m_pTexture);
-}
-
-void UIImage::SetImagePath(const std::string& path)
-{
-    m_imagePath = path;
-    LoadTextureFromKey();
+    SafeRelease(m_pTexture);
 }
 
 HRESULT UIImage::ReadyComponents()
@@ -136,32 +173,20 @@ HRESULT UIImage::ReadyComponents()
     return S_OK;
 }
 
-static std::wstring ResolveUIImagePath(const std::string& key)
+HRESULT UIImage::LoadTextureFromPath()
 {
-    if (key == "common/swarm_cycle")
-        return L"../bin/Resources/UI/gamelobby/Textures/swarm_cycle.png";
-    if (key == "maps/any")
-        return L"../bin/Resources/UI/gamelobby/Textures/unknownmissionpic.png";
-    if (key == "icon_button_arrow_right")
-        return L"../bin/Resources/UI/gamelobby/Textures/icon_button_arrow_right.png";
-    if (key == "icon_button_arrow_left")
-        return L"../bin/Resources/UI/gamelobby/Textures/icon_button_arrow_left.png";
-    if (key == "divider_gradient")
-        return L"../bin/Resources/UI/gamelobby/Textures/divider_gradient.png";
+    SafeRelease(m_pTexture);
 
-    return {};
-}
-
-HRESULT UIImage::LoadTextureFromKey()
-{
-    if (m_pTexture)
-        SafeRelease(m_pTexture);
-
-    std::wstring path = ResolveUIImagePath(m_imagePath);
-    if (path.empty())
+    if (m_desc.imagePath.empty())
         return E_FAIL;
-    
-    m_pTexture = Texture::Create(path.c_str(), 1);
+
+    m_pTexture = Texture::Create(m_desc.imagePath.c_str(), 1);
+    if (m_pTexture == nullptr)
+    {
+        string str = "[UIImage] Failed to load texture: ";
+        DEBUG_OUTPUT(str);
+        return E_FAIL;
+    }
     
     return S_OK;
 }

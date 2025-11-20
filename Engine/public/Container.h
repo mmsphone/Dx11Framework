@@ -24,11 +24,11 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	HRESULT AddPart(_uint iPrototypeLevelID, const _wstring& strPrototypeTag, _uint iPartObjectIndex, void* pArg);
+	const vector<class Part*>& GetParts();
+
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free() override;
-
-protected:
-	HRESULT AddPart(_uint iPrototypeLevelID, const _wstring& strPrototypeTag, _uint iPartObjectIndex, void* pArg);
 
 protected:
 	_uint							m_iNumParts = {};

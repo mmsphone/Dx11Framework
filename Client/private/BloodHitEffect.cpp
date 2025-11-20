@@ -44,60 +44,60 @@ HRESULT BloodHitEffect::Render()
     // ----------------------------
     // 1) blood_core (중앙 플래시)
     // ----------------------------
-    VIBufferInstancingRect* pVIBufferCore = static_cast<VIBufferInstancingRect*>(FindComponent(TEXT("VIBuffer1")));
-    Texture* pTextureCore = static_cast<Texture*>(FindComponent(TEXT("Texture1")));
-    if (pVIBufferCore && pTextureCore)
-    {
-        if (FAILED(pTextureCore->BindRenderTargetShaderResource(pShader, "g_MaskTex", 0)))
-            return E_FAIL;
-
-        _float  alphaMul = 1.0f;
-        _float  alphaPow = 1.0f;
-
-        pShader->BindRawValue("g_vBaseColor", &m_desc.baseColor, sizeof(_float4));
-        pShader->BindRawValue("g_fAlphaMul", &alphaMul, sizeof(_float));
-        pShader->BindRawValue("g_fAlphaPow", &alphaPow, sizeof(_float));
-
-        pVIBufferCore->BindBuffers();
-        pShader->Begin(0);
-        pVIBufferCore->Render();
-    }
+    //VIBufferInstancingRect* pVIBufferCore = static_cast<VIBufferInstancingRect*>(FindComponent(TEXT("VIBuffer1")));
+    //Texture* pTextureCore = static_cast<Texture*>(FindComponent(TEXT("Texture1")));
+    //if (pVIBufferCore && pTextureCore)
+    //{
+    //    if (FAILED(pTextureCore->BindRenderTargetShaderResource(pShader, "g_MaskTex", 0)))
+    //        return E_FAIL;
+    //
+    //    _float  alphaMul = 1.0f;
+    //    _float  alphaPow = 1.0f;
+    //
+    //    pShader->BindRawValue("g_vBaseColor", &m_desc.baseColor, sizeof(_float4));
+    //    pShader->BindRawValue("g_fAlphaMul", &alphaMul, sizeof(_float));
+    //    pShader->BindRawValue("g_fAlphaPow", &alphaPow, sizeof(_float));
+    //
+    //    pVIBufferCore->BindBuffers();
+    //    pShader->Begin(0);
+    //    pVIBufferCore->Render();
+    //}
 
     // ----------------------------
     // 2) blood.png (4프레임 아틀라스)
     // ----------------------------
-    VIBufferInstancingRect* pVIBufferSprite = static_cast<VIBufferInstancingRect*>(FindComponent(TEXT("VIBuffer2")));
-    Texture* pTextureSprite = static_cast<Texture*>(FindComponent(TEXT("Texture2")));
-    if (pVIBufferSprite && pTextureSprite)
-    {
-        if (FAILED(pTextureSprite->BindRenderTargetShaderResource(pShader, "g_MaskTex", 0)))
-            return E_FAIL;
-
-        // Effect::GetLifeRatio 기준으로 0~3 프레임 선택
-        const _float life = XMMin(1.f, GetLifeRatio());
-        const _uint  frame = XMMin<UINT>(3, static_cast<UINT>(life * 4.f));
-
-        uvSO.x = 0.25f;         // scaleU
-        uvSO.y = 1.0f;
-        uvSO.z = 0.25f * frame; // offsetU
-        uvSO.w = 0.0f;
-        pShader->BindRawValue("g_vUVScaleOffset", &uvSO, sizeof(_float4));
-
-        _float  alphaMul = 0.9f;
-        _float  alphaPow = 1.2f;
-
-        pShader->BindRawValue("g_vBaseColor", &m_desc.baseColor, sizeof(_float4));
-        pShader->BindRawValue("g_fAlphaMul", &alphaMul, sizeof(_float));
-        pShader->BindRawValue("g_fAlphaPow", &alphaPow, sizeof(_float));
-
-        pVIBufferSprite->BindBuffers();
-        pShader->Begin(0);
-        pVIBufferSprite->Render();
-
-        // UV 복원
-        uvSO = _float4(1.f, 1.f, 0.f, 0.f);
-        pShader->BindRawValue("g_vUVScaleOffset", &uvSO, sizeof(_float4));
-    }
+    //VIBufferInstancingRect* pVIBufferSprite = static_cast<VIBufferInstancingRect*>(FindComponent(TEXT("VIBuffer2")));
+    //Texture* pTextureSprite = static_cast<Texture*>(FindComponent(TEXT("Texture2")));
+    //if (pVIBufferSprite && pTextureSprite)
+    //{
+    //    if (FAILED(pTextureSprite->BindRenderTargetShaderResource(pShader, "g_MaskTex", 0)))
+    //        return E_FAIL;
+    //
+    //    // Effect::GetLifeRatio 기준으로 0~3 프레임 선택
+    //    const _float life = XMMin(1.f, GetLifeRatio());
+    //    const _uint  frame = XMMin<UINT>(3, static_cast<UINT>(life * 4.f));
+    //
+    //    uvSO.x = 0.25f;         // scaleU
+    //    uvSO.y = 1.0f;
+    //    uvSO.z = 0.25f * frame; // offsetU
+    //    uvSO.w = 0.0f;
+    //    pShader->BindRawValue("g_vUVScaleOffset", &uvSO, sizeof(_float4));
+    //
+    //    _float  alphaMul = 0.9f;
+    //    _float  alphaPow = 1.2f;
+    //
+    //    pShader->BindRawValue("g_vBaseColor", &m_desc.baseColor, sizeof(_float4));
+    //    pShader->BindRawValue("g_fAlphaMul", &alphaMul, sizeof(_float));
+    //    pShader->BindRawValue("g_fAlphaPow", &alphaPow, sizeof(_float));
+    //
+    //    pVIBufferSprite->BindBuffers();
+    //    pShader->Begin(0);
+    //    pVIBufferSprite->Render();
+    //
+    //    // UV 복원
+    //    uvSO = _float4(1.f, 1.f, 0.f, 0.f);
+    //    pShader->BindRawValue("g_vUVScaleOffset", &uvSO, sizeof(_float4));
+    //}
 
     // ----------------------------
     // 3) 주변 튀는 피 (Spray1 / Spray2)

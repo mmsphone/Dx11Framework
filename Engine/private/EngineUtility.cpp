@@ -20,6 +20,7 @@
 #include "SpawnerManager.h"
 #include "TriggerBoxManager.h"
 #include "Frustum.h"
+#include "UIManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -89,6 +90,9 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 	m_pFrustum = Frustum::Create();
 	CHECKNULLPTR(m_pFrustum) return E_FAIL;
 
+	m_pUIManager = UIManager::Create();
+	CHECKNULLPTR(m_pUIManager) return E_FAIL;
+
 	return S_OK;
 }
 
@@ -130,6 +134,7 @@ HRESULT EngineUtility::EndDraw()
 
 void EngineUtility::ReleaseEngine()
 {
+	SafeRelease(m_pUIManager);
 	SafeRelease(m_pFrustum);
 	SafeRelease(m_pTriggerBoxManager);
 	SafeRelease(m_pSpawnerManager);
@@ -458,14 +463,14 @@ void EngineUtility::SetActiveLightsByDistance(_fvector vPos, _float fMaxDistance
 	return m_pLightManager->SetActiveLightsByDistance(vPos, fMaxDistance, iMaxLights);
 }
 
-HRESULT EngineUtility::AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath)
+HRESULT EngineUtility::AddFont(const _wstring& strFontTag, const _tchar* pFontFilePath, _float originFontSize)
 {
-	return m_pFontManager->AddFont(strFontTag, pFontFilePath);
+	return m_pFontManager->AddFont(strFontTag, pFontFilePath, originFontSize);
 }
 
-HRESULT EngineUtility::DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor)
+HRESULT EngineUtility::DrawFont(const _wstring& strFontTag, const _wstring& strText, const _float2& vPosition, _fvector vColor, _float drawFontSize)
 {
-	return m_pFontManager->DrawFont(strFontTag, strText, vPosition, vColor);
+	return m_pFontManager->DrawFont(strFontTag, strText, vPosition, vColor, drawFontSize);
 }
 
 #ifdef _IMGUI
@@ -736,9 +741,14 @@ HRESULT EngineUtility::LoadTriggerBoxes(const std::string& path)
 {
 	return m_pSaveLoadManager->LoadTriggerBoxes(path);
 }
-HRESULT EngineUtility::BuildUIFromRes(const std::string& path, const UIPrototypeTags& protoTags, std::vector<class UI*>& outUIObjects)
+HRESULT EngineUtility::SaveUI(const std::string& path)
 {
-	return m_pSaveLoadManager->BuildUIFromRes(path, protoTags, outUIObjects);
+	return m_pSaveLoadManager->SaveUI(path);
+}
+
+HRESULT EngineUtility::LoadUI(const std::string& path, _uint iSceneIndex)
+{
+	return m_pSaveLoadManager->LoadUI(path, iSceneIndex);
 }
 
 HRESULT EngineUtility::AddRenderTarget(const _wstring& strRenderTargetTag, _uint iWidth, _uint iHeight, DXGI_FORMAT ePixelFormat, const _float4& vClearColor)
@@ -906,4 +916,19 @@ const vector<class TriggerBox*>& EngineUtility::GetTriggerBoxes() const
 _bool EngineUtility::IsIn_Frustum_WorldSpace(_fvector vWorldPos, _float fRadius)
 {
 	return m_pFrustum->IsIn_WorldSpace(vWorldPos, fRadius);
+}
+
+void EngineUtility::AddUI(_wstring tagUI, class UI* pUI)
+{
+	m_pUIManager->AddUI(tagUI, pUI);
+}
+
+class UI* EngineUtility::FindUI(_wstring tagUI)
+{
+	return m_pUIManager->FindUI(tagUI);
+}
+
+void EngineUtility::ClearUIs()
+{
+	m_pUIManager->ClearUIs();
 }

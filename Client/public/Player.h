@@ -20,7 +20,7 @@ public:
     virtual HRESULT RenderShadow(_uint iIndex) override;
 
     _uint FindAnimIndex(string animName, _uint fallback = 0) const;
-    _uint FindPriorityIndex(string toStateName, _uint fallback = 0) const; 
+    _uint FindPriorityIndex(string toStateName, _uint fallback = 0) const;
     void SetHit(_vector dirXZ, float power, float duration);
 
     static Player* Create();

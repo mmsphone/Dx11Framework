@@ -90,7 +90,7 @@
     <ClInclude Include="..\public\UIButton.h" />
     <ClInclude Include="..\public\UIImage.h" />
     <ClInclude Include="..\public\UILabel.h" />
-    <ClInclude Include="..\public\UIPanel.h" />
+    <ClInclude Include="..\public\UIManager.h" />
     <ClInclude Include="..\public\VertexIndexBuffer.h" />
     <ClInclude Include="..\public\VIBufferCell.h" />
     <ClInclude Include="..\public\VIBufferCube.h" />
@@ -165,7 +165,7 @@
     <ClCompile Include="..\private\UIButton.cpp" />
     <ClCompile Include="..\private\UIImage.cpp" />
     <ClCompile Include="..\private\UILabel.cpp" />
-    <ClCompile Include="..\private\UIPanel.cpp" />
+    <ClCompile Include="..\private\UIManager.cpp" />
     <ClCompile Include="..\private\VertexIndexBuffer.cpp" />
     <ClCompile Include="..\private\VIBufferCell.cpp" />
     <ClCompile Include="..\private\VIBufferCube.cpp" />

@@ -12,6 +12,7 @@ class Console final : public ObjectTemplate
 	virtual ~Console() = default;
 
 public:
+	virtual HRESULT Initialize(void* pArg) override;
 	virtual void Update(_float fTimeDelta) override;
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
@@ -24,6 +25,12 @@ private:
 	HRESULT ReadyComponents();
 
 	_float scaleOffset = 0.015f;
+
+	_bool  m_playerInRange = false;
+	_bool  m_isActive = false;
+	_uint m_waveIndex = 0;
+	_float m_waveTimer = 0.f;
+	vector<_float> m_waveDurations;
 };
 
 NS_END

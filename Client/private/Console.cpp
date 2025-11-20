@@ -12,6 +12,20 @@ Console::Console(const Console& Prototype)
 {
 }
 
+HRESULT Console::Initialize(void* pArg)
+{
+    if (FAILED(__super::Initialize(pArg)))
+        return E_FAIL;
+
+    m_waveDurations.push_back(0.f);
+    m_waveDurations.push_back(40.f);
+    m_waveDurations.push_back(30.f);
+    m_waveDurations.push_back(20.f);
+    m_waveDurations.push_back(10.f);
+
+    return S_OK;
+}
+
 void Console::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
@@ -19,6 +33,68 @@ void Console::Update(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
+    const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+    Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
+    if (!m_isActive)
+    {
+        m_playerInRange = false;
+        if (pPlayer)
+        {
+            Collision* pPlayerCol = static_cast<Collision*>(pPlayer->FindComponent(TEXT("Collision")));
+            if (pPlayerCol && pCollision->Intersect(pPlayerCol))
+            {
+                m_playerInRange = true;
+
+                // F 키 눌렀을 때 웨이브 스폰
+                if (m_pEngineUtility->IsKeyPressed(DIK_E))
+                {
+                    m_isActive = true;
+                    m_waveIndex = 0;
+
+                    // 첫 웨이브까지 남은 시간 세팅
+                    if (!m_waveDurations.empty())
+                        m_waveTimer = m_waveDurations[0];
+                    else
+                        m_waveTimer = 0.f;
+
+                    // 첫 간격이 0이면 바로 첫 웨이브 스폰
+                    if (m_waveTimer <= 0.f)
+                    {
+                        m_pEngineUtility->Spawn(7);
+                        ++m_waveIndex;
+
+                        if (m_waveIndex < m_waveDurations.size())
+                            m_waveTimer = m_waveDurations[m_waveIndex];
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        if (m_waveIndex < m_waveDurations.size())
+        {
+            m_waveTimer -= fTimeDelta;
+
+            if (m_waveTimer <= 0.f)
+            {
+                // 웨이브 스폰
+                m_pEngineUtility->Spawn(7);
+
+                // 다음 웨이브 준비
+                ++m_waveIndex;
+                if (m_waveIndex < m_waveDurations.size())
+                {
+                    m_waveTimer = m_waveDurations[m_waveIndex];
+                }
+                else
+                {
+                    //웨이브 끝 처리
+                }
+            }
+        }
+    }
 }
 
 void Console::LateUpdate(_float fTimeDelta)
@@ -110,7 +186,7 @@ HRESULT Console::ReadyComponents()
 
     CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
     OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
-    XMStoreFloat3(&OBBDesc.vExtents, _vector{ 1.f, 1.f, 0.30f } / scaleOffset);
+    XMStoreFloat3(&OBBDesc.vExtents, _vector{ 1.f, 1.f, 0.40f } / scaleOffset);
     OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
         return E_FAIL;

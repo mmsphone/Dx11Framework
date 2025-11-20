@@ -16,6 +16,9 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	void SetDoor(class Door* pDoor);
+	void OpenDoor();
+
 	static Panel* Create();
 	virtual Object* Clone(void* pArg) override;
 	virtual void Free() override;
@@ -24,6 +27,11 @@ private:
 	HRESULT ReadyComponents();
 
 	_float scaleOffset = 0.025f;
+
+	_bool m_playerInRange = false;
+	_bool m_worked = false;
+
+	class Door* m_pTargetDoor = { nullptr };
 };
 
 NS_END

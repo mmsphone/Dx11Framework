@@ -22,6 +22,9 @@
 #include "Door.h"
 #include "Panel.h"
 #include "Console.h"
+#include "UIImage.h"
+#include "UILabel.h"
+#include "UIButton.h"
 
 Loader::Loader()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
@@ -91,6 +94,9 @@ void Loader::PrintText()
 
 HRESULT Loader::LoadingForLogo()
 {
+	lstrcpy(m_szLoading, TEXT("폰트 로딩중..."));
+	m_pEngineUtility->AddFont(L"Font_Default", L"../bin/Resources/Fonts/155ex.spritefont");
+
 	lstrcpy(m_szLoading, TEXT("텍스처 로딩중..."));
 
 	lstrcpy(m_szLoading, TEXT("셰이더 로딩중..."));
@@ -108,6 +114,8 @@ HRESULT Loader::LoadingForLogo()
 		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("VIBufferRect"), VIBufferRect::Create())))
+		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("컴포넌트 로딩중..."));
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("StateMachine"), StateMachine::Create())))
@@ -131,6 +139,12 @@ HRESULT Loader::LoadingForLogo()
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("FixedCam"), FixedCam::Create())))
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("ChaseCam"), ChaseCam::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIImage"), UIImage::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UILabel"), UILabel::Create())))
+		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIButton"), UIButton::Create())))
 		return E_FAIL;
 
 	lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
@@ -230,26 +244,26 @@ HRESULT Loader::LoadingForGamePlay()
 	}
 	{
 		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
-		rectDesc.iNumInstance = 200;
-		rectDesc.vScale = _float2(0.1f, 0.1f);
+		rectDesc.iNumInstance = 400;
+		rectDesc.vScale = _float2(0.05f, 0.1f);
 		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
-		rectDesc.vRange = _float3(0.2f, 0.1f, 0.2f);
+		rectDesc.vRange = _float3(0.1f, 0.1f, 0.1f);
 		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
-		rectDesc.vSpeed = _float2(3.0f, 4.0f);
-		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.vSpeed = _float2(2.0f, 5.0f);
+		rectDesc.vLifeTime = _float2(0.15f, 0.15f);
 		rectDesc.isLoop = false;
 		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSpray1"), VIBufferInstancingRect::Create(&rectDesc))))
 			return E_FAIL;
 	}
 	{
 		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
-		rectDesc.iNumInstance = 200;
-		rectDesc.vScale = _float2(0.1f, 0.1f);
+		rectDesc.iNumInstance = 400;
+		rectDesc.vScale = _float2(0.05f, 0.1f);
 		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
-		rectDesc.vRange = _float3(00.2f, 0.1f, 0.2f);
+		rectDesc.vRange = _float3(0.1f, 0.1f, 0.1f);
 		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
-		rectDesc.vSpeed = _float2(3.0f, 4.0f);
-		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.vSpeed = _float2(2.0f, 5.0f);
+		rectDesc.vLifeTime = _float2(0.15f, 0.15f);
 		rectDesc.isLoop = false;
 		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSpray2"), VIBufferInstancingRect::Create(&rectDesc))))
 			return E_FAIL;
@@ -297,21 +311,21 @@ HRESULT Loader::LoadingForGamePlay()
 	m_pEngineUtility->LoadCells("../bin/data/GameScene1_Navigation.dat");
 	
 	lstrcpy(m_szLoading, TEXT("몬스터 스포너 로딩 중..."));
-	{
+	{// 스포너 0
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-110.f, 18.f, -172.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-109.f, 18.f, -170.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-106.f, 18.f, -172.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
-	{
+	{// 스포너 1
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-121.f, 18.f, -157.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-120.f, 18.f, -155.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-119.f, 18.f, -157.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
-	{
+	{// 스포너 2
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-118.5f, 18.f, -134.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-122.5f, 19.5f, -138.5f, 1.f));
@@ -319,7 +333,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-126.5f, 19.5f, -116.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
-	{
+	{// 스포너 3
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-130.f, 17.f, -90.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-127.5f, 17.f, -85.f, 1.f));
@@ -328,7 +342,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-139.3f, 17.f, -85.7f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
-	{
+	{// 스포너 4
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-127.f, 17.f, -69.5f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-130.f, 17.f, -76.f, 1.f));
@@ -337,7 +351,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-145.f, 17.f, -69.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
-	{
+	{// 스포너 5
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-138.f, 17.f, -53.5f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-146.f, 17.f, -50.f, 1.f));
@@ -349,7 +363,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-143.f, 16.f, -29.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
-	{
+	{// 스포너 6
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-134.f, 16.f, 3.5f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-125.f, 16.f, 4.f, 1.f));
@@ -361,8 +375,22 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-122.f, 16.5f, 22.5f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	{// 스포너 7
+		_float3 spawnRandomRange = { 1.f, 0.f, 1.f };
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-134.5f, 16.f, 2.5f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-125.f, 16.f, 4.f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-132.5f, 16.f, 18.f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-116.f, 16.f, 12.f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-132.f, 16.f, 9.f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-122.5f, 16.5f, 12.f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-117.f, 16.f, 17.f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-127.f, 16.5f, 12.5f, 1.f), spawnRandomRange);
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
 
-	lstrcpy(m_szLoading, TEXT("트리거 박스 로딩 중..."));
+
+	lstrcpy(m_szLoading, TEXT("트리거 박스 로딩 중..."));			   
 	m_pEngineUtility->LoadTriggerBoxes("../bin/data/GameScene1_TriggerBoxes.dat");
 	vector<TriggerBox*> TriggerBoxes = m_pEngineUtility->GetTriggerBoxes();
 	TriggerBoxes[0]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(0); });

@@ -67,16 +67,6 @@ HRESULT Container::Render()
     return S_OK;
 }
 
-void Container::Free()
-{
-    __super::Free();
-
-    for (auto& pPart : m_Parts)
-        SafeRelease(pPart);
-
-    m_Parts.clear();
-}
-
 HRESULT Container::AddPart(_uint iPrototypeLevelID, const _wstring& strPrototypeTag, _uint iPartObjectIndex, void* pArg)
 {
     Part* pPartObject = dynamic_cast<Part*>(m_pEngineUtility->ClonePrototype(PROTOTYPE::PROTOTYPE_OBJECT, iPrototypeLevelID, strPrototypeTag, pArg));
@@ -86,4 +76,19 @@ HRESULT Container::AddPart(_uint iPrototypeLevelID, const _wstring& strPrototype
     m_Parts[iPartObjectIndex] = pPartObject;
 
     return S_OK;
+}
+
+const vector<class Part*>& Container::GetParts()
+{
+    return m_Parts;
+}
+
+void Container::Free()
+{
+    __super::Free();
+
+    for (auto& pPart : m_Parts)
+        SafeRelease(pPart);
+
+    m_Parts.clear();
 }

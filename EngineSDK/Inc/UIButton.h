@@ -6,7 +6,6 @@ NS_BEGIN(Engine)
 
 class ENGINE_DLL UIButton final : public UI
 {
-private:
     UIButton();
     UIButton(const UIButton& Prototype);
     virtual ~UIButton() = default;
@@ -19,27 +18,24 @@ public:
     virtual void    LateUpdate(_float fTimeDelta) override;
     virtual HRESULT Render() override;
 
+    void SetImagePath(const std::wstring& path);
+    const wstring& GetImagePath() const;
+
+    void AddButtonFunction(function<void()> func);
+    void DoButtonFunctions();
+    void ClearButtonFunctions();
+
     static UIButton* Create();
     virtual Object* Clone(void* pArg) override;
     virtual void     Free() override;
 
-public:
-    // SaveLoadManager → BuildUIFromRes에서 세팅할 용도
-    void                SetText(const std::string& text) { m_text = text; }
-    void                SetCommand(const std::string& cmd) { m_command = cmd; }
-
-    const std::string& GetText()    const { return m_text; }
-    const std::string& GetCommand() const { return m_command; }
-
-    // 필요하면 나중에 버튼 상태 (hover, pressed 등) 추가 가능
-    // void SetHover(bool h) { m_bHover = h; }
-
 private:
     HRESULT ReadyComponents();
+    HRESULT LoadTextureFromPath();
 
 private:
-    std::string m_text;
-    std::string m_command;
+    class Texture* m_pTexture = nullptr;
+    vector<function<void()>> buttonFunctions{};
 };
 
 NS_END

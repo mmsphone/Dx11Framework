@@ -465,7 +465,7 @@ HRESULT Worm::SetUpStateMachine()
             Info* pInfo = dynamic_cast<Info*>(pWorm->FindComponent(TEXT("Info")));
             if (!pInfo)
                 return false;
-            if (pModel->isAnimFinished() && *std::get_if<_bool>(pInfo->GetInfo().GetPtr("IsHit")))
+            if (*std::get_if<_bool>(pInfo->GetInfo().GetPtr("IsHit")))
             {
                 pInfo->GetInfo().SetData("IsHit", false);
                 return true;
@@ -498,7 +498,7 @@ HRESULT Worm::SetUpInfo()
     INFO_DESC desc;
     desc.SetData("MaxHP", _float{ 120.f });
     desc.SetData("CurHP", _float{ 120.f });
-    desc.SetData("InvincibleTime", _float{ 0.15f });
+    desc.SetData("InvincibleTime", _float{ 0.1f });
     desc.SetData("InvincibleLeft", _float{ 0.f });
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
@@ -519,9 +519,9 @@ void Worm::SetUpAIInputData()
         return;
     m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(MATRIXROW_POSITION));
 
-    m_pAIInputCache->SetData("SightRange", _float{ 8.f });
+    m_pAIInputCache->SetData("SightRange", _float{ 10.f });
     m_pAIInputCache->SetData("FovDegree", _float{ 360.f });
-    m_pAIInputCache->SetData("AttackRange", _float{ 4.f });
+    m_pAIInputCache->SetData("AttackRange", _float{ 6.f });
     m_pAIInputCache->SetData("ChasePersistTime", _float{ 0.f });
 }
 

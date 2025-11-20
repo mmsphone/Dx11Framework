@@ -238,8 +238,8 @@
     <Filter Include="04.ForUtility\UI\UIImage">
       <UniqueIdentifier>{c03499ed-2b77-4aa9-ae54-3d80d757d72d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="04.ForUtility\UI\UIPanel">
-      <UniqueIdentifier>{0bdeabee-f31e-4b18-a6d0-fcc596d294ec}</UniqueIdentifier>
+    <Filter Include="03.Utility\UIManager">
+      <UniqueIdentifier>{cbae5ff7-e8c5-477f-aca0-f40071e5aad9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -480,8 +480,8 @@
     <ClInclude Include="..\public\UIImage.h">
       <Filter>04.ForUtility\UI\UIImage</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\UIPanel.h">
-      <Filter>04.ForUtility\UI\UIPanel</Filter>
+    <ClInclude Include="..\public\UIManager.h">
+      <Filter>03.Utility\UIManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -725,8 +725,8 @@
     <ClCompile Include="..\private\UIImage.cpp">
       <Filter>04.ForUtility\UI\UIImage</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\UIPanel.cpp">
-      <Filter>04.ForUtility\UI\UIPanel</Filter>
+    <ClCompile Include="..\private\UIManager.cpp">
+      <Filter>03.Utility\UIManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

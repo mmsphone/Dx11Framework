@@ -31,6 +31,7 @@ public:
 
 private:
 	HRESULT ReadyComponents() override;
+	HRESULT SetUpInfo();
 
 private:
 	const _float4x4* m_pSocketBoneMatrix = { };

@@ -2,6 +2,7 @@
 
 #include "EngineUtility.h"
 #include "Transform.h"
+#include "UIButton.h"
 
 UILabel::UILabel()
     : UI{}
@@ -10,13 +11,12 @@ UILabel::UILabel()
 
 UILabel::UILabel(const UILabel& Prototype)
     : UI{ Prototype }
-    , m_text{ Prototype.m_text }
 {
 }
 
 HRESULT UILabel::InitializePrototype()
 {
-    if (FAILED(__super::InitializePrototype()))
+    if (FAILED(__super::InitializePrototype())) 
         return E_FAIL;
 
     return S_OK;
@@ -25,9 +25,6 @@ HRESULT UILabel::InitializePrototype()
 HRESULT UILabel::Initialize(void* pArg)
 {
     if (FAILED(__super::Initialize(pArg)))
-        return E_FAIL;
-
-    if (FAILED(ReadyComponents()))
         return E_FAIL;
 
     return S_OK;
@@ -50,10 +47,19 @@ void UILabel::LateUpdate(_float fTimeDelta)
 
 HRESULT UILabel::Render()
 {
+    if (m_desc.visible == false)
+        return S_OK;
+
     if (FAILED(__super::Render()))
         return E_FAIL;
 
-    m_pEngineUtility->DrawFont(L"Font_Default", m_text, _float2(m_fX, m_fY));
+    if (m_desc.text.empty())
+        return S_OK;
+
+    if (m_desc.font.empty())
+        m_desc.font = L"Font_Default";
+
+    m_pEngineUtility->DrawFont(m_desc.font, m_desc.text, _float2(m_desc.x, m_desc.y), XMLoadFloat4(&m_desc.fontColor), m_desc.fontSize);
 
     return S_OK;
 }
@@ -85,33 +91,17 @@ void UILabel::Free()
     __super::Free();
 }
 
-void UILabel::SetText(const std::string& text)
+void UILabel::SetText(const wstring& text)
 {
     if (text.empty())
     {
-        m_text.clear();
+        m_desc.text.clear();
         return;
     }
-    int len = MultiByteToWideChar(CP_UTF8,0,text.c_str(),-1,nullptr,0);
-    if (len <= 0)
-    {
-        m_text.assign(text.begin(), text.end());
-        return;
-    }
-
-    wstring wide;
-    wide.resize(len - 1);
-    MultiByteToWideChar(CP_UTF8,0,text.c_str(),-1,&wide[0],len);
-
-    m_text = std::move(wide);
+    m_desc.text = text;
 }
 
 const wstring& UILabel::GetText() const
 {
-    return m_text;
-}
-
-HRESULT UILabel::ReadyComponents()
-{
-    return S_OK;
+    return m_desc.text;
 }

@@ -24,14 +24,8 @@ public:
     virtual void    Free() override;
 
 public:
-    void SetText(const std::string& text);
+    void SetText(const wstring& text);
     const wstring& GetText() const;
-
-private:
-    HRESULT ReadyComponents();
-
-private:
-    std::wstring m_text;
 };
 
 NS_END

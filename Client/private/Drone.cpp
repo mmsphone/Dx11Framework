@@ -3,6 +3,7 @@
 #include "EngineUtility.h"
 
 #include "Player.h"
+#include "BloodHitEffect.h"
 
 Drone::Drone()
     : ObjectTemplate{}
@@ -70,6 +71,8 @@ void Drone::Update(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+    Collision* pAttackCollision = static_cast<Collision*>(FindComponent(TEXT("AttackCollision")));
+    pAttackCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 }
 
 void Drone::LateUpdate(_float fTimeDelta)
@@ -115,6 +118,8 @@ HRESULT Drone::Render()
 #ifdef _DEBUG
     Collision* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Render();
+    Collision* pAttackCollision = dynamic_cast<Collision*>(FindComponent(TEXT("AttackCollision")));
+    pAttackCollision->Render();
 #endif
 
     return S_OK;
@@ -207,12 +212,23 @@ HRESULT Drone::ReadyComponents()
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("Info"), TEXT("Info"), nullptr, nullptr)))
         return E_FAIL;
 
-    CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
-    OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
-    XMStoreFloat3(&OBBDesc.vExtents, _vector{ 0.5f, 0.5f, 0.5f } / scaleOffset);
-    OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
-    if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
-        return E_FAIL;
+    {
+        CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
+        OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
+        XMStoreFloat3(&OBBDesc.vExtents, _vector{ 0.5f, 0.5f, 0.5f } / scaleOffset);
+        OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
+        if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
+            return E_FAIL;
+    }
+    {
+        CollisionBoxOBB::COLLISIONOBB_DESC atk{};
+        atk.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
+        XMStoreFloat3(&atk.vExtents, _vector{ 0.5f, 0.5f, 0.6f } / scaleOffset);
+        atk.vCenter = _float3(0.f, atk.vExtents.y * 0.5f, -atk.vExtents.z * 0.6f);
+        if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("AttackCollision"), nullptr, &atk)))
+            return E_FAIL;
+    }
+
 
     return S_OK;
 }
@@ -309,7 +325,8 @@ HRESULT Drone::SetUpStateMachine()
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
 
-            if (pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.6f)
+            if (pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.6f &&
+                pModel->GetCurAnimTrackPos() < pModel->GetCurAnimDuration() * 0.8f )
             {
                 pDrone->Attack();
                 pDrone->m_targetAttackable = false;
@@ -342,8 +359,12 @@ HRESULT Drone::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+            Info* pInfo = static_cast<Info*>(owner->FindComponent(TEXT("Info")));
 
             pModel->SetAnimation(pDrone->FindAnimIndex("Die"), false, 0.05f);
+            INFO_DESC desc = pInfo->GetInfo();
+            desc.SetData("InvincibleLeft", _float{ 10.f });
+            pInfo->BindInfoDesc(desc);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -549,7 +570,7 @@ HRESULT Drone::SetUpStateMachine()
             Info* pInfo = dynamic_cast<Info*>(pDrone->FindComponent(TEXT("Info")));
             if (!pInfo)
                 return false;
-            if (pModel->isAnimFinished() && *std::get_if<_bool>(pInfo->GetInfo().GetPtr("IsHit")))
+            if (*std::get_if<_bool>(pInfo->GetInfo().GetPtr("IsHit")))
             {
                 pInfo->GetInfo().SetData("IsHit", false);
                 return true;
@@ -583,12 +604,13 @@ HRESULT Drone::SetUpInfo()
     INFO_DESC desc;
     desc.SetData("MaxHP", _float{ 120.f });
     desc.SetData("CurHP", _float{ 120.f });
-    desc.SetData("InvincibleTime", _float{ 0.15f });
+    desc.SetData("InvincibleTime", _float{ 0.1f });
     desc.SetData("InvincibleLeft", _float{ 0.f });
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
     desc.SetData("IsHit", _bool{ false }); 
     desc.SetData("Faction", FACTION_MONSTER);
+    desc.SetData("AttackDamage", _float{ 15.f });
     pInfo->BindInfoDesc(desc);
 
     return S_OK;
@@ -603,10 +625,10 @@ void Drone::SetUpAIInputData()
 
     m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(MATRIXROW_POSITION));
 
-    m_pAIInputCache->SetData("SightRange", _float{ 6.f });
+    m_pAIInputCache->SetData("SightRange", _float{ 10.f });
     m_pAIInputCache->SetData("FovDegree", _float{ 360.f });
-    m_pAIInputCache->SetData("AttackRange", _float{ 1.3f });
-    m_pAIInputCache->SetData("ChasePersistTime", _float{ 3.f });
+    m_pAIInputCache->SetData("AttackRange", _float{ 1.2f });
+    m_pAIInputCache->SetData("ChasePersistTime", _float{ 5.f });
 }
 
 HRESULT Drone::SetUpAIProcess()
@@ -822,38 +844,30 @@ void Drone::Rotate(_float fTimeDelta)
 
 void Drone::Attack()
 {
-    // 히트박스 파라미터(필요시 조절)
-    const float hitOffset = -0.6f;   // 드론 위치에서 전방 얼마나 떨어진 지점에 중심을 둘지
-    const float hitRadius = 0.7f;   // 구 반지름
-    const float damage = 15.f;   // 대미지량
-
-    Transform* pDroneTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    if (!pDroneTransform) 
-        return;
-
     // 플레이어 찾기
     const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
     Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
     if (!pPlayer) 
         return;
+    Transform* pPlayerTransform = static_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform")));
+    Info* pPlayerInfo = static_cast<Info*>(pPlayer->FindComponent(TEXT("Info")));
 
-    Transform* pPlayerTransform = dynamic_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform")));
-    Info* pPlayerInfo = dynamic_cast<Info*>(pPlayer->FindComponent(TEXT("Info")));
-    if (!pPlayerTransform || !pPlayerInfo) 
+    Collision* pAtkCol = static_cast<Collision*>(FindComponent(TEXT("AttackCollision")));
+    Collision* pPlayerCol = static_cast<Collision*>(pPlayer->FindComponent(TEXT("Collision")));
+    if (!pAtkCol->Intersect(pPlayerCol))
         return;
 
-    // 전방 오프셋 + 구 히트박스
-    _vector lookXZ = XMVector3Normalize(XMVectorSetY(pDroneTransform->GetState(MATRIXROW_LOOK), 0.f));
-    _vector center = pDroneTransform->GetState(MATRIXROW_POSITION) + XMVectorScale(lookXZ, hitOffset);
+    Transform* pDroneTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Info* pDroneInfo = static_cast<Info*>(FindComponent(TEXT("Info")));
+    _float damage = *std::get_if<_float>(pDroneInfo->GetInfo().GetPtr("AttackDamage"));
 
-    // 거리 체크(간단히 3D 거리. 필요하면 XZ 평면 거리로 바꿔도 됨)
-    const _float distance = XMVectorGetX(XMVector3Length(pPlayerTransform->GetState(MATRIXROW_POSITION) - center));
-    if (distance <= hitRadius)
+    if (ApplyDamageToPlayer(pPlayer, pPlayerInfo, damage))
     {
-        ApplyDamageToPlayer(pPlayerInfo, damage);
         if (Player* player = dynamic_cast<Player*>(pPlayer))
         {
-            _vector dirKB = XMVector3Normalize(XMVectorSetY(pPlayerTransform->GetState(MATRIXROW_POSITION) - pDroneTransform->GetState(MATRIXROW_POSITION), 0.f));
+            _vector dirKB = XMVector3Normalize(
+                XMVectorSetY(pPlayerTransform->GetState(MATRIXROW_POSITION) - pDroneTransform->GetState(MATRIXROW_POSITION), 0.f)
+            );
             const float kbPower = 3.0f;
             const float kbTime = 0.2f;
             player->SetHit(dirKB, kbPower, kbTime);
@@ -861,7 +875,7 @@ void Drone::Attack()
     }
 }
 
-void Drone::ApplyDamageToPlayer(Info* info, _float damage)
+_bool Drone::ApplyDamageToPlayer(Object* pTarget, Info* info, _float damage)
 {
     INFO_DESC Desc = INFO_DESC{};
     Desc = info->GetInfo();
@@ -869,7 +883,7 @@ void Drone::ApplyDamageToPlayer(Info* info, _float damage)
     _float invLeft = 0.f;
     if (auto p = Desc.GetPtr("InvincibleLeft")) invLeft = *std::get_if<_float>(p);
     if (invLeft > 0.f) 
-        return;
+        return false;
 
     _float cur = 0.f, invT = 0.15f;
     if (auto p = Desc.GetPtr("CurHP"))            cur = *std::get_if<_float>(p);
@@ -883,4 +897,30 @@ void Drone::ApplyDamageToPlayer(Info* info, _float damage)
     if (auto pT = Desc.GetPtr("Time"))
         Desc.SetData("LastHit", *std::get_if<_float>(pT));
 
+    info->BindInfoDesc(Desc);
+
+    // ---- 여기서 히트 이펙트 생성 (Worm_Projectile과 동일 패턴) ----
+    if (Transform* pTF = static_cast<Transform*>(pTarget->FindComponent(TEXT("Transform"))))
+    {
+        BloodHitEffect::BLOODHITEFFECT_DESC e{};
+        e.fLifeTime = 0.25f;
+        e.bLoop = false;
+        e.bAutoKill = true;
+        e.fRotationPerSec = 0.f;
+        e.fSpeedPerSec = 0.f;
+        XMStoreFloat3(&e.vCenterWS, pTF->GetState(MATRIXROW_POSITION));
+
+        // 색은 적당히 빨간색 계열
+        e.baseColor = _float4(1.0f, 0.2f, 0.2f, 1.f);
+
+        m_pEngineUtility->AddObject(
+            SCENE::GAMEPLAY,
+            TEXT("BloodHitEffect"),
+            SCENE::GAMEPLAY,
+            TEXT("Effect"),
+            &e
+        );
+    }
+
+    return true;
 }

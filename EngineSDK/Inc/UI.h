@@ -6,15 +6,6 @@ NS_BEGIN(Engine)
 
 class ENGINE_DLL UI abstract : public Object
 {
-public:
-	typedef struct tagUIDesc : public Object::OBJECT_DESC
-	{
-		_float fX;
-		_float fY;
-		_float fZ;
-		_float fSizeX;
-		_float fSizeY;
-	}UI_DESC;
 protected:
 	UI();
 	UI(const UI& Prototype);
@@ -28,7 +19,9 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
-	void ApplyRectFromControl(const UIControlDesc& desc);
+	void ApplyUIDesc(const UI_DESC& desc);
+	const UI_DESC& GetUIDesc() const;
+	void SetVisible(_bool bVisible);
 
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free() override;
@@ -37,11 +30,9 @@ protected:
 	void UpdateState();
 
 protected:
-	_float						m_fX, m_fY, m_fSizeX, m_fSizeY;
-	_float						m_fZ;
-	_float4x4					m_ViewMatrix{}, m_ProjMatrix{};
-
-	_float						m_fViewportSizeX{}, m_fViewportSizeY{};
+	UI_DESC m_desc{};
+	_float m_fViewportSizeX{}, m_fViewportSizeY{};
+	_float4x4 m_ViewMatrix{}, m_ProjMatrix{};
 };
 
 NS_END

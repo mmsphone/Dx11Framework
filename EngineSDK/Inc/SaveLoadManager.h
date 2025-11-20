@@ -20,8 +20,8 @@ public:
 	HRESULT SaveTriggerBoxes(const std::string& path);
 	HRESULT LoadTriggerBoxes(const std::string& path);
 	
-	HRESULT BuildUIFromRes(const std::string& path, const UIPrototypeTags& protoTags, std::vector<class UI*>& outUIObjects);
-	HRESULT LoadUIFromRes(const std::string& path, vector<UIControlDesc>& outControls);
+	HRESULT SaveUI(const std::string& path);
+	HRESULT LoadUI(const std::string& path, _uint iSceneIndex);
 
 	static SaveLoadManager* Create();
 	virtual void Free() override;

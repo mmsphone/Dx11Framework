@@ -18,6 +18,8 @@ public:
 
 	HRESULT ReadyLights();
 	HRESULT ReadyLayerCamera();
+	HRESULT ReadyUI();
+	HRESULT PanelDoorLink();
 
 	static GameScene* Create();
 	virtual void Free() override;

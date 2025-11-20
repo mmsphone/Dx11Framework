@@ -214,11 +214,13 @@ _bool Worm_Projectile::TryApplyHitTo(Object* pTarget)
             desc.bAutoKill = true;
             desc.fRotationPerSec = 0.f;
             desc.fSpeedPerSec = 0.f;
-            XMStoreFloat3(&desc.vCenterWS, static_cast<Transform*>(pTarget->FindComponent(TEXT("Transform")))->GetState(MATRIXROW_POSITION));
+            XMStoreFloat3(&desc.vCenterWS, static_cast<Transform*>(FindComponent(TEXT("Transform")))->GetState(MATRIXROW_POSITION));
             desc.baseColor = _float4(1.0f, 0.2f, 0.2f, 1.f);
 
             m_pEngineUtility->AddObject(SCENE::GAMEPLAY, TEXT("BloodHitEffect"), SCENE::GAMEPLAY, TEXT("Effect"), &desc);
         }
+
+        pInfo->BindInfoDesc(Desc);
 
         return true;
     }

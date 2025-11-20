@@ -11,6 +11,7 @@
 #include "AssetPanel.h"
 #include "LightPanel.h"
 #include "TriggerBoxPanel.h"
+#include "UIPanel.h"
 
 MapScene::MapScene()
 	:Scene{}
@@ -23,14 +24,14 @@ HRESULT MapScene::Initialize()
 	// Buffer
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBuffer_Rect"), VIBufferRect::Create());
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBuffer_Cube"),	VIBufferCube::Create());
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBufferTerrain"), 
-		VIBufferTerrain::Create(TEXT("../bin/Resources/Textures/Terrain/Height.bmp")));
+	//m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("VIBufferTerrain"), 
+	//	VIBufferTerrain::Create(TEXT("../bin/Resources/Textures/Terrain/Height.bmp")));
 
 	//Shader
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Shader_VtxPosTex"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"), VTXPOSTEX::Elements, VTXPOSTEX::iNumElements));
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Shader_VtxTerrain"),
-		Shader::Create(TEXT("../bin/Shader/Shader_VtxNorTex.hlsl"),	VTXNORTEX::Elements, VTXNORTEX::iNumElements));
+	//m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Shader_VtxTerrain"),
+	//	Shader::Create(TEXT("../bin/Shader/Shader_VtxNorTex.hlsl"),	VTXNORTEX::Elements, VTXNORTEX::iNumElements));
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Shader_VtxMesh"),
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"),	VTXMESH::Elements, VTXMESH::iNumElements));
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Shader_VtxAnimMesh"),
@@ -39,11 +40,7 @@ HRESULT MapScene::Initialize()
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxCube.hlsl"),	VTXCUBE::Elements, VTXCUBE::iNumElements));
 
 	//Texture
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Texture_Terrain_Diffuse"), Texture::Create(TEXT("../bin/Resources/Textures/Terrain/Tile%d.dds"), 2));
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Texture_Terrain_Mask"), Texture::Create(TEXT("../bin/Resources/Textures/Terrain/Mask.dds"), 1));
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Texture_Terrain_Brush"), Texture::Create(TEXT("../bin/Resources/Textures/Terrain/Brush.png"), 1));
-	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("Texture_Default"), Texture::Create(TEXT("../bin/Resources/Textures/Default%d.jpg"), 2));
-
+	
 	//Collision
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("CollisionAABB"), Collision::Create(COLLISIONTYPE_AABB))))
 		return E_FAIL;
@@ -75,7 +72,7 @@ HRESULT MapScene::Initialize()
 	Desc.fSensor = 0.1f;
 	Desc.fSpeedPerSec = 40.f;
 	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
-
+	
 	if (FAILED(m_pEngineUtility->AddObject(SCENE::MAP, TEXT("FreeCam"), SCENE::MAP, TEXT("Cam"), &Desc)))
 		return E_FAIL;
 
@@ -99,6 +96,10 @@ HRESULT MapScene::Initialize()
 	string strTriggerBoxPanel = "TiggerBoxPanel";
 	TriggerBoxPanel* pTriggerBoxPanel = TriggerBoxPanel::Create(strTriggerBoxPanel);
 	m_pEngineUtility->AddPanel(pTriggerBoxPanel->GetPanelName(), pTriggerBoxPanel);
+
+	string strUIPanel = "UIPanel";
+	UIPanel* pUIPanel = UIPanel::Create(strUIPanel);
+	m_pEngineUtility->AddPanel(pUIPanel->GetPanelName(), pUIPanel);
 
 	return S_OK;
 }

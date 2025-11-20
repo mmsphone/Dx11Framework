@@ -1,6 +1,7 @@
 #include "Panel.h"
 
 #include "EngineUtility.h"
+#include "Door.h"
 
 Panel::Panel()
     : ObjectTemplate{ }
@@ -19,6 +20,25 @@ void Panel::Update(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
+    if (m_worked == false)
+    {
+        m_playerInRange = false;
+        const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+        Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
+        if (pPlayer)
+        {
+            Collision* pPlayerCol = static_cast<Collision*>(pPlayer->FindComponent(TEXT("Collision")));
+            if (pPlayerCol && pCollision->Intersect(pPlayerCol))
+            {
+                m_playerInRange = true;
+                if (m_pEngineUtility->IsKeyPressed(DIK_E))
+                {
+                    OpenDoor();
+                }
+            }
+        }
+    }
 }
 
 void Panel::LateUpdate(_float fTimeDelta)
@@ -67,6 +87,23 @@ HRESULT Panel::Render()
     return S_OK;
 }
 
+void Panel::SetDoor(Door* pDoor)
+{
+    m_pTargetDoor = pDoor;
+}
+
+void Panel::OpenDoor()
+{
+    if (m_worked)
+        return;
+
+    if (m_pTargetDoor)
+    {
+        m_pTargetDoor->Open();
+        m_worked = true;
+    }
+}
+
 Panel* Panel::Create()
 {
     Panel* pInstance = new Panel();
@@ -110,7 +147,7 @@ HRESULT Panel::ReadyComponents()
 
     CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
     OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
-    XMStoreFloat3(&OBBDesc.vExtents, _vector{ 1.f, 1.f, 0.30f } / scaleOffset);
+    XMStoreFloat3(&OBBDesc.vExtents, _vector{ 1.f, 1.f, 0.3f } / scaleOffset);
     OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
         return E_FAIL;

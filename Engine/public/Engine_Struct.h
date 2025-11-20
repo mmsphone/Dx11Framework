@@ -266,6 +266,7 @@ namespace Engine
 		_wstring prototypeKey;
 		_wstring layerKey;
 		_float3 position;
+		_float3 spawnRandomRange = { 0.f,0.f,0.f };
 	}SPAWNER_MOB_DESC;
 
 	//트리거박스 데이터
@@ -275,53 +276,37 @@ namespace Engine
 		_float3 Extents;
 	}TRIGGERBOX_DESC;
 
-	//UI용 KeyValue 데이터구조
-	typedef struct tagUIKeyValue
+	//UI용 데이터 구조
+	typedef struct tagUIDesc
 	{
-		string                 key;
-		string                 value;
-		vector<tagUIKeyValue*> children;
+		//트랜스폼 초기화용
+		_float fSpeedPerSec{};
+		_float fRotationPerSec{};
+		
+		//공통
+		UITYPE type = UITYPE::UI_END;
+		string     name;
+		_float x = 0;
+		_float y = 0;
+		_float z = 0;
+		_float w = 0;
+		_float h = 0;
+		_bool visible = true;
 
-		bool IsLeaf() const { return children.empty(); }
+		//UILabel
+		_wstring	font;
+		_wstring     text;
+		_float fontSize = 32.f;
+		_float4 fontColor = {1.f, 1.f, 1.f, 1.f};
 
-		// 편의 함수: 자식 중 key 일치하는 첫 번째 노드 찾기
-		tagUIKeyValue* FindChild(const std::string& childKey) const
-		{
-			for (auto& child : const_cast<vector<tagUIKeyValue*>&>(children))
-			{
-				if (_stricmp(child->key.c_str(), childKey.c_str()) == 0)
-					return child;
-			}
-			return nullptr;
-		}
-	}UI_KV;
+		//UIImage, UIButton
+		_wstring     imagePath;
 
-	//UI용 컨트롤 데이터 구조
-	struct UIControlDesc
-	{
-		UICONTROLTYPE   type = UICONTROLTYPE::UI_UNKNOWN;
+		//UIButton
+		_bool enable = true;
 
-		std::string     name;       // "name" 또는 "fieldName" 등
-		std::string     id;         // ControlName (고유 id 느낌)
-		std::string     text;       // labelText
-		std::string     image;      // image (vgui/xxx)
-		std::string     command;    // 버튼 command
+	}UI_DESC;
 
-		int             x = 0;
-		int             y = 0;
-		int             w = 0;
-		int             h = 0;
-
-	};
-
-	struct UIPrototypeTags
-	{
-		const _tchar* layerTag = TEXT("Layer_UI");        // UI를 올릴 레이어 태그
-		const _tchar* buttonProto = TEXT("Prototype_UI_Button");
-		const _tchar* labelProto = TEXT("Prototype_UI_Label");
-		const _tchar* imageProto = TEXT("Prototype_UI_Image");
-		const _tchar* panelProto = TEXT("Prototype_UI_Panel");
-	};
 }
 
 

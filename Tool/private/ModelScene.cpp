@@ -39,14 +39,15 @@ HRESULT ModelScene::Initialize()
 		Shader::Create(TEXT("../bin/Shader/Shader_VtxCube.hlsl"),	VTXCUBE::Elements, VTXCUBE::iNumElements));
 	
 	//Model
-	//ModelData* model = new ModelData();
-	//IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", *model);
-	//_matrix		PreTransformMatrix = XMMatrixIdentity();
-	//if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Model_Fiona"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model, PreTransformMatrix))))
-	//	return E_FAIL;
+	ModelData* model = new ModelData();
+	IEHelper::ImportFBX("../bin/Resources/Models/Fiona/Fiona.fbx", *model);
+	_matrix		PreTransformMatrix = XMMatrixIdentity();
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("Model_Fiona"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model, PreTransformMatrix))))
+		return E_FAIL;
+
 	//Object
-	//m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("TestObject"), TestObject::Create());
-	//m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("TestObject"), SCENE::MODEL, TEXT("TestObject"));
+	m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("TestObject"), TestObject::Create());
+	m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("TestObject"), SCENE::MODEL, TEXT("TestObject"));
 	
 	//if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MODEL, TEXT("FreeCam"), FreeCam::Create())))
 	//	return E_FAIL;
@@ -71,38 +72,21 @@ HRESULT ModelScene::Initialize()
 	//	return E_FAIL;
 
 	//IMGUI Panel
-	//string strModelPanel = "ModelPanel";
-	//ModelPanel* pModelPanel = ModelPanel::Create(strModelPanel);
-	//m_pEngineUtility->AddPanel(pModelPanel->GetPanelName(), pModelPanel);
+	string strModelPanel = "ModelPanel";
+	ModelPanel* pModelPanel = ModelPanel::Create(strModelPanel);
+	m_pEngineUtility->AddPanel(pModelPanel->GetPanelName(), pModelPanel);
 	
 	//string strCamPanel = "ModelCamPanel";
 	//CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MODEL);
 	//m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);
 
 	//Font
-	m_pEngineUtility->AddFont(L"Font_Default", L"../bin/Resources/Fonts/155.spritefont");
+	m_pEngineUtility->AddFont(L"Font_Default", L"../bin/Resources/Fonts/155ex.spritefont");
 
 	//UI
 	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIButton"), UIButton::Create());
 	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UILabel"), UILabel::Create());
 	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIImage"), UIImage::Create());
-	m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIPanel"), UIPanel::Create());
-
-	vector<UI*> m_gameLobbyUI;
-	const std::string uiResPath = "../bin/Resources/UI/gamelobby/gamelobby.res";
-	UIPrototypeTags tags;
-	tags.layerTag = TEXT("UI");              // UI용 레이어 이름
-	tags.buttonProto = TEXT("UIButton");   // UIButton 프로토타입
-	tags.labelProto = TEXT("UILabel");    // UILabel 프로토타입
-	tags.imageProto = TEXT("UIImage");    // UIImage 프로토타입
-	tags.panelProto = TEXT("UIPanel");    // UIPanel 프로토타입
-
-	if (FAILED(m_pEngineUtility->BuildUIFromRes(uiResPath, tags, m_gameLobbyUI)))
-	{
-		OutputDebugStringA("[UI] Failed to build GameLobby UI from res\n");
-		return E_FAIL;
-	}
-
 
 	return S_OK;
 }

@@ -11,371 +11,6 @@
 #include "UIButton.h"
 #include "UILabel.h"
 #include "UIImage.h"
-#include "UIPanel.h"
-
-inline UICONTROLTYPE UIControlTypeFromString(const std::string& s)
-{
-    // 기본 타입들
-    if (_stricmp(s.c_str(), "Label") == 0)
-        return UICONTROLTYPE::UI_LABEL;
-
-    if (_stricmp(s.c_str(), "Button") == 0)
-        return UICONTROLTYPE::UI_BUTTON;
-
-    if (_stricmp(s.c_str(), "ImagePanel") == 0)
-        return UICONTROLTYPE::UI_IMAGE;
-
-    if (_stricmp(s.c_str(), "EditablePanel") == 0 ||
-        _stricmp(s.c_str(), "Panel") == 0 ||
-        _stricmp(s.c_str(), "Frame") == 0 ||
-        _stricmp(s.c_str(), "DropDownMenu") == 0 ||
-        _stricmp(s.c_str(), "FlyoutMenu") == 0 ||
-        _stricmp(s.c_str(), "RichText") == 0)
-        return UICONTROLTYPE::UI_PANEL;
-
-    // Alien Swarm / basemod 계열 특수 타입들
-    if (_stricmp(s.c_str(), "BaseModHybridButton") == 0)
-        return UICONTROLTYPE::UI_BUTTON;
-
-    if (_stricmp(s.c_str(), "L4DMenuBackground") == 0)
-        return UICONTROLTYPE::UI_IMAGE;
-
-    // 그 외에는 일단 Unknown
-    return UICONTROLTYPE::UI_UNKNOWN;
-}
-
-constexpr int UI_REF_WIDTH = 1280;
-constexpr int UI_REF_HEIGHT = 720;
-
-// "c-240", "r128", "f0", "200" 같은 문자열 → 픽셀 좌표로 대충 변환
-inline int ResolveUIScalar(const std::string& token, int fullSize)
-{
-    if (token.empty())
-        return 0;
-
-    char c = token[0];
-
-    // center 기준 (예: "c-240")
-    if (c == 'c' || c == 'C')
-    {
-        int offset = 0;
-        if (token.size() > 1)
-            offset = std::stoi(token.substr(1));  // "c-240" → -240
-
-        return fullSize / 2 + offset;
-    }
-
-    // right 기준 (예: "r128" → 전체폭 - 128)
-    if (c == 'r' || c == 'R')
-    {
-        int off = 0;
-        if (token.size() > 1)
-            off = std::stoi(token.substr(1));
-        return fullSize - off;
-    }
-
-    // full 비율 (예: wide "f0" → 전체, "f0.5" 이런 건 일단 무시하고 전체로)
-    if (c == 'f' || c == 'F')
-    {
-        // 필요한 경우 f0.5 같은 것도 파싱해서 비율로 쓸 수 있음
-        return fullSize;
-    }
-
-    // 그냥 숫자
-    return std::stoi(token);
-}
-
-// xpos, ypos는 전체 해상도 기준으로
-inline int ResolveXPos(const std::string& token)
-{
-    return ResolveUIScalar(token, UI_REF_WIDTH);
-}
-
-inline int ResolveYPos(const std::string& token)
-{
-    return ResolveUIScalar(token, UI_REF_HEIGHT);
-}
-
-// wide, tall도 f0 처리 정도만
-inline int ResolveWidth(const std::string& token)
-{
-    return ResolveUIScalar(token, UI_REF_WIDTH);
-}
-
-inline int ResolveHeight(const std::string& token)
-{
-    return ResolveUIScalar(token, UI_REF_HEIGHT);
-}
-
-static void ExtractUIControlFromKV(const UI_KV* node, UIControlDesc& out)
-{
-    out = UIControlDesc{}; // 초기화
-    out.name = node->key;  // "BtnStartGame", "LblSummaryLine1" 등
-
-    std::string controlName;
-    std::string xposStr, yposStr, wideStr, tallStr;
-
-    for (UI_KV* child : node->children)
-    {
-        const std::string& k = child->key;
-        const std::string& v = child->value;
-
-        if (_stricmp(k.c_str(), "ControlName") == 0)
-        {
-            controlName = v;
-        }
-        else if (_stricmp(k.c_str(), "fieldName") == 0)
-        {
-            out.id = v;
-        }
-        else if (_stricmp(k.c_str(), "labelText") == 0)
-        {
-            out.text = v;
-        }
-        else if (_stricmp(k.c_str(), "image") == 0)
-        {
-            out.image = v;
-        }
-        else if (_stricmp(k.c_str(), "command") == 0)
-        {
-            out.command = v;
-        }
-        else if (_stricmp(k.c_str(), "xpos") == 0)
-        {
-            xposStr = v; // 나중에 ResolveXPos에서 해석
-        }
-        else if (_stricmp(k.c_str(), "ypos") == 0)
-        {
-            yposStr = v;
-        }
-        else if (_stricmp(k.c_str(), "wide") == 0)
-        {
-            wideStr = v;
-        }
-        else if (_stricmp(k.c_str(), "tall") == 0)
-        {
-            tallStr = v;
-        }
-        // 필요한 키(font, fgcolor_override 등)는 여기 계속 추가하면 됨
-    }
-
-    out.type = UIControlTypeFromString(controlName);
-
-    // 좌표/사이즈 변환 (문자열 → 픽셀)
-    if (!xposStr.empty()) out.x = ResolveXPos(xposStr);
-    if (!yposStr.empty()) out.y = ResolveYPos(yposStr);
-    if (!wideStr.empty()) out.w = ResolveWidth(wideStr);
-    if (!tallStr.empty()) out.h = ResolveHeight(tallStr);
-}
-
-static void BuildUIControlsRecursive(const UI_KV* node, std::vector<UIControlDesc>& outControls)
-{
-    if (!node) return;
-
-    // 이 node가 컨트롤 블록인지 판별:
-    //  - value가 비어 있고(children 있음)
-    //  - 그리고 안에 "ControlName"이 하나라도 있으면 컨트롤로 본다
-    if (node->value.empty())
-    {
-        UI_KV* controlNameKV = node->FindChild("ControlName");
-        if (controlNameKV)
-        {
-            UIControlDesc desc;
-            ExtractUIControlFromKV(node, desc);
-
-            if (desc.type != UICONTROLTYPE::UI_UNKNOWN)
-            {
-                outControls.push_back(desc);
-            }
-        }
-    }
-
-    // 자식들도 재귀 탐색 (자식 컨트롤)
-    for (UI_KV* child : node->children)
-    {
-        BuildUIControlsRecursive(child, outControls);
-    }
-}
-
-// -------------------- UI .res KeyValues Parser --------------------
-
-static bool ReadKVToken(std::istream& is, std::string& outToken, int& line)
-{
-    outToken.clear();
-    char ch;
-
-    // 공백 + 주석 스킵
-    while (true)
-    {
-        if (!is.get(ch))
-            return false;
-
-        if (ch == '\n')
-            ++line;
-
-        // 공백류는 건너뜀
-        if (isspace(static_cast<unsigned char>(ch)))
-            continue;
-
-        // 주석: // ... 줄 끝까지
-        if (ch == '/')
-        {
-            if (is.peek() == '/')
-            {
-                while (is.get(ch))
-                {
-                    if (ch == '\n')
-                    {
-                        ++line;
-                        break;
-                    }
-                }
-                continue;
-            }
-        }
-
-        // 유효한 문자 발견
-        break;
-    }
-
-    // 중괄호 하나짜리 토큰
-    if (ch == '{' || ch == '}')
-    {
-        outToken.assign(1, ch);
-        return true;
-    }
-
-    // 따옴표 문자열
-    if (ch == '\"')
-    {
-        while (true)
-        {
-            if (!is.get(ch))
-                break;
-
-            if (ch == '\n')
-                ++line;
-
-            if (ch == '\"')
-                break;
-
-            // 아주 간단한 escape 처리 (\" 만 신경씀)
-            if (ch == '\\')
-            {
-                char next;
-                if (is.get(next))
-                {
-                    if (next == '\"')
-                        outToken.push_back('\"');
-                    else
-                    {
-                        outToken.push_back(ch);
-                        outToken.push_back(next);
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
-            else
-            {
-                outToken.push_back(ch);
-            }
-        }
-        return true;
-    }
-
-    // bareword: 공백/중괄호 전까지
-    outToken.push_back(ch);
-    while (is.peek() != EOF)
-    {
-        char c = static_cast<char>(is.peek());
-        if (isspace(static_cast<unsigned char>(c)) || c == '{' || c == '}')
-            break;
-
-        is.get(c);
-        outToken.push_back(c);
-    }
-
-    return true;
-}
-static UI_KV* ParseKVBlock(std::istream& is, int& line)
-{
-    std::string token;
-
-    // key
-    if (!ReadKVToken(is, token, line))
-        return nullptr;
-
-    if (token == "{" || token == "}")
-        return nullptr;
-
-    UI_KV* node = new UI_KV{};
-    node->key = token;
-
-    // 다음 토큰: value or '{'
-    if (!ReadKVToken(is, token, line))
-        return node;
-
-    if (token == "{")
-    {
-        // children 블록
-        while (true)
-        {
-            std::streampos pos = is.tellg();
-            std::string t;
-            if (!ReadKVToken(is, t, line))
-                break;
-
-            if (t == "}")
-            {
-                // 블록 끝
-                break;
-            }
-
-            // 자식 key 시작이었으므로 되돌리고 재귀
-            is.seekg(pos);
-            UI_KV* child = ParseKVBlock(is, line);
-            if (child)
-                node->children.push_back(child);
-            else
-                break;
-        }
-    }
-    else if (token == "}")
-    {
-        // 비정상 포맷이지만 그냥 value 없는 노드로 반환
-        return node;
-    }
-    else
-    {
-        // key "value" 형태
-        node->value = token;
-    }
-
-    return node;
-}
-static UI_KV* ParseUIResToKV(const std::string& path)
-{
-    std::ifstream ifs(path);
-    if (!ifs.is_open())
-        return nullptr;
-
-    int line = 1;
-    UI_KV* root = ParseKVBlock(ifs, line);
-
-    // 필요하다면 여기서 여러 루트를 지원하는 코드도 추가 가능 (대부분 1개라서 생략)
-    return root;
-}
-
-static void FreeUIKV(UI_KV* node)
-{
-    if (!node) return;
-    for (UI_KV* child : node->children)
-        FreeUIKV(child);
-    delete node;
-}
 
 SaveLoadManager::SaveLoadManager()
     :m_pEngineUtility{ EngineUtility::GetInstance()}
@@ -827,118 +462,197 @@ HRESULT SaveLoadManager::LoadTriggerBoxes(const std::string& path)
     return S_OK;
 }
 
-HRESULT SaveLoadManager::BuildUIFromRes(const std::string& path, const UIPrototypeTags& protoTags, std::vector<class UI*>& outUIObjects)
+HRESULT SaveLoadManager::SaveUI(const std::string& path)
 {
-    outUIObjects.clear();
-
-    // 1) res -> UIControlDesc 리스트
-    std::vector<UIControlDesc> controls;
-    if (FAILED(LoadUIFromRes(path, controls)))
-        return E_FAIL;
-
-    // 2) 현재 씬 ID 가져오기 (이미 SaveMapData에서 쓰는 방식 그대로 사용)
-    _uint curSceneId = m_pEngineUtility->GetCurrentSceneId();
-
-    // 3) 컨트롤마다 적당한 프로토타입으로 UI 오브젝트 생성
-    for (const UIControlDesc& c : controls)
+    std::ofstream f(path, std::ios::binary);
+    if (!f.is_open())
     {
-        // 4) UI_DESC 채워서 UI 베이스에 넘기기
-        UI::UI_DESC desc{};
-
-        const _tchar* prototypeTag = nullptr;
-        switch (c.type)
-        {
-        case UICONTROLTYPE::UI_BUTTON:
-            prototypeTag = protoTags.buttonProto;
-            desc.fZ = 0.3f;
-            break;
-        case UICONTROLTYPE::UI_LABEL:
-            prototypeTag = protoTags.labelProto;
-            desc.fZ = 0.2f;
-            break;
-        case UICONTROLTYPE::UI_IMAGE:
-            prototypeTag = protoTags.imageProto;
-            desc.fZ = 0.4f;
-            break;
-        case UICONTROLTYPE::UI_PANEL:
-            prototypeTag = protoTags.panelProto;
-            desc.fZ = 0.5f;
-            break;
-        default:
-            // 아직 지원 안 하는 타입은 스킵
-            continue;
-        }
-
-        if (!prototypeTag)
-            continue;
-
-        desc.fX = static_cast<_float>(c.x);
-        desc.fY = static_cast<_float>(c.y);
-        desc.fSizeX = static_cast<_float>(c.w);
-        desc.fSizeY = static_cast<_float>(c.h);
-        desc.fRotationPerSec = 0.f;
-        desc.fSpeedPerSec = 0.f;
-
-        if (FAILED(m_pEngineUtility->AddObject( curSceneId, prototypeTag, curSceneId, protoTags.layerTag, &desc)))
-            continue;
-        Layer* pLayer = m_pEngineUtility->FindLayer(curSceneId, protoTags.layerTag);
-        if (!pLayer)
-            continue;
-        auto& objs = pLayer->GetAllObjects();
-        if (objs.empty())
-            continue;
-
-        Object* pObj = objs.back();
-
-        UI* pUI = dynamic_cast<UI*>(pObj);
-        if (!pUI)
-            continue;
-
-        // 5) 타입별로 텍스트/커맨드/이미지 등 추가 속성 세팅
-        //    UIButton / UILabel / UIImage 같은 파생 클래스가 있다고 가정
-        if (c.type == UICONTROLTYPE::UI_BUTTON)
-        {
-            UIButton* pBtn = dynamic_cast<UIButton*>(pUI);
-            if (pBtn)
-            {
-                pBtn->SetText(c.text);
-                pBtn->SetCommand(c.command);
-            }
-        }
-        else if (c.type == UICONTROLTYPE::UI_LABEL)
-        {
-            UILabel* pLabel = dynamic_cast<UILabel*>(pUI);
-            if (pLabel)
-                pLabel->SetText(c.text);
-        }
-        else if (c.type == UICONTROLTYPE::UI_IMAGE)
-        {
-            UIImage* pImage = dynamic_cast<UIImage*>(pUI);
-            if (pImage)
-                pImage->SetImagePath(c.image);
-        }
-
-        outUIObjects.push_back(pUI);
+        MessageBoxA(nullptr, "Failed to open UI file for writing.", "SaveUI Error", MB_OK);
+        return E_FAIL;
     }
 
-    return outUIObjects.empty() ? E_FAIL : S_OK;
-}
+    _uint curSceneId = m_pEngineUtility->GetCurrentSceneId();
 
-HRESULT SaveLoadManager::LoadUIFromRes(const std::string& path, vector<UIControlDesc>& outControls)
-{
-    outControls.clear();
-
-    UI_KV* pRoot = ParseUIResToKV(path);
-    if (!pRoot)
+    const _tchar* layerTag = TEXT("UI");
+    Layer* pLayer = m_pEngineUtility->FindLayer(curSceneId, layerTag);
+    if (!pLayer)
         return E_FAIL;
 
-    // 2) 루트 아래의 모든 컨트롤을 재귀적으로 추출
-    BuildUIControlsRecursive(pRoot, outControls);
+    const auto& objects = pLayer->GetAllObjects();
 
-    // 3) 여기서 pRoot 메모리 해제
-    FreeUIKV(pRoot);
+    // UI 오브젝트만 필터링
+    std::vector<UI*> uiObjects;
+    uiObjects.reserve(objects.size());
+    for (auto* pObj : objects)
+    {
+        if (UI* pUI = dynamic_cast<UI*>(pObj))
+            uiObjects.push_back(pUI);
+    }
 
-    return outControls.empty() ? E_FAIL : S_OK;
+    _uint count = static_cast<_uint>(uiObjects.size());
+    f.write(reinterpret_cast<const char*>(&count), sizeof(_uint));
+
+    auto WriteString = [&](const std::string& s)
+        {
+            _uint len = static_cast<_uint>(s.size());
+            f.write(reinterpret_cast<const char*>(&len), sizeof(_uint));
+            if (len)
+                f.write(s.data(), len);
+        };
+
+    auto WriteWString = [&](const std::wstring& s)
+        {
+            _uint len = static_cast<_uint>(s.size());
+            f.write(reinterpret_cast<const char*>(&len), sizeof(_uint));
+            if (len)
+                f.write(reinterpret_cast<const char*>(s.data()), len * sizeof(wchar_t));
+        };
+
+    for (UI* pUI : uiObjects)
+    {
+        // 타입 판별
+        UITYPE type = UITYPE::UI_END;
+        if (dynamic_cast<UIButton*>(pUI))
+            type = UITYPE::UI_BUTTON;
+        else if (dynamic_cast<UILabel*>(pUI))
+            type = UITYPE::UI_LABEL;
+        else if (dynamic_cast<UIImage*>(pUI))
+            type = UITYPE::UI_IMAGE;
+        else
+            continue; // 알 수 없는 타입은 스킵
+
+        const UI_DESC& d = pUI->GetUIDesc();
+
+        // 타입
+        _int typeInt = static_cast<_int>(type);
+        f.write(reinterpret_cast<const char*>(&typeInt), sizeof(_int));
+
+        // 문자열들
+        WriteString(d.name);
+        WriteWString(d.font);
+        WriteWString(d.text);
+        WriteWString(d.imagePath);
+
+        // 위치/크기 (현재 UI_DESC는 _float)
+        f.write(reinterpret_cast<const char*>(&d.x), sizeof(_float));
+        f.write(reinterpret_cast<const char*>(&d.y), sizeof(_float));
+        f.write(reinterpret_cast<const char*>(&d.z), sizeof(_float));
+        f.write(reinterpret_cast<const char*>(&d.w), sizeof(_float));
+        f.write(reinterpret_cast<const char*>(&d.h), sizeof(_float));
+
+        // 플래그
+        f.write(reinterpret_cast<const char*>(&d.visible), sizeof(_bool));
+        f.write(reinterpret_cast<const char*>(&d.enable), sizeof(_bool));
+
+        // UILabel 전용 속성
+        f.write(reinterpret_cast<const char*>(&d.fontSize), sizeof(_float));
+        f.write(reinterpret_cast<const char*>(&d.fontColor), sizeof(_float4));
+
+        // 트랜스폼용 속도
+        f.write(reinterpret_cast<const char*>(&d.fSpeedPerSec), sizeof(_float));
+        f.write(reinterpret_cast<const char*>(&d.fRotationPerSec), sizeof(_float));
+    }
+
+    f.close();
+    return S_OK;
+}
+
+HRESULT SaveLoadManager::LoadUI(const std::string& path, _uint iSceneIndex)
+{
+    std::ifstream f(path, std::ios::binary);
+    if (!f.is_open())
+    {
+        MessageBoxA(nullptr, "Failed to open UI file for reading.", "LoadUI Error", MB_OK);
+        return E_FAIL;
+    }
+
+    const _tchar* layerTag = TEXT("UI");
+
+    _uint count = 0;
+    f.read(reinterpret_cast<char*>(&count), sizeof(_uint));
+    if (!f.good())
+        return E_FAIL;
+
+    auto ReadString = [&](std::string& s) -> bool
+        {
+            _uint len = 0;
+            if (!f.read(reinterpret_cast<char*>(&len), sizeof(_uint)))
+                return false;
+            s.clear();
+            if (len == 0)
+                return true;
+
+            s.resize(len);
+            return !!f.read(&s[0], len);
+        };
+
+    auto ReadWString = [&](std::wstring& s) -> bool
+        {
+            _uint len = 0;
+            if (!f.read(reinterpret_cast<char*>(&len), sizeof(_uint)))
+                return false;
+            s.clear();
+            if (len == 0)
+                return true;
+
+            s.resize(len);
+            return !!f.read(reinterpret_cast<char*>(&s[0]), len * sizeof(wchar_t));
+        };
+
+    for (_uint i = 0; i < count; ++i)
+    {
+        _int typeInt = 0;
+        if (!f.read(reinterpret_cast<char*>(&typeInt), sizeof(_int)))
+            return E_FAIL;
+
+        UITYPE type = static_cast<UITYPE>(typeInt);
+        UI_DESC d{}; // 새 포맷 기본값으로 초기화
+        d.type = type;
+
+        // 문자열들 (Save 순서: name -> font -> text -> imagePath)
+        if (!ReadString(d.name))       return E_FAIL;
+        if (!ReadWString(d.font))      return E_FAIL;
+        if (!ReadWString(d.text))      return E_FAIL;
+        if (!ReadWString(d.imagePath)) return E_FAIL;
+
+        // 위치/크기 (_float)
+        if (!f.read(reinterpret_cast<char*>(&d.x), sizeof(_float))) return E_FAIL;
+        if (!f.read(reinterpret_cast<char*>(&d.y), sizeof(_float))) return E_FAIL;
+        if (!f.read(reinterpret_cast<char*>(&d.z), sizeof(_float))) return E_FAIL;
+        if (!f.read(reinterpret_cast<char*>(&d.w), sizeof(_float))) return E_FAIL;
+        if (!f.read(reinterpret_cast<char*>(&d.h), sizeof(_float))) return E_FAIL;
+
+        // 플래그
+        if (!f.read(reinterpret_cast<char*>(&d.visible), sizeof(_bool))) return E_FAIL;
+        if (!f.read(reinterpret_cast<char*>(&d.enable), sizeof(_bool))) return E_FAIL;
+
+        // UILabel 속성
+        if (!f.read(reinterpret_cast<char*>(&d.fontSize), sizeof(_float)))  return E_FAIL;
+        if (!f.read(reinterpret_cast<char*>(&d.fontColor), sizeof(_float4))) return E_FAIL;
+
+        // 트랜스폼 속도
+        if (!f.read(reinterpret_cast<char*>(&d.fSpeedPerSec), sizeof(_float))) return E_FAIL;
+        if (!f.read(reinterpret_cast<char*>(&d.fRotationPerSec), sizeof(_float))) return E_FAIL;
+
+        const _tchar* protoTag = nullptr;
+        switch (type)
+        {
+        case UITYPE::UI_BUTTON: protoTag = TEXT("UIButton"); break;
+        case UITYPE::UI_LABEL:  protoTag = TEXT("UILabel");  break;
+        case UITYPE::UI_IMAGE:  protoTag = TEXT("UIImage");  break;
+        default:
+            // 알 수 없는 타입이면 스킵
+            continue;
+        }
+
+        if (!protoTag)
+            continue;
+
+        if (FAILED(m_pEngineUtility->AddObject(0, protoTag, iSceneIndex, layerTag, &d)))
+            return E_FAIL;
+    }
+
+    return S_OK;
 }
 
 

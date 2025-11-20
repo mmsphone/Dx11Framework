@@ -65,6 +65,9 @@
     <Filter Include="05.Panel\TriggerBoxPanel">
       <UniqueIdentifier>{7cca0167-9501-4b5e-8f00-4ab68d0a905d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="05.Panel\UIPanel">
+      <UniqueIdentifier>{79d53097-3262-48c2-803d-f08550e4b897}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -126,6 +129,9 @@
     </ClInclude>
     <ClInclude Include="..\public\TriggerBoxPanel.h">
       <Filter>05.Panel\TriggerBoxPanel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\UIPanel.h">
+      <Filter>05.Panel\UIPanel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -213,6 +219,9 @@
     </ClCompile>
     <ClCompile Include="..\private\TriggerBoxPanel.cpp">
       <Filter>05.Panel\TriggerBoxPanel</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\UIPanel.cpp">
+      <Filter>05.Panel\UIPanel</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

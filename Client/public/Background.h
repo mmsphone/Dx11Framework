@@ -14,7 +14,7 @@ NS_BEGIN(Client)
 class Background final : public UI
 {
 public:
-	typedef struct tagBackGroundDesc : public UI::UI_DESC
+	typedef struct tagBackGroundDesc : public UI_DESC
 	{
 
 	}BACKGROUND_DESC;

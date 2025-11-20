@@ -10,8 +10,8 @@ UIButton::UIButton()
 
 UIButton::UIButton(const UIButton& Prototype)
     : UI{ Prototype }
-    , m_text{ Prototype.m_text }
-    , m_command{ Prototype.m_command }
+    , m_pTexture{ nullptr }
+    , buttonFunctions{}
 {
 }
 
@@ -20,7 +20,6 @@ HRESULT UIButton::InitializePrototype()
     if (FAILED(__super::InitializePrototype()))
         return E_FAIL;
 
-    // 버튼 공통 리소스 세팅이 필요하면 여기서 (quad, shader 등)
     return S_OK;
 }
 
@@ -29,10 +28,14 @@ HRESULT UIButton::Initialize(void* pArg)
     if (FAILED(__super::Initialize(pArg)))
         return E_FAIL;
 
-    // 여기서 pArg(UI_DESC)는 이미 UI::Initialize에서 처리함.
-    // 추가로 버튼 전용 초기화 필요하면 여기서.
     if (FAILED(ReadyComponents()))
         return E_FAIL;
+
+    if (m_desc.imagePath.empty() == false)
+    {
+        if (FAILED(LoadTextureFromPath()))
+            return E_FAIL;
+    }
 
     return S_OK;
 }
@@ -46,8 +49,6 @@ void UIButton::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
 
-    // 마우스 입력/포커스에 따른 상태 업데이트는
-    // 나중에 UIManager 쪽과 연동해서 구현
 }
 
 void UIButton::LateUpdate(_float fTimeDelta)
@@ -57,13 +58,15 @@ void UIButton::LateUpdate(_float fTimeDelta)
 
 HRESULT UIButton::Render()
 {
+    if (m_desc.visible == false)
+        return S_OK;
+
     if (FAILED(__super::Render()))
         return E_FAIL;
 
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     VIBufferRect* pVIBuffer = static_cast<VIBufferRect*>(FindComponent(TEXT("VIBuffer")));
     Shader* pShader = static_cast<Shader*>(FindComponent(TEXT("Shader")));
-    Texture* pTexture = dynamic_cast<Texture*>(FindComponent(TEXT("Texture")));
 
     if (FAILED(pShader->BindMatrix("g_WorldMatrix", pTransform->GetWorldMatrixPtr())))
         return E_FAIL;
@@ -76,25 +79,51 @@ HRESULT UIButton::Render()
     if (FAILED(pShader->BindRawValue("g_vDefaultColor", &defaultColor, sizeof(_float4))))
         return E_FAIL;
 
-    _bool bUse = true;
-    if (pTexture)
-    {
-        if (FAILED(pShader->BindRawValue("g_bUseTex", &bUse, sizeof(_bool))))
-            return E_FAIL;
-        pTexture->BindShaderResources(pShader, "g_Texture");
-    }
-    else
-    {
-        bUse = false;
-        if (FAILED(pShader->BindRawValue("g_bUseTex", &bUse, sizeof(_bool))))
-            return E_FAIL;
-    }
+    _bool bUse = (m_pTexture != nullptr);
+    if (FAILED(pShader->BindRawValue("g_bUseTex", &bUse, sizeof(_bool))))
+        return E_FAIL;
 
-    _uint passIdx = 0; // UI용 패스 인덱스 (Shader에서 정해둔 걸로)
-    pShader->Begin(passIdx);
+    if (m_pTexture)
+        m_pTexture->BindShaderResources(pShader, "g_Texture");
+    
+    pShader->Begin(0);
     pVIBuffer->Render();
 
     return S_OK;
+}
+
+void UIButton::SetImagePath(const std::wstring& path)
+{
+    m_desc.imagePath = path;
+    LoadTextureFromPath();
+}
+
+const std::wstring& UIButton::GetImagePath() const
+{
+    return m_desc.imagePath;
+}
+
+void UIButton::AddButtonFunction(function<void()> func)
+{
+    if (func)
+        buttonFunctions.push_back(std::move(func));
+}
+
+void UIButton::DoButtonFunctions()
+{
+    if (m_desc.enable == false)
+        return;
+
+    for (auto& func : buttonFunctions)
+    {
+        if (func)
+            func();
+    }
+}
+
+void UIButton::ClearButtonFunctions()
+{
+    buttonFunctions.clear();
 }
 
 UIButton* UIButton::Create()
@@ -122,6 +151,8 @@ Object* UIButton::Clone(void* pArg)
 void UIButton::Free()
 {
     __super::Free();
+
+    SafeRelease(m_pTexture);
 }
 
 
@@ -131,6 +162,24 @@ HRESULT UIButton::ReadyComponents()
         return E_FAIL;
     if (FAILED(AddComponent(0,TEXT("Shader_VtxPosTex"),TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
+
+    return S_OK;
+}
+
+HRESULT UIButton::LoadTextureFromPath()
+{
+    SafeRelease(m_pTexture);
+
+    if (m_desc.imagePath.empty())
+        return S_OK; // 이미지 없는 버튼도 허용
+
+    m_pTexture = Texture::Create(m_desc.imagePath.c_str(), 1);
+    if (m_pTexture == nullptr)
+    {
+        std::string str = "[UIButton] Failed to load texture: ";
+        DEBUG_OUTPUT(str);
+        return E_FAIL;
+    }
 
     return S_OK;
 }

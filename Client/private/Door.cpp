@@ -12,6 +12,19 @@ Door::Door(const Door& Prototype)
 {
 }
 
+HRESULT Door::Initialize(void* pArg)
+{
+    if (FAILED(__super::Initialize(pArg)))
+        return E_FAIL;
+
+    m_isOpening = false;
+    m_isOpen = false;
+    m_openT = 0.f;
+    m_posInitialized = false;
+
+    return S_OK;
+}
+
 void Door::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
@@ -19,6 +32,24 @@ void Door::Update(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
+    if (m_isOpening && !m_isOpen && pTransform)
+    {
+        m_openT += fTimeDelta;
+        _float t = m_openT / m_openDuration;
+        if (t >= 1.f)
+        {
+            t = 1.f;
+            m_isOpening = false;
+            m_isOpen = true;
+        }
+
+        _vector closed = XMLoadFloat3(&m_closedPos);
+        _vector opened = XMLoadFloat3(&m_openPos);
+        _vector pos = XMVectorLerp(closed, opened, t);
+
+        pTransform->SetState(MATRIXROW_POSITION, pos);
+    }
 }
 
 void Door::LateUpdate(_float fTimeDelta)
@@ -65,6 +96,31 @@ HRESULT Door::Render()
 #endif
 
     return S_OK;
+}
+
+void Door::Open()
+{
+    if (m_isOpen || m_isOpening)
+        return;
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+
+    if (!m_posInitialized)
+    {
+        XMStoreFloat3(&m_closedPos, pTransform->GetState(MATRIXROW_POSITION));
+        
+        _vector right = pTransform->GetState(MATRIXROW_RIGHT);
+        right = XMVector3Normalize(right);
+        const float openDistance = 2.0f;
+        
+        _vector closed = XMLoadFloat3(&m_closedPos);
+        _vector opened = closed - right * openDistance;
+        XMStoreFloat3(&m_openPos, opened);
+
+        m_posInitialized = true;
+    }
+
+    m_isOpening = true;
+    m_openT = 0.f;
 }
 
 Door* Door::Create()

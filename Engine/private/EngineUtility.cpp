@@ -707,6 +707,26 @@ _bool EngineUtility::RandomPointAround(_fvector center, _float radius, _float3* 
 	return m_pNavigationManager->RandomPointAround(center, radius, outPos, maxTrials);
 }
 
+_bool EngineUtility::FindPath(_fvector startPos, _fvector goalPos, vector<_int>& outCellPath)
+{
+	return m_pNavigationManager->FindPath(startPos, goalPos, outCellPath);
+}
+
+_bool EngineUtility::BuildCenterWaypointsFromCellPath(const vector<_int>& cellPath, vector<_float3>& outWaypoints) const
+{
+	return m_pNavigationManager->BuildCenterWaypointsFromCellPath(cellPath, outWaypoints);
+}
+
+_bool EngineUtility::BuildFunnelWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const
+{
+	return m_pNavigationManager->BuildFunnelWaypointsFromCellPath(startPos, goalPos, cellPath, outWaypoints);
+}
+
+_bool EngineUtility::BuildMidWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const
+{
+	return m_pNavigationManager->BuildMidWaypointsFromCellPath(startPos, goalPos, cellPath, outWaypoints);
+}
+
 ModelData* EngineUtility::LoadNoAssimpModel(const _char* pFilePath)
 {
 	return m_pSaveLoadManager->LoadNoAssimpModel(pFilePath);
@@ -903,10 +923,12 @@ void EngineUtility::UpdateTriggers()
 	m_pTriggerBoxManager->UpdateTriggers();
 }
 
+#ifdef _DEBUG
 void EngineUtility::RenderTriggerBoxes()
 {
 	m_pTriggerBoxManager->RenderTriggerBoxes();
 }
+#endif
 
 const vector<class TriggerBox*>& EngineUtility::GetTriggerBoxes() const
 {
@@ -921,6 +943,11 @@ _bool EngineUtility::IsIn_Frustum_WorldSpace(_fvector vWorldPos, _float fRadius)
 void EngineUtility::AddUI(_wstring tagUI, class UI* pUI)
 {
 	m_pUIManager->AddUI(tagUI, pUI);
+}
+
+void EngineUtility::RemoveUI(_wstring tagUI)
+{
+	m_pUIManager->RemoveUI(tagUI);
 }
 
 class UI* EngineUtility::FindUI(_wstring tagUI)

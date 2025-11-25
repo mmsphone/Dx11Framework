@@ -17,6 +17,8 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	void SetLock(_bool bLock);
+	_bool IsLocked();
 	void Open();
 
 	static Door* Create();
@@ -36,6 +38,8 @@ private:
 	_float  m_openDuration = 2.f;
 
 	_bool m_posInitialized = false;
+
+	_bool m_isLock = false;
 };
 
 NS_END

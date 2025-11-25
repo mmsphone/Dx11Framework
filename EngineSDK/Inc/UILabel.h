@@ -19,13 +19,19 @@ public:
     virtual void    LateUpdate(_float fTimeDelta) override;
     virtual HRESULT Render() override;
 
+    void SetText(const wstring& text);
+    const wstring& GetText() const;
+
+    void SetColor(_fvector vColor);
+    const _float4& GetColor() const;
+
+    void SetFontSize(_float fFontSize);
+    const _float& GetFontSize() const;
+
     static UILabel* Create();
     virtual Object* Clone(void* pArg) override;
     virtual void    Free() override;
 
-public:
-    void SetText(const wstring& text);
-    const wstring& GetText() const;
 };
 
 NS_END

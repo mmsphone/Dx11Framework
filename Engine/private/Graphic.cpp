@@ -235,7 +235,7 @@ HRESULT Graphic::ReadySwapChain(HWND WindowHandle, WINMODE isWindowMode, _uint i
     SwapChainDescriptor.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     SwapChainDescriptor.BufferCount = 1;
     //스왑 설정
-    SwapChainDescriptor.BufferDesc.RefreshRate.Numerator = 240; // fps : this / x 
+    SwapChainDescriptor.BufferDesc.RefreshRate.Numerator = 60; // fps : this / x 
     SwapChainDescriptor.BufferDesc.RefreshRate.Denominator = 1; // fps : x / this
     //샘플링 옵션
     SwapChainDescriptor.SampleDesc.Quality = 0;

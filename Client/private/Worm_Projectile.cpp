@@ -88,7 +88,7 @@ HRESULT Worm_Projectile::Render()
     if (FAILED(pShader->BindRawValue("g_vProjectileDir", &dir3, sizeof(_float3))))
         return E_FAIL;
 
-    _float trailLen = min(m_desc.accTime * m_desc.fSpeedPerSec, 1.5f);
+    _float trailLen = min(m_desc.accTime * m_desc.fSpeedPerSec, 1.f);
     if (FAILED(pShader->BindRawValue("g_fTrailLength", &trailLen, sizeof(_float))))
         return E_FAIL;
 

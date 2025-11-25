@@ -18,12 +18,17 @@ public:
     virtual void    LateUpdate(_float fTimeDelta) override;
     virtual HRESULT Render() override;
 
-    void SetImagePath(const std::wstring& path);
-    const wstring& GetImagePath() const;
+    void SetEnable(_bool bEnable);
+    _bool IsEnable();
 
     void AddButtonFunction(function<void()> func);
     void DoButtonFunctions();
     void ClearButtonFunctions();
+
+    void SetDefaultImage(const wstring& defaultKey);
+    void SetOnImage(const wstring& onKey);
+    void SetText(const wstring& textKey);
+    _bool IsMouseOver() const;
 
     static UIButton* Create();
     virtual Object* Clone(void* pArg) override;
@@ -31,10 +36,11 @@ public:
 
 private:
     HRESULT ReadyComponents();
-    HRESULT LoadTextureFromPath();
 
 private:
-    class Texture* m_pTexture = nullptr;
+    UI* m_text = { nullptr };
+    UI* m_defaultImage = { nullptr };
+    UI* m_onImage = { nullptr };
     vector<function<void()>> buttonFunctions{};
 };
 

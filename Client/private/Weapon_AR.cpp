@@ -156,6 +156,7 @@ HRESULT Weapon_AR::SetUpInfo()
     INFO_DESC desc;
     desc.SetData("MaxBullet", _int{ 30 });
     desc.SetData("CurBullet", _int{ 30 });
+    desc.SetData("Damage", _float{ 10.f });
     desc.SetData("CurAmmo", _int{ 5 });
     desc.SetData("Faction", FACTION_PLAYER);
     pInfo->BindInfoDesc(desc);

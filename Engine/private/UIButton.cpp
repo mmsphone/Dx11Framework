@@ -2,6 +2,7 @@
 
 #include "EngineUtility.h"
 #include "Transform.h"
+#include "UILabel.h"
 
 UIButton::UIButton()
     : UI{}
@@ -10,7 +11,6 @@ UIButton::UIButton()
 
 UIButton::UIButton(const UIButton& Prototype)
     : UI{ Prototype }
-    , m_pTexture{ nullptr }
     , buttonFunctions{}
 {
 }
@@ -31,12 +31,6 @@ HRESULT UIButton::Initialize(void* pArg)
     if (FAILED(ReadyComponents()))
         return E_FAIL;
 
-    if (m_desc.imagePath.empty() == false)
-    {
-        if (FAILED(LoadTextureFromPath()))
-            return E_FAIL;
-    }
-
     return S_OK;
 }
 
@@ -49,6 +43,33 @@ void UIButton::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
 
+    if (!m_desc.enable)
+        return;
+
+    if (IsMouseOver())
+    {
+        if (m_defaultImage && m_onImage)
+        {
+            m_defaultImage->SetVisible(false);
+            m_onImage->SetVisible(true);
+        }
+        if (m_text)
+            static_cast<UILabel*>(m_text)->SetColor(_vector{ 1.f, 1.f, 1.f, 1.f });
+
+        if (m_pEngineUtility->IsMousePressed(MOUSEKEY_LEFTBUTTON))
+        {
+            DoButtonFunctions();
+        }
+    }
+    else
+    {
+        if (m_defaultImage && m_onImage) {
+            m_defaultImage->SetVisible(true);
+            m_onImage->SetVisible(false);
+        }
+        if (m_text)
+            static_cast<UILabel*>(m_text)->SetColor(_vector{ 0.6f, 0.6f, 0.6f, 1.f });
+    }
 }
 
 void UIButton::LateUpdate(_float fTimeDelta)
@@ -64,43 +85,17 @@ HRESULT UIButton::Render()
     if (FAILED(__super::Render()))
         return E_FAIL;
 
-    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
-    VIBufferRect* pVIBuffer = static_cast<VIBufferRect*>(FindComponent(TEXT("VIBuffer")));
-    Shader* pShader = static_cast<Shader*>(FindComponent(TEXT("Shader")));
-
-    if (FAILED(pShader->BindMatrix("g_WorldMatrix", pTransform->GetWorldMatrixPtr())))
-        return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ViewMatrix", &m_ViewMatrix)))
-        return E_FAIL;
-    if (FAILED(pShader->BindMatrix("g_ProjMatrix", &m_ProjMatrix)))
-        return E_FAIL;
-
-    _float4 defaultColor = { 1.f, 0.f, 0.f, 0.6f };
-    if (FAILED(pShader->BindRawValue("g_vDefaultColor", &defaultColor, sizeof(_float4))))
-        return E_FAIL;
-
-    _bool bUse = (m_pTexture != nullptr);
-    if (FAILED(pShader->BindRawValue("g_bUseTex", &bUse, sizeof(_bool))))
-        return E_FAIL;
-
-    if (m_pTexture)
-        m_pTexture->BindShaderResources(pShader, "g_Texture");
-    
-    pShader->Begin(0);
-    pVIBuffer->Render();
-
     return S_OK;
 }
 
-void UIButton::SetImagePath(const std::wstring& path)
+void UIButton::SetEnable(_bool bEnable)
 {
-    m_desc.imagePath = path;
-    LoadTextureFromPath();
+    m_desc.enable = bEnable;
 }
 
-const std::wstring& UIButton::GetImagePath() const
+_bool UIButton::IsEnable()
 {
-    return m_desc.imagePath;
+    return m_desc.enable;
 }
 
 void UIButton::AddButtonFunction(function<void()> func)
@@ -124,6 +119,43 @@ void UIButton::DoButtonFunctions()
 void UIButton::ClearButtonFunctions()
 {
     buttonFunctions.clear();
+}
+
+void UIButton::SetDefaultImage(const wstring& defaultKey)
+{
+    m_defaultImage = m_pEngineUtility->FindUI(defaultKey);
+    if (m_defaultImage)
+        m_defaultImage->SetVisible(true);
+}
+
+void UIButton::SetOnImage(const wstring& onKey)
+{
+    m_onImage = m_pEngineUtility->FindUI(onKey);
+    if (m_onImage)
+        m_onImage->SetVisible(false);
+}
+
+void UIButton::SetText(const wstring& textKey)
+{
+    m_text = m_pEngineUtility->FindUI(textKey);
+    if (m_text)
+        m_text->SetVisible(true);
+}
+
+_bool UIButton::IsMouseOver() const
+{
+    if (m_desc.enable == false)
+        return false;
+
+    _float2 mousePos = m_pEngineUtility->GetMousePos();
+
+    const _float left = m_desc.x - m_desc.w * 0.5f;
+    const _float top = m_desc.y - m_desc.h * 0.5f;
+    const _float right = m_desc.x + m_desc.w * 0.5f;
+    const _float bottom = m_desc.y + m_desc.h * 0.5f;
+
+    return (mousePos.x >= left && mousePos.x <= right &&
+        mousePos.y >= top && mousePos.y <= bottom);
 }
 
 UIButton* UIButton::Create()
@@ -151,35 +183,10 @@ Object* UIButton::Clone(void* pArg)
 void UIButton::Free()
 {
     __super::Free();
-
-    SafeRelease(m_pTexture);
 }
 
 
 HRESULT UIButton::ReadyComponents()
 {
-    if (FAILED(AddComponent(0,TEXT("VIBufferRect"),TEXT("VIBuffer"), nullptr, nullptr)))
-        return E_FAIL;
-    if (FAILED(AddComponent(0,TEXT("Shader_VtxPosTex"),TEXT("Shader"), nullptr, nullptr)))
-        return E_FAIL;
-
-    return S_OK;
-}
-
-HRESULT UIButton::LoadTextureFromPath()
-{
-    SafeRelease(m_pTexture);
-
-    if (m_desc.imagePath.empty())
-        return S_OK; // 이미지 없는 버튼도 허용
-
-    m_pTexture = Texture::Create(m_desc.imagePath.c_str(), 1);
-    if (m_pTexture == nullptr)
-    {
-        std::string str = "[UIButton] Failed to load texture: ";
-        DEBUG_OUTPUT(str);
-        return E_FAIL;
-    }
-
     return S_OK;
 }

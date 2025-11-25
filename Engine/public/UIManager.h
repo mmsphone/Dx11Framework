@@ -11,6 +11,7 @@ class UIManager final : public Base
 
 public:
 	void AddUI(_wstring tagUI, class UI* pUI);
+	void RemoveUI(_wstring tagUI);
 	class UI* FindUI(_wstring tagUI);
 	void ClearUIs();
 

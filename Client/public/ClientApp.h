@@ -5,6 +5,7 @@
 
 NS_BEGIN(Engine)
 class EngineUtility;
+class UILabel;
 NS_END
 
 NS_BEGIN(Client)
@@ -20,6 +21,10 @@ public:
 	void Update(_float fTimeDelta);
 	HRESULT Render();
 
+#ifdef _DEBUG
+	void SetFPS(_uint fps);
+#endif
+
 	static ClientApp* Create();
 	virtual void Free() override;
 
@@ -28,6 +33,10 @@ private:
 	HRESULT StartScene(SCENE eStartSceneId);
 private:
 	EngineUtility* m_pEngineUtility = { nullptr };
+
+#ifdef _DEBUG
+	class UILabel* m_pFPSLabel = { nullptr };
+#endif
 };
 
 NS_END

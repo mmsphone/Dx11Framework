@@ -4,10 +4,6 @@
 
 #include "Layer.h"
 
-#include "FreeCam.h"
-#include "FixedCam.h"
-#include "ChaseCam.h"
-
 #include "GameScene1_Map.h"
 #include "Player.h"
 #include "Drone.h"
@@ -25,6 +21,8 @@
 #include "UIImage.h"
 #include "UILabel.h"
 #include "UIButton.h"
+#include "BloodDieEffect.h"
+#include "hackingGameUI.h"
 
 Loader::Loader()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
@@ -87,121 +85,87 @@ _bool Loader::isFinished() const
 	return m_isFinished;
 }
 
-void Loader::PrintText()
-{
-	SetWindowText(g_hWnd, m_szLoading);
-}
-
 HRESULT Loader::LoadingForLogo()
 {
-	lstrcpy(m_szLoading, TEXT("폰트 로딩중..."));
-	m_pEngineUtility->AddFont(L"Font_Default", L"../bin/Resources/Fonts/155ex.spritefont");
+	UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"Loadingbar_Front"));
+	_float fCur = 0.f;
+	_float fMax = 6.f;
+	pUI->SetLoadingRatio(0.f);
 
-	lstrcpy(m_szLoading, TEXT("텍스처 로딩중..."));
+	m_pEngineUtility->LoadUI("../bin/data/logoUI_background.dat", SCENE::LOGO);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/logoUI_plate.dat", SCENE::LOGO);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/logoUI_default.dat", SCENE::LOGO);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/logoUI_on.dat", SCENE::LOGO);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/logoUI_button.dat", SCENE::LOGO);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/logoUI_text.dat", SCENE::LOGO);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
-	lstrcpy(m_szLoading, TEXT("셰이더 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxPosTex"), Shader::Create(TEXT("../bin/Shader/Shader_VtxPosTex.hlsl"), VTXPOSTEX::Elements, VTXPOSTEX::iNumElements))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxMesh"), Shader::Create(TEXT("../bin/Shader/Shader_VtxMesh.hlsl"), VTXMESH::Elements, VTXMESH::iNumElements))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxAnimMesh"), Shader::Create(TEXT("../bin/Shader/Shader_VtxAnimMesh.hlsl"), VTXSKINMESH::Elements, VTXSKINMESH::iNumElements))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_InstancingPos"), Shader::Create(TEXT("../bin/Shader/Shader_InstancingPos.hlsl"), VTXPOS_INSTANCEPARTICLE::Elements, VTXPOS_INSTANCEPARTICLE::iNumElements))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxProjectile"), Shader::Create(TEXT("../bin/Shader/Shader_VtxProjectile.hlsl"), VTXPOS_INSTANCEPARTICLE::Elements, VTXPOS_INSTANCEPARTICLE::iNumElements))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxBloodHit"), Shader::Create(TEXT("../bin/Shader/Shader_VtxBloodHit.hlsl"), VTXPOSTEX_INSTANCEWORLD::Elements, VTXPOSTEX_INSTANCEWORLD::iNumElements))))
-		return E_FAIL;
-
-	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("VIBufferRect"), VIBufferRect::Create())))
-		return E_FAIL;
-
-	lstrcpy(m_szLoading, TEXT("컴포넌트 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("StateMachine"), StateMachine::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("AIController"), AIController::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Info"), Info::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Physics"), Physics::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("CollisionAABB"), Collision::Create(COLLISIONTYPE_AABB))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("CollisionOBB"), Collision::Create(COLLISIONTYPE_OBB))))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("CollisionSphere"), Collision::Create(COLLISIONTYPE_SPHERE))))
-		return E_FAIL;
-
-	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("FreeCam"), FreeCam::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("FixedCam"), FixedCam::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("ChaseCam"), ChaseCam::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIImage"), UIImage::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UILabel"), UILabel::Create())))
-		return E_FAIL;
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIButton"), UIButton::Create())))
-		return E_FAIL;
-
-	lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
-	//std::vector<MAP_OBJECTDATA> mapData = m_pEngineUtility->LoadMapData("../bin/data/LogoScene.dat");
-	//
-	//std::unordered_map<std::string, std::pair<std::wstring, std::wstring>> nameMap = {
-	//	{ "ItemInCage_Mesh0", { L"GameScene1_Map", L"GameScene1_Map" } },
-	//};
-	//if (FAILED(LoadMapObjects(SCENE::LOGO, mapData, nameMap)))
-	//	return E_FAIL;
-
-	lstrcpy(m_szLoading, TEXT("로딩 완료"));
 	m_isFinished = true;
-
 	return S_OK;
 }
 
 HRESULT Loader::LoadingForGamePlay()
 {
- 	lstrcpy(m_szLoading, TEXT("텍스처 로딩중..."));
+	UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"Loadingbar_Front"));
+	_float fCur = 0.f;
+	_float fMax = 50.f;
+	pUI->SetLoadingRatio(0.f);
+
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodCore"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodCore.png"), 1))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodSprite"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodSprite.png"), 1))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodSpray1"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodTexture1.png"), 1))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodSpray2"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodTexture2.png"), 1))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	
 
-	lstrcpy(m_szLoading, TEXT("모델 로딩중..."));
 	ModelData* model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/GameScene1/GameScene1.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_GameScene1_Map"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Player_Male/Player_Male.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Player"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Monster_Drone/Monster_Drone.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Drone"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Monster_Worm/Monster_Worm.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Worm"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Monster_Shieldbug/Monster_Shieldbug.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Shieldbug"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Weapon_AR/Weapon_AR.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Weapon_AR"), Model::Create(MODELTYPE::MODELTYPE_ANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Door/Door.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Door"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Panel/Panel.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Panel"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Console/Console.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Console"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
 	{
 		VIBufferInstancingPoint::POINT_INSTANCE_DESC pointDesc{};
@@ -216,6 +180,7 @@ HRESULT Loader::LoadingForGamePlay()
 		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_Particle_Bullet"), VIBufferInstancingPoint::Create(&pointDesc))))
 			return E_FAIL;
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{
 		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
 		rectDesc.iNumInstance = 1;
@@ -224,79 +189,164 @@ HRESULT Loader::LoadingForGamePlay()
 		rectDesc.vRange = _float3(0.f, 0.f, 0.f);
 		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
 		rectDesc.vSpeed = _float2(0.f, 0.f);
-		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.vLifeTime = _float2(0.2f, 0.2f);
 		rectDesc.isLoop = false;
 		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodCore"), VIBufferInstancingRect::Create(&rectDesc))))
 			return E_FAIL;
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{
 		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
 		rectDesc.iNumInstance = 1;
-		rectDesc.vScale = _float2(1.f, 1.f);
+		rectDesc.vScale = _float2(1.5f, 1.5f);
 		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
 		rectDesc.vRange = _float3(0.f, 0.f, 0.f);
 		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
 		rectDesc.vSpeed = _float2(0.f, 0.f);
-		rectDesc.vLifeTime = _float2(0.25f, 0.25f);
+		rectDesc.vLifeTime = _float2(0.2f, 0.2f);
 		rectDesc.isLoop = false;
 		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSprite"), VIBufferInstancingRect::Create(&rectDesc))))
 			return E_FAIL;
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{
 		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
-		rectDesc.iNumInstance = 400;
+		rectDesc.iNumInstance = 1000;
 		rectDesc.vScale = _float2(0.05f, 0.1f);
 		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
 		rectDesc.vRange = _float3(0.1f, 0.1f, 0.1f);
 		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
-		rectDesc.vSpeed = _float2(2.0f, 5.0f);
-		rectDesc.vLifeTime = _float2(0.15f, 0.15f);
+		rectDesc.vSpeed = _float2(1.f, 4.0f);
+		rectDesc.vLifeTime = _float2(0.2f, 0.2f);
 		rectDesc.isLoop = false;
 		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSpray1"), VIBufferInstancingRect::Create(&rectDesc))))
 			return E_FAIL;
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{
 		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
-		rectDesc.iNumInstance = 400;
+		rectDesc.iNumInstance = 1000;
 		rectDesc.vScale = _float2(0.05f, 0.1f);
 		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
 		rectDesc.vRange = _float3(0.1f, 0.1f, 0.1f);
 		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
-		rectDesc.vSpeed = _float2(2.0f, 5.0f);
-		rectDesc.vLifeTime = _float2(0.15f, 0.15f);
+		rectDesc.vSpeed = _float2(1.f, 4.0f);
+		rectDesc.vLifeTime = _float2(0.2f, 0.2f);
 		rectDesc.isLoop = false;
 		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodSpray2"), VIBufferInstancingRect::Create(&rectDesc))))
 			return E_FAIL;
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 1;
+		rectDesc.vScale = _float2(1.5f, 1.5f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.f, 0.f, 0.f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(0.f, 0.f);
+		rectDesc.vLifeTime = _float2(0.2f, 0.2f);
+		rectDesc.isLoop = false;
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodDieCore"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 1;
+		rectDesc.vScale = _float2(2.f, 2.f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.f, 0.f, 0.f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(0.f, 0.f);
+		rectDesc.vLifeTime = _float2(0.2f, 0.2f);
+		rectDesc.isLoop = false;
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodDieSprite"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 1000;
+		rectDesc.vScale = _float2(0.05f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.1f, 0.1f, 0.1f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(1.f, 4.0f);
+		rectDesc.vLifeTime = _float2(1.f, 1.f);
+		rectDesc.isLoop = false;
+		rectDesc.repeatable = true;
+		rectDesc.repeatDuration = _float2(0.02f, 0.2f);
 
-	lstrcpy(m_szLoading, TEXT("객체원형 로딩중..."));
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY,TEXT("VIBuffer_BloodDieSpray1"),VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 1000;
+		rectDesc.vScale = _float2(0.05f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.1f, 0.1f, 0.1f);
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(1.f, 4.0f);
+		rectDesc.vLifeTime = _float2(1.f, 1.f);
+		rectDesc.isLoop = false;
+		rectDesc.repeatable = true;
+		rectDesc.repeatDuration = _float2(0.02f, 0.2f);
+
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_BloodDieSpray2"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
+
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("GameScene1_Map"), GameScene1_Map::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Player"), Player::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Drone"), Drone::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Worm"), Worm::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Shieldbug"), Shieldbug::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("SMG_Projectile"), SMG_Projectile::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Weapon_AR"), Weapon_AR::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Worm_Projectile"), Worm_Projectile::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("BloodHitEffect"), BloodHitEffect::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Door"), Door::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Panel"), Panel::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Console"), Console::Create())))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("BloodDieEffect"), BloodDieEffect::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("hackingGameUI"), hackingGameUI::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
-	lstrcpy(m_szLoading, TEXT("맵 데이터 로딩 중..."));
 	std::vector<MAP_OBJECTDATA> mapData = m_pEngineUtility->LoadMapData("../bin/data/GameScene1_Map.dat");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
 	std::unordered_map<std::string, std::pair<std::wstring, std::wstring>> nameMap = {
 		{ "GameScene1", {		L"GameScene1_Map",	L"Map" } },
 		{ "Player_Male", {		L"Player",			L"Player" } },
@@ -306,11 +356,11 @@ HRESULT Loader::LoadingForGamePlay()
 	};
 	if (FAILED(LoadMapObjects(SCENE::GAMEPLAY, mapData, nameMap)))
 		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
-	lstrcpy(m_szLoading, TEXT("지형 로딩 중..."));
 	m_pEngineUtility->LoadCells("../bin/data/GameScene1_Navigation.dat");
-	
-	lstrcpy(m_szLoading, TEXT("몬스터 스포너 로딩 중..."));
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
 	{// 스포너 0
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-110.f, 18.f, -172.f, 1.f));
@@ -318,6 +368,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-106.f, 18.f, -172.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 1
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-121.f, 18.f, -157.f, 1.f));
@@ -325,6 +376,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-119.f, 18.f, -157.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 2
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-118.5f, 18.f, -134.f, 1.f));
@@ -333,6 +385,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-126.5f, 19.5f, -116.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 3
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-130.f, 17.f, -90.f, 1.f));
@@ -342,6 +395,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-139.3f, 17.f, -85.7f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 4
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-127.f, 17.f, -69.5f, 1.f));
@@ -351,6 +405,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-145.f, 17.f, -69.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 5
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-138.f, 17.f, -53.5f, 1.f));
@@ -363,6 +418,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-143.f, 16.f, -29.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 6
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-134.f, 16.f, 3.5f, 1.f));
@@ -375,6 +431,7 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-122.f, 16.5f, 22.5f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 7
 		_float3 spawnRandomRange = { 1.f, 0.f, 1.f };
 		Spawner* pSpawner = Spawner::Create();
@@ -388,9 +445,8 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-127.f, 16.5f, 12.5f, 1.f), spawnRandomRange);
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
-
-	lstrcpy(m_szLoading, TEXT("트리거 박스 로딩 중..."));			   
 	m_pEngineUtility->LoadTriggerBoxes("../bin/data/GameScene1_TriggerBoxes.dat");
 	vector<TriggerBox*> TriggerBoxes = m_pEngineUtility->GetTriggerBoxes();
 	TriggerBoxes[0]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(0); });
@@ -400,10 +456,18 @@ HRESULT Loader::LoadingForGamePlay()
 	TriggerBoxes[4]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(4); });
 	TriggerBoxes[5]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(5); });
 	TriggerBoxes[6]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(6); });
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
-	lstrcpy(m_szLoading, TEXT("로딩 완료"));
+	m_pEngineUtility->LoadUI("../bin/data/minimap.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/playerUI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/hackingUI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/hackingGame.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
 	m_isFinished = true;
-
 	return S_OK;
 }
 
@@ -466,6 +530,12 @@ HRESULT Loader::LoadMapObjects(SCENE sceneId, const std::vector<MAP_OBJECTDATA>&
 	}
 
 	return S_OK;
+}
+
+void Loader::UpdateLoadingRatio(UIImage* ui, _float* fCur, const _float fMax)
+{
+	*fCur += 1.f;
+	ui->SetLoadingRatio(*fCur / fMax);
 }
 
 Loader* Loader::Create(SCENE eNextSceneId)

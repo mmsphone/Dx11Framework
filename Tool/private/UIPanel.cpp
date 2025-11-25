@@ -286,7 +286,7 @@ void UIPanel::OnRender()
             ImGui::TextDisabled("Font / Text : Label type only");
         }
 
-        if (m_EditType == 0 || m_EditType == 2)
+        if (m_EditType == 0)
         {
             // Image Path
             ImGui::Text("Image Path:");
@@ -312,7 +312,7 @@ void UIPanel::OnRender()
         }
         else
         {
-            ImGui::TextDisabled("Image Path : Image / Button type only");
+            ImGui::TextDisabled("Image Path : Image type only");
         }
 
         ImGui::Separator();
@@ -335,6 +335,20 @@ void UIPanel::OnRender()
         if (ImGui::Button("Clear Selection##UI"))
         {
             m_pSelectedUI = nullptr;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Delete Selected UI##UI"))
+        {
+            if (m_pSelectedUI)
+            {
+                Object* pObj = dynamic_cast<Object*>(m_pSelectedUI);
+                if (pObj)
+                {
+                    pObj->SetDead(true);
+                }
+                m_pSelectedUI = nullptr;
+                ResetEditFields();
+            }
         }
     }
     else
@@ -398,7 +412,7 @@ void UIPanel::OnRender()
         ImGui::TextDisabled("Font / Text : Label type only");
     }
     
-    if (m_EditType == 0 || m_EditType == 2)
+    if (m_EditType == 0)
     {
         // Image Path
         ImGui::Text("Image Path (New):");
@@ -424,7 +438,7 @@ void UIPanel::OnRender()
     }
     else
     {
-        ImGui::TextDisabled("Image Path : Image / Button type only");
+        ImGui::TextDisabled("Image Path : Image type only");
     }
 
     ImGui::DragFloat("X##New", &m_EditX, 1.0f);
@@ -475,9 +489,10 @@ void UIPanel::OnRender()
             break;
 
         case UITYPE::UI_IMAGE:
-        case UITYPE::UI_BUTTON:
             desc.imagePath = AnsiToWString(m_EditImagePathAnsi);
-            // font/text/fontSize/fontColor는 기본값 그대로 두어도 무방
+            break;
+
+        case UITYPE::UI_BUTTON:
             break;
 
         default:

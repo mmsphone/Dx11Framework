@@ -20,7 +20,6 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // 기본 창 클래스 이름�
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -67,6 +66,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     _float      fTimeAcc = {};
 
+#ifdef _DEBUG
+    _float  fpsTimeAcc = 0.f;   // FPS 누적 시간(초)
+    _uint   fpsFrameCount = 0;  // 누적 프레임 수
+    _uint   g_FPS = 0;          // 마지막으로 계산된 FPS 값
+#endif
+
     while (true)
     {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -83,7 +88,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
         pEngineUtility->UpdateTimeDelta(TEXT("Timer_Default"));
 
-        fTimeAcc += pEngineUtility->GetTimeDelta(TEXT("Timer_Default"));
+        _float defaultDelta = pEngineUtility->GetTimeDelta(TEXT("Timer_Default"));
+        fTimeAcc += defaultDelta;
+#ifdef _DEBUG
+        fpsTimeAcc += defaultDelta;
+#endif
 
         if (fTimeAcc >= 1.f / 60.0f)
         {
@@ -94,6 +103,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                 fTimeDelta = 1.f / 60.f;
             pClientApp->Update(fTimeDelta);
             pClientApp->Render();
+
+#ifdef _DEBUG
+            ++fpsFrameCount;
+            if (fpsTimeAcc >= 1.f)
+            {
+                g_FPS = fpsFrameCount;
+                pClientApp->SetFPS(g_FPS);
+                fpsFrameCount = 0;
+                fpsTimeAcc -= 1.f;
+            }
+#endif
 
             fTimeAcc = 0.f;
         }
@@ -130,7 +150,31 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_CLIENT);
     wcex.lpszClassName = szWindowClass;
-    wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+    const wchar_t* iconPath = L"../bin/Resources/Textures/WindowIcon/reactivedrop.ico";
+
+    HICON hBigIcon = (HICON)LoadImageW(
+        hInstance,
+        iconPath,
+        IMAGE_ICON,
+        32, 32,              // 큰 아이콘 (0,0 + LR_DEFAULTSIZE 써도 됨)
+        LR_LOADFROMFILE
+    );
+
+    HICON hSmallIcon = (HICON)LoadImageW(
+        hInstance,
+        iconPath,
+        IMAGE_ICON,
+        16, 16,              // 작은 아이콘
+        LR_LOADFROMFILE
+    );
+    if (!hBigIcon)
+        hBigIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CLIENT));
+    if (!hSmallIcon)
+        hSmallIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+    wcex.hIcon = hBigIcon;
+    wcex.hIconSm = hSmallIcon;
 
     return RegisterClassExW(&wcex);
 }
@@ -188,9 +232,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // 메뉴 선택을 구문 분석합니다:
         switch (wmId)
         {
-        case IDM_ABOUT:
-            DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-            break;
+        //case IDM_ABOUT:
+        //    DialogBox(g_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+        //    break;
         case IDM_EXIT:
             DestroyWindow(hWnd);
             break;
@@ -214,24 +258,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
-}
-
-// 정보 대화 상자의 메시지 처리기입니다.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
 }

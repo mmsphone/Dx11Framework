@@ -151,7 +151,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\public\Background.h" />
+    <ClInclude Include="..\public\BloodDieEffect.h" />
     <ClInclude Include="..\public\BloodHitEffect.h" />
     <ClInclude Include="..\public\ChaseCam.h" />
     <ClInclude Include="..\public\Console.h" />
@@ -164,6 +164,7 @@
     <ClInclude Include="..\public\FixedCam.h" />
     <ClInclude Include="..\public\FreeCam.h" />
     <ClInclude Include="..\public\GameScene.h" />
+    <ClInclude Include="..\public\hackingGameUI.h" />
     <ClInclude Include="..\public\Loader.h" />
     <ClInclude Include="..\public\LoadingScene.h" />
     <ClInclude Include="..\public\LogoScene.h" />
@@ -174,7 +175,6 @@
     <ClInclude Include="..\public\Player.h" />
     <ClInclude Include="..\public\Shieldbug.h" />
     <ClInclude Include="..\public\SMG_Projectile.h" />
-    <ClInclude Include="..\public\UITemplate.h" />
     <ClInclude Include="..\public\Weapon_AR.h" />
     <ClInclude Include="..\public\Worm.h" />
     <ClInclude Include="..\public\Worm_Projectile.h" />
@@ -184,7 +184,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\private\Background.cpp" />
+    <ClCompile Include="..\private\BloodDieEffect.cpp" />
     <ClCompile Include="..\private\BloodHitEffect.cpp" />
     <ClCompile Include="..\private\ChaseCam.cpp" />
     <ClCompile Include="..\private\Console.cpp" />
@@ -196,6 +196,7 @@
     <ClCompile Include="..\private\FixedCam.cpp" />
     <ClCompile Include="..\private\FreeCam.cpp" />
     <ClCompile Include="..\private\GameScene.cpp" />
+    <ClCompile Include="..\private\hackingGameUI.cpp" />
     <ClCompile Include="..\private\Loader.cpp" />
     <ClCompile Include="..\private\LoadingScene.cpp" />
     <ClCompile Include="..\private\LogoScene.cpp" />
@@ -206,7 +207,6 @@
     <ClCompile Include="..\private\Player.cpp" />
     <ClCompile Include="..\private\Shieldbug.cpp" />
     <ClCompile Include="..\private\SMG_Projectile.cpp" />
-    <ClCompile Include="..\private\UITemplate.cpp" />
     <ClCompile Include="..\private\Weapon_AR.cpp" />
     <ClCompile Include="..\private\Worm.cpp" />
     <ClCompile Include="..\private\Worm_Projectile.cpp" />

@@ -19,6 +19,7 @@ public:
 	HRESULT ReadyLights();
 	HRESULT ReadyLayerCamera();
 	HRESULT ReadyUI();
+	HRESULT ReadyMouse();
 	HRESULT PanelDoorLink();
 
 	static GameScene* Create();

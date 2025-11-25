@@ -99,7 +99,7 @@ public:
 	void ClearLights();
 	HRESULT RenderLights(class Shader* pShader, class VIBufferRect* pVIBuffer);
 	void SetLightActive(_uint iIndex, _bool bActive);
-	void SetLightActive(Light* pLight, _bool bActive);
+	void SetLightActive(class Light* pLight, _bool bActive);
 	void SetActiveLightsByDistance(_fvector vPos, _float fMaxDistance, _uint iMaxLights = 5);
 
 	//FontManger
@@ -164,6 +164,10 @@ public:
 	_bool Edit_AddTriangleOnEdge(_int cellId, _fvector pickedPoint, _float weldEps);
 	_bool Edit_AddTriangleAtSharedVertex(_int cellA, _int cellB, _float weldEps);
 	_bool RandomPointAround(_fvector center, _float radius, _float3* outPos, _uint maxTrials = 64);
+	_bool FindPath(_fvector startPos, _fvector goalPos, vector<_int>& outCellPath);
+	_bool BuildCenterWaypointsFromCellPath(const vector<_int>& cellPath, vector<_float3>& outWaypoints) const;
+	_bool BuildFunnelWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const;
+	_bool BuildMidWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const;
 
 	//SaveLoadManager
 	ModelData* LoadNoAssimpModel(const _char* pFilePath);
@@ -214,8 +218,10 @@ public:
 	HRESULT AddTriggerBox(class TriggerBox* pTriggerBox);
 	HRESULT RemoveTriggerBox(_uint index);
 	void ClearTriggerBoxes();
-	void UpdateTriggers(); 
+	void UpdateTriggers();
+#ifdef _DEBUG
 	void RenderTriggerBoxes();
+#endif
 	const vector<class TriggerBox*>& GetTriggerBoxes() const;
 
 	//Frustum
@@ -223,6 +229,7 @@ public:
 
 	//UIManager
 	void AddUI(_wstring tagUI, class UI* pUI);
+	void RemoveUI(_wstring tagUI);
 	class UI* FindUI(_wstring tagUI);
 	void ClearUIs();
 

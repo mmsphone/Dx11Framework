@@ -64,6 +64,41 @@ HRESULT UILabel::Render()
     return S_OK;
 }
 
+void UILabel::SetText(const wstring& text)
+{
+    if (text.empty())
+    {
+        m_desc.text.clear();
+        return;
+    }
+    m_desc.text = text;
+}
+
+const wstring& UILabel::GetText() const
+{
+    return m_desc.text;
+}
+
+void UILabel::SetColor(_fvector vColor)
+{
+    XMStoreFloat4(&m_desc.fontColor,vColor);
+}
+
+const _float4& UILabel::GetColor() const
+{
+    return m_desc.fontColor;
+}
+
+void UILabel::SetFontSize(_float fFontSize)
+{
+    m_desc.fontSize = fFontSize;
+}
+
+const _float& UILabel::GetFontSize() const
+{
+    return m_desc.fontSize;
+}
+
 UILabel* UILabel::Create()
 {
     UILabel* pInstance = new UILabel();
@@ -89,19 +124,4 @@ Object* UILabel::Clone(void* pArg)
 void UILabel::Free()
 {
     __super::Free();
-}
-
-void UILabel::SetText(const wstring& text)
-{
-    if (text.empty())
-    {
-        m_desc.text.clear();
-        return;
-    }
-    m_desc.text = text;
-}
-
-const wstring& UILabel::GetText() const
-{
-    return m_desc.text;
 }

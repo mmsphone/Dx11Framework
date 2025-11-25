@@ -2,6 +2,9 @@
 
 #include "EngineUtility.h"
 #include "Door.h"
+#include "UI.h"
+#include "Layer.h"
+#include "hackingGameUI.h"
 
 Panel::Panel()
     : ObjectTemplate{ }
@@ -21,7 +24,7 @@ void Panel::Update(_float fTimeDelta)
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 
-    if (m_worked == false)
+    if (m_worked == false || openedHackingUI == true)
     {
         m_playerInRange = false;
         const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
@@ -31,11 +34,50 @@ void Panel::Update(_float fTimeDelta)
             Collision* pPlayerCol = static_cast<Collision*>(pPlayer->FindComponent(TEXT("Collision")));
             if (pPlayerCol && pCollision->Intersect(pPlayerCol))
             {
+                if (m_pTargetDoor && !m_pEngineUtility->FindUI(L"hacking_text_plate")->IsVisible())
+                {
+                    openedHackingUI = true;
+                    SetVisiblePanelUI(true);
+                }
                 m_playerInRange = true;
                 if (m_pEngineUtility->IsKeyPressed(DIK_E))
                 {
-                    OpenDoor();
+                    if (m_pTargetDoor->IsLocked())
+                    {
+                        if (m_pEngineUtility->FindUI(L"hackingGameUI") == nullptr)
+                        {
+                            m_pEngineUtility->AddObject(SCENE::GAMEPLAY, TEXT("hackingGameUI"), SCENE::GAMEPLAY, L"UI");
+                            UI* pUI = static_cast<UI*>(m_pEngineUtility->FindLayer(SCENE::GAMEPLAY, L"UI")->GetAllObjects().back());
+                            m_pEngineUtility->AddUI(L"hackingGameUI", pUI);
+                            static_cast<hackingGameUI*>(pUI)->SetPanel(this);
+                        }
+                        else
+                        {
+                            static_cast<hackingGameUI*>(m_pEngineUtility->FindUI(L"hackingGameUI"))->ShowGame();
+                        }
+                    }
+                    else
+                        OpenDoor();
                 }
+
+                //Å° ¹ÝÂ¦ÀÓ
+                if (openedHackingUI)
+                {
+                    m_keyBlinkAcc += fTimeDelta;
+                    if (m_keyBlinkAcc >= 1.f)
+                    {
+                        m_keyBlinkAcc = 0.f;
+                        m_keyBlinkOnState = !m_keyBlinkOnState;
+
+                        m_pEngineUtility->FindUI(L"hacking_key_image_default")->SetVisible(!m_keyBlinkOnState);
+                        m_pEngineUtility->FindUI(L"hacking_key_image_on")->SetVisible(m_keyBlinkOnState);
+                    }
+                }
+            }
+            else if (openedHackingUI)
+            {
+                openedHackingUI = false;
+                SetVisiblePanelUI(false);
             }
         }
     }
@@ -92,6 +134,11 @@ void Panel::SetDoor(Door* pDoor)
     m_pTargetDoor = pDoor;
 }
 
+void Panel::UnlockDoor()
+{
+    m_pTargetDoor->SetLock(false);
+}
+
 void Panel::OpenDoor()
 {
     if (m_worked)
@@ -133,6 +180,46 @@ Object* Panel::Clone(void* pArg)
 void Panel::Free()
 {
     __super::Free();
+}
+
+void Panel::SetVisiblePanelUI(_bool bVisible)
+{
+    if (bVisible == false)
+    {
+        m_pEngineUtility->FindUI(L"hacking_text_plate")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_image_plate")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_key_plate")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_image_lock")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_image_unlock")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_key_image_default")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_key_image_on")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_text_hacking")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_text_open")->SetVisible(false);
+        return;
+    }
+
+    m_keyBlinkAcc = 0.f;
+    m_keyBlinkOnState = false;
+
+    m_pEngineUtility->FindUI(L"hacking_text_plate")->SetVisible(true);
+    m_pEngineUtility->FindUI(L"hacking_image_plate")->SetVisible(true);
+    m_pEngineUtility->FindUI(L"hacking_key_plate")->SetVisible(true);
+    if (m_pTargetDoor->IsLocked())
+    {
+        m_pEngineUtility->FindUI(L"hacking_image_lock")->SetVisible(true);
+        m_pEngineUtility->FindUI(L"hacking_text_hacking")->SetVisible(true);
+        m_pEngineUtility->FindUI(L"hacking_image_unlock")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_text_open")->SetVisible(false);
+    }
+    else
+    {
+        m_pEngineUtility->FindUI(L"hacking_image_lock")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_text_hacking")->SetVisible(false);
+        m_pEngineUtility->FindUI(L"hacking_image_unlock")->SetVisible(true);
+        m_pEngineUtility->FindUI(L"hacking_text_open")->SetVisible(true);
+    }
+    m_pEngineUtility->FindUI(L"hacking_key_image_default")->SetVisible(true);
+    m_pEngineUtility->FindUI(L"hacking_key_image_on")->SetVisible(false);
 }
 
 HRESULT Panel::ReadyComponents()

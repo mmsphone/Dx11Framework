@@ -21,6 +21,7 @@ HRESULT Door::Initialize(void* pArg)
     m_isOpen = false;
     m_openT = 0.f;
     m_posInitialized = false;
+    m_isLock = false;
 
     return S_OK;
 }
@@ -98,9 +99,19 @@ HRESULT Door::Render()
     return S_OK;
 }
 
+void Door::SetLock(_bool bLock)
+{
+    m_isLock = bLock;
+}
+
+_bool Door::IsLocked()
+{
+    return m_isLock;
+}
+
 void Door::Open()
 {
-    if (m_isOpen || m_isOpening)
+    if (m_isLock || m_isOpen || m_isOpening)
         return;
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
 
@@ -110,7 +121,7 @@ void Door::Open()
         
         _vector right = pTransform->GetState(MATRIXROW_RIGHT);
         right = XMVector3Normalize(right);
-        const float openDistance = 2.0f;
+        const float openDistance = 2.4f;
         
         _vector closed = XMLoadFloat3(&m_closedPos);
         _vector opened = closed - right * openDistance;

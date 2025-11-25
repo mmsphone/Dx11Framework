@@ -18,10 +18,13 @@ public:
 
 	HRESULT ReadyLights();
 	HRESULT ReadyLayerCamera();
-	HRESULT ReadyLayerUI();
+	HRESULT ReadyUI();
 
 	static LogoScene* Create();
 	virtual void Free() override;
+
+private:
+	_bool m_next = false;
 };
 
 NS_END

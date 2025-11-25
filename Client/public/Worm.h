@@ -61,6 +61,9 @@ private:
     _float m_yawTarget = 0.f;
 
     _float scaleOffset = 0.003f;
+
+    _bool  m_isDying = false;
+    _float m_deathFade = 1.f;
 };
 
 NS_END

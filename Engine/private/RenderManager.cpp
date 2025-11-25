@@ -124,9 +124,9 @@ void RenderManager::Draw()
 	RenderCombined();
 	RenderNonLights();
     RenderBlend();
-    RenderUI();
-
     m_pEngineUtility->SnapDepthForPicking();
+	RenderUI();
+	renderMouse();
 }
 
 #ifdef _DEBUG
@@ -408,6 +408,17 @@ void RenderManager::RenderUI()
         SafeRelease(pObject);
     }
     m_RenderObjects[RENDER_UI].clear();
+}
+
+void RenderManager::renderMouse()
+{
+	for (auto& pObject : m_RenderObjects[RENDER_MOUSE])
+	{
+		if (pObject != nullptr && pObject->IsDead() == false)
+			pObject->Render();
+		SafeRelease(pObject);
+	}
+	m_RenderObjects[RENDER_MOUSE].clear();
 }
 
 HRESULT RenderManager::ReadyShadowDepthStencilView()

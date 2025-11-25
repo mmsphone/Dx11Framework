@@ -4,6 +4,8 @@
 
 #include "Worm_Projectile.h"
 #include "Layer.h"
+#include "BloodHitEffect.h"
+#include "BloodDieEffect.h"
 
 Worm::Worm() 
     : ObjectTemplate{} 
@@ -45,12 +47,19 @@ HRESULT Worm::Initialize(void* pArg)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     pTransform->SetScale(scaleOffset, scaleOffset, scaleOffset);
 
+    m_isDying = false;
+    m_deathFade = 1.f;
+
     return S_OK;
 }
 
 void Worm::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
+
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
+        return;
 
     AIController* pAI = dynamic_cast<AIController*>(FindComponent(TEXT("AIController")));
     if (pAI != nullptr)
@@ -68,7 +77,6 @@ void Worm::Update(_float fTimeDelta)
     if (pSM != nullptr)
         pSM->Update(fTimeDelta);
 
-    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 }
@@ -78,8 +86,13 @@ void Worm::LateUpdate(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     if (m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
     {
-        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
-        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
+        if (!m_isDying)
+        {
+            m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
+            m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
+        }
+        else
+            m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_BLEND, this);
     }
 
     __super::LateUpdate(fTimeDelta);
@@ -87,16 +100,23 @@ void Worm::LateUpdate(_float fTimeDelta)
 
 HRESULT Worm::Render()
 {
-    Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    Shader* pShader = dynamic_cast<Shader*>(FindComponent(TEXT("Shader")));
-    Model* pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model")));
-    if (!pTransform || !pShader || !pModel)
-        return E_FAIL;
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Shader* pShader = static_cast<Shader*>(FindComponent(TEXT("Shader")));
+    Model* pModel = static_cast<Model*>(FindComponent(TEXT("Model")));
 
     if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix"))) return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW)))) return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION)))) return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_CamFarDistance", m_pEngineUtility->GetPipelineFarDistance(), sizeof(_float))))
+    if (FAILED(pShader->BindRawValue("g_CamFarDistance", m_pEngineUtility->GetPipelineFarDistance(), sizeof(_float)))) return E_FAIL;
+
+    _float alphaMul = 1.f;
+    if (m_isDying)
+    {
+        m_pEngineUtility->BindRenderTargetShaderResource(L"RenderTarget_Shade", pShader, "g_ShadeTexture");
+        m_pEngineUtility->BindRenderTargetShaderResource(L"RenderTarget_Specular", pShader, "g_SpecularTexture");
+        alphaMul = m_deathFade;
+    }
+    if (FAILED(pShader->BindRawValue("g_AlphaMul", &alphaMul, sizeof(_float))))
         return E_FAIL;
 
     _uint       iNumMeshes = pModel->GetNumMeshes();
@@ -108,7 +128,10 @@ HRESULT Worm::Render()
                 continue;
 
             pModel->BindBoneMatrices(i, pShader, "g_BoneMatrices");
-            pShader->Begin(0);
+            if (!m_isDying)
+                pShader->Begin(0);
+            else
+                pShader->Begin(5);
             pModel->Render(i);
         }
     }
@@ -324,16 +347,47 @@ HRESULT Worm::SetUpStateMachine()
 
     pSM->RegisterState("Die", {
         [](Object* owner, StateMachine* sm) {
-            Worm* pWorm = dynamic_cast<Worm*>(owner);
-            Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pWorm || !pModel)
-                return;
+            Worm* pWorm = static_cast<Worm*>(owner);
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
             pModel->SetAnimation(pWorm->FindAnimIndex("Die"), false, 0.05f);
+
+            Info* pInfo = static_cast<Info*>(owner->FindComponent(TEXT("Info")));
+            INFO_DESC desc = pInfo->GetInfo();
+            desc.SetData("InvincibleLeft", _float{ 10.f });
+            pInfo->BindInfoDesc(desc);
+
+            pWorm->m_isDying = true;
+            pWorm->m_deathFade = 1.f;
+
+            Collision* pCol = static_cast<Collision*>(owner->FindComponent(TEXT("Collision")));
+            _float3 centerPos = static_cast<BoundingOrientedBox*>( pCol->GetWorldCollisionBox(COLLISIONTYPE_OBB))->Center;
+
+            BloodDieEffect::BLOODDIEEFFECT_DESC e{};
+            e.fLifeTime = 1.f;
+            e.bLoop = false;
+            e.bAutoKill = true;
+            e.fRotationPerSec = 0.f;
+            e.fSpeedPerSec = 0.f;
+            e.vCenterWS = centerPos;
+            e.baseColor = _float4(0.2f, 1.f, 0.2f, 1.f);
+            EngineUtility::GetInstance()->AddObject( SCENE::GAMEPLAY, TEXT("BloodDieEffect"), SCENE::GAMEPLAY, TEXT("Effect"), &e);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
-            auto* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
+            Worm* pMonster = dynamic_cast<Worm*>(owner);
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
 
-            pModel->PlayAnimation(fTimeDelta * 3.5f); // Worm 사망 애니메이션이 너무 길어서 빠르게 재생
+            const _float dieAnimFaster = 10.f;
+            pModel->PlayAnimation(fTimeDelta * dieAnimFaster);
+
+            float pos = pModel->GetCurAnimTrackPos();
+            float dur = pModel->GetCurAnimDuration();
+            float t = 0.f;
+            if (dur > 1e-4f)
+                t = clamp(pos / dur, 0.f, 1.f);
+            float eased = t * t;
+            pMonster->m_deathFade = 1.f - eased;
+
             if (pModel->isAnimFinished())
                 owner->SetDead(true);
         },
@@ -496,14 +550,15 @@ HRESULT Worm::SetUpInfo()
         return E_FAIL;
 
     INFO_DESC desc;
-    desc.SetData("MaxHP", _float{ 120.f });
-    desc.SetData("CurHP", _float{ 120.f });
+    desc.SetData("MaxHP", _float{ 30.f });
+    desc.SetData("CurHP", _float{ 30.f });
     desc.SetData("InvincibleTime", _float{ 0.1f });
     desc.SetData("InvincibleLeft", _float{ 0.f });
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
     desc.SetData("IsHit", _bool{ false });
     desc.SetData("Faction", FACTION_MONSTER);
+    desc.SetData("AttackDamage", _float{ 10.f });
     pInfo->BindInfoDesc(desc);
 
     return S_OK;
@@ -761,7 +816,9 @@ void Worm::Shoot()
     Projectile::PROJECTILE_DESC Desc{};
     Desc.moveDir = aimPos - spawnPos;
     Desc.accTime = 0.f;
-    Desc.damageAmount = 10.f;
+    Info* pInfo = static_cast<Info*>(FindComponent(TEXT("Info")));
+    _float damage = *std::get_if<_float>(pInfo->GetInfo().GetPtr("AttackDamage"));
+    Desc.damageAmount = damage;
     Desc.faction = FACTION_MONSTER;
     Desc.hitRadius = 0.6f;
     Desc.lifeTime = 2.0f;

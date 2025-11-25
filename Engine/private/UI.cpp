@@ -67,8 +67,13 @@ void UI::LateUpdate(_float fTimeDelta)
 
     if (m_desc.visible == false)
         return;
-
     UpdateState();
+
+    if (m_desc.name == "Mouse" || m_desc.name == "mouse")
+    {
+        m_pEngineUtility->JoinRenderGroup(RENDER_MOUSE, this);
+        return;
+    }
     m_pEngineUtility->JoinRenderGroup(RENDER_UI, this);
 }
 
@@ -97,6 +102,11 @@ const UI_DESC& UI::GetUIDesc() const
 void UI::SetVisible(_bool bVisible)
 {
     m_desc.visible = bVisible;
+}
+
+_bool UI::IsVisible()
+{
+    return m_desc.visible;
 }
 
 void UI::Free()

@@ -17,7 +17,9 @@ public:
     void ClearTriggerBoxes();
 
     void UpdateTriggers();
+#ifdef _DEBUG
     void RenderTriggerBoxes();
+#endif
     const vector<class TriggerBox*>& GetTriggerBoxes() const;
 
     static TriggerBoxManager* Create();

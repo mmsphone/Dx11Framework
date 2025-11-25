@@ -6,6 +6,31 @@ NS_BEGIN(Engine)
 
 class ENGINE_DLL NavigationManager final : public Base
 {
+public:
+	struct AStarNode
+	{
+		_int  parent = -1;
+		_float g = FLT_MAX;
+		_float f = FLT_MAX;
+		_bool closed = false;
+	};
+	struct OpenEntry
+	{
+		float f;
+		_int  index;
+	};
+	struct CompareOpenEntry
+	{
+		bool operator()(const OpenEntry& a, const OpenEntry& b) const
+		{
+			return a.f > b.f; // f 작은 게 top으로 오게
+		}
+	};
+	struct Portal
+	{
+		_float3 left;
+		_float3 right;
+	};
 private:	
 	NavigationManager();
 	virtual ~NavigationManager() = default;
@@ -35,6 +60,11 @@ public:
 	_bool Edit_AddTriangleAtSharedVertex(_int cellA, _int cellB, _float weldEps);
 	_bool RandomPointAround(_fvector center, _float radius, _float3* outPos, _uint maxTrials = 64);
 
+	_bool FindPath(_fvector startPos, _fvector goalPos, vector<_int>& outCellPath);
+	_bool BuildCenterWaypointsFromCellPath(const vector<_int>& cellPath, vector<_float3>& outWaypoints) const;
+	_bool BuildFunnelWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const;
+	_bool BuildMidWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const;
+
 	static NavigationManager* Create();
 	virtual void Free() override;
 
@@ -46,6 +76,12 @@ private:
 	float DistPointToSegmentXZ(const _float3& p, const _float3& a, const _float3& b) const;
 	void  SnapIfNear(_float3& inoutP, const _float3& target, float eps) const;
 	bool FindNearestEdgePairXZ(const _float3 triA[3], const _float3 triB[3], LINETYPE& outEdgeA, LINETYPE& outEdgeB, _float3& outA0, _float3& outA1, _float3& outB0, _float3& outB1) const;
+
+	_float3 GetCellCenter(_int iCellIndex) const;
+	void GetNeighborIndices(_int iCellIndex, vector<_int>& outNeighbors) const;
+	_bool FindSharedEdge(_int cellA, _int cellB, _float3& outV0, _float3& outV1) const;
+	_bool BuildPortalsFromCells(_fvector startPos,_fvector goalPos,const std::vector<_int>& cellPath,std::vector<Portal>& outPortals) const;
+	void StringPullFunnel(const _float3& start,const std::vector<Portal>& portals,std::vector<_float3>& outPoints) const;
 
 private:
 	class EngineUtility* m_pEngineUtility = nullptr;

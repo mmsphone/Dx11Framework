@@ -521,7 +521,10 @@ HRESULT SaveLoadManager::SaveUI(const std::string& path)
         else
             continue; // 알 수 없는 타입은 스킵
 
-        const UI_DESC& d = pUI->GetUIDesc();
+        UI_DESC d = pUI->GetUIDesc();
+
+        if (type == UITYPE::UI_BUTTON)
+            d.imagePath.clear();
 
         // 타입
         _int typeInt = static_cast<_int>(type);
@@ -615,6 +618,9 @@ HRESULT SaveLoadManager::LoadUI(const std::string& path, _uint iSceneIndex)
         if (!ReadWString(d.text))      return E_FAIL;
         if (!ReadWString(d.imagePath)) return E_FAIL;
 
+        if (type == UITYPE::UI_BUTTON)
+            d.imagePath.clear();
+
         // 위치/크기 (_float)
         if (!f.read(reinterpret_cast<char*>(&d.x), sizeof(_float))) return E_FAIL;
         if (!f.read(reinterpret_cast<char*>(&d.y), sizeof(_float))) return E_FAIL;
@@ -650,6 +656,12 @@ HRESULT SaveLoadManager::LoadUI(const std::string& path, _uint iSceneIndex)
 
         if (FAILED(m_pEngineUtility->AddObject(0, protoTag, iSceneIndex, layerTag, &d)))
             return E_FAIL;
+
+        UI* pUI = static_cast<UI*>(m_pEngineUtility->FindLayer(iSceneIndex, layerTag)->GetAllObjects().back());
+        int len = MultiByteToWideChar( CP_UTF8, 0, d.name.c_str(), -1,nullptr, 0);
+        wstring result(len - 1, 'L\0');
+        MultiByteToWideChar( CP_UTF8, 0, d.name.c_str(), -1,result.data(),len);
+        m_pEngineUtility->AddUI(result, pUI);
     }
 
     return S_OK;

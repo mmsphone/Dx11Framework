@@ -46,6 +46,9 @@ private:
     void Attack();
     _bool ApplyDamageToPlayer(Object* pTarget, Info* info, _float damage);
 
+    _bool  BuildPathToTarget(const _float3& targetPos);
+    void UpdatePath(_float dt);
+
 private:
     unordered_map<string, _uint> m_animIndexMap;
     unordered_map<string, _uint> m_priorityIndexMap;
@@ -66,6 +69,18 @@ private:
     _float m_yawTarget = 0.f;     // ∏Ò«• yaw
 
     _float scaleOffset = 0.020f;
+
+    _float m_speed = 0.f;
+
+    vector<_float3> m_path;
+    _int   m_pathIndex = -1;
+    _float m_arriveRadius = 1.f;
+
+    _float               m_repathInterval = 1.f;
+    _float               m_repathTimer = 0.f;
+
+    _bool  m_isDying = false;
+    _float m_deathFade = 1.f;
 };
 
 NS_END

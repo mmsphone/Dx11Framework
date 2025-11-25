@@ -15,12 +15,12 @@ _uint Cell::GetIndex() const
     return m_iIndex;
 }
 
-_uint Cell::GetNeighborIndex(LINETYPE eLine)
+_int Cell::GetNeighborIndex(LINETYPE eLine)
 {
     return m_iNeighborIndices[eLine];
 }
 
-void Cell::SetNeighborIndex(LINETYPE eLine, _uint iNeighborIndex)
+void Cell::SetNeighborIndex(LINETYPE eLine, _int iNeighborIndex)
 {
     if (iNeighborIndex == -1) {
         m_iNeighborIndices[eLine] = -1;

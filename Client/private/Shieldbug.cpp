@@ -4,6 +4,8 @@
 
 #include "Player.h"
 #include "BloodHitEffect.h"
+#include "Layer.h"
+#include "BloodDieEffect.h"
 
 Shieldbug::Shieldbug() 
     : ObjectTemplate{} 
@@ -19,7 +21,8 @@ HRESULT Shieldbug::Initialize(void* pArg)
 {
     OBJECT_DESC* pDesc = new OBJECT_DESC;
 
-    pDesc->fSpeedPerSec = 2.f;
+    m_speed = 2.5f;
+    pDesc->fSpeedPerSec = m_speed;
     pDesc->fRotationPerSec = XMConvertToRadians(180.0f);
 
     if (FAILED(__super::Initialize(pDesc)))
@@ -45,12 +48,23 @@ HRESULT Shieldbug::Initialize(void* pArg)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     pTransform->SetScale(scaleOffset, scaleOffset, scaleOffset);
 
+    m_arriveRadius = 1.f;
+    m_repathInterval = 1.f;
+    m_repathTimer = 0.f;
+
+    m_isDying = false;
+    m_deathFade = 1.f;
+
     return S_OK;
 }
 
 void Shieldbug::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
+
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
+        return;
 
     AIController* pAI = dynamic_cast<AIController*>(FindComponent(TEXT("AIController")));
     if (pAI != nullptr)
@@ -68,7 +82,8 @@ void Shieldbug::Update(_float fTimeDelta)
     if (pSM != nullptr)
         pSM->Update(fTimeDelta);
 
-    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    UpdatePath(fTimeDelta);
+
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
     Collision* pAttackCollision = static_cast<Collision*>(FindComponent(TEXT("AttackCollision")));
@@ -80,8 +95,13 @@ void Shieldbug::LateUpdate(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     if (m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
     {
-        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
-        m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
+        if (!m_isDying)
+        {
+            m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_NONBLEND, this);
+            m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_SHADOWLIGHT, this);
+        }
+        else
+            m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_BLEND, this);
     }
 
     __super::LateUpdate(fTimeDelta);
@@ -96,7 +116,16 @@ HRESULT Shieldbug::Render()
     if (FAILED(pTransform->BindRenderTargetShaderResource(pShader, "g_WorldMatrix"))) return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ViewMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_VIEW)))) return E_FAIL;
     if (FAILED(pShader->BindMatrix("g_ProjMatrix", m_pEngineUtility->GetTransformFloat4x4Ptr(D3DTS::D3DTS_PROJECTION)))) return E_FAIL;
-    if (FAILED(pShader->BindRawValue("g_CamFarDistance", m_pEngineUtility->GetPipelineFarDistance(), sizeof(_float))))
+    if (FAILED(pShader->BindRawValue("g_CamFarDistance", m_pEngineUtility->GetPipelineFarDistance(), sizeof(_float)))) return E_FAIL;
+
+    _float alphaMul = 1.f;
+    if (m_isDying)
+    {
+        m_pEngineUtility->BindRenderTargetShaderResource(L"RenderTarget_Shade", pShader, "g_ShadeTexture");
+        m_pEngineUtility->BindRenderTargetShaderResource(L"RenderTarget_Specular", pShader, "g_SpecularTexture");
+        alphaMul = m_deathFade;
+    }
+    if (FAILED(pShader->BindRawValue("g_AlphaMul", &alphaMul, sizeof(_float))))
         return E_FAIL;
 
     _uint       iNumMeshes = pModel->GetNumMeshes();
@@ -108,7 +137,10 @@ HRESULT Shieldbug::Render()
                 continue;
 
             pModel->BindBoneMatrices(i, pShader, "g_BoneMatrices");
-            pShader->Begin(0);
+            if (!m_isDying)
+                pShader->Begin(0);   // 기존 디퍼드용 pass
+            else
+                pShader->Begin(5);
             pModel->Render(i);
         }
     }
@@ -404,18 +436,44 @@ HRESULT Shieldbug::SetUpStateMachine()
         [](Object* owner, StateMachine* sm) {
             Shieldbug* pShieldbug = static_cast<Shieldbug*>(owner);
             Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            Info* pInfo = static_cast<Info*>(owner->FindComponent(TEXT("Info")));
 
             pModel->SetAnimation(pShieldbug->FindAnimIndex("Die"), false, 0.05f);
 
+            Info* pInfo = static_cast<Info*>(owner->FindComponent(TEXT("Info")));
             INFO_DESC desc = pInfo->GetInfo();
             desc.SetData("InvincibleLeft", _float{ 10.f });
             pInfo->BindInfoDesc(desc);
+
+            Collision* pCol = static_cast<Collision*>(owner->FindComponent(TEXT("Collision")));
+
+            pShieldbug->m_isDying = true;
+            pShieldbug->m_deathFade = 1.f;
+            _float3 centerPos = static_cast<BoundingOrientedBox*>(pCol->GetWorldCollisionBox(COLLISIONTYPE_OBB))->Center;
+            BloodDieEffect::BLOODDIEEFFECT_DESC e{};
+            e.fLifeTime = 1.f;
+            e.bLoop = false;
+            e.bAutoKill = true;
+            e.fRotationPerSec = 0.f;
+            e.fSpeedPerSec = 0.f;
+            e.vCenterWS = centerPos;
+            e.baseColor = _float4(0.2f, 1.f, 0.2f, 1.f);
+            EngineUtility::GetInstance()->AddObject( SCENE::GAMEPLAY, TEXT("BloodDieEffect"), SCENE::GAMEPLAY, TEXT("Effect"), &e);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
-            auto* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            
-            pModel->PlayAnimation(fTimeDelta);
+            Shieldbug* pShieldbug = dynamic_cast<Shieldbug*>(owner);
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            _float dieAnimFaster = 3.f;        
+            pModel->PlayAnimation(fTimeDelta * dieAnimFaster);
+
+            _float pos = pModel->GetCurAnimTrackPos();
+            _float dur = pModel->GetCurAnimDuration();
+            _float t = 0.f;
+            if (dur > 1e-4f)
+                t = clamp(pos / dur, 0.f, 1.f);
+            _float eased = t * t;
+            pShieldbug->m_deathFade = 1.f - eased;
+
             if (pModel->isAnimFinished())
                 owner->SetDead(true);
         },
@@ -671,15 +729,15 @@ HRESULT Shieldbug::SetUpInfo()
         return E_FAIL;
 
     INFO_DESC desc;
-    desc.SetData("MaxHP", _float{ 120.f });
-    desc.SetData("CurHP", _float{ 120.f });
+    desc.SetData("MaxHP", _float{ 60.f });
+    desc.SetData("CurHP", _float{ 60.f });
     desc.SetData("InvincibleTime", _float{ 0.1f });
     desc.SetData("InvincibleLeft", _float{ 0.f });
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
     desc.SetData("IsHit", _bool{ false });
     desc.SetData("Faction", FACTION_MONSTER);
-    desc.SetData("AttackDamage", _float{ 25.f });
+    desc.SetData("AttackDamage", _float{ 15.f });
     pInfo->BindInfoDesc(desc);
 
     return S_OK;
@@ -832,17 +890,255 @@ HRESULT Shieldbug::SetUpAIProcess()
 
 void Shieldbug::Move(_float fTimeDelta)
 {
-    Transform* playerTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    if (!playerTransform || !m_isMove) return;
+    if (!m_isMove)
+        return;
 
-    _vector prePos = playerTransform->GetState(MATRIXROW_POSITION);
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    _vector prePos = pTransform->GetState(MATRIXROW_POSITION);
 
-    playerTransform->Translate(m_aimDir, fTimeDelta);
+    // 현재 위치
+    _float3 curPos3;
+    XMStoreFloat3(&curPos3, prePos);
 
-    _vector newPos = playerTransform->GetState(MATRIXROW_POSITION);
-    if (!m_pEngineUtility->IsInCell(newPos))
-        playerTransform->SetState(MATRIXROW_POSITION, prePos);
-    
+    // -----------------------------
+    // [0] 같은 셀이면 → 플레이어 쪽으로 바로 이동
+    // -----------------------------
+    _bool   directToPlayer = false;
+    _float3 directTarget3{};
+
+    {
+        const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+        Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
+
+        if (pPlayer)
+        {
+            Transform* pPlayerTf = static_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform")));
+            if (pPlayerTf)
+            {
+                _vector vPlayerPos = pPlayerTf->GetState(MATRIXROW_POSITION);
+                _float3 playerPos3;
+                XMStoreFloat3(&playerPos3, vPlayerPos);
+
+                _int myCell = -1;
+                _int playerCell = -1;
+
+                if (m_pEngineUtility->IsInCell(prePos, &myCell) &&
+                    m_pEngineUtility->IsInCell(vPlayerPos, &playerCell) &&
+                    myCell >= 0 && myCell == playerCell)
+                {
+                    // 같은 네비 셀에 있으면 그냥 플레이어를 목표로
+                    directToPlayer = true;
+                    directTarget3 = playerPos3;
+                }
+            }
+        }
+    }
+
+    // -----------------------------
+    // [1] 목표점 계산 (직접 추적 vs 경로 추적)
+    // -----------------------------
+    _float3 target{};
+
+    if (directToPlayer)
+    {
+        target = directTarget3;
+    }
+    else
+    {
+        // 경로가 없으면 이동 X
+        if (m_path.empty() || m_pathIndex < 0 || m_pathIndex >= (_int)m_path.size())
+            return;
+
+        target = m_path[m_pathIndex];
+
+        // ---- look-ahead: 앞 1~2개 웨이포인트까지 보면서 코너를 깎기 ----
+        auto Dist3 = [](const _float3& a, const _float3& b)
+            {
+                float dx = a.x - b.x;
+                float dy = a.y - b.y;
+                float dz = a.z - b.z;
+                return sqrtf(dx * dx + dy * dy + dz * dz);
+            };
+
+        float distToCur = Dist3(curPos3, target);
+
+        const float lookAheadRadius1 = 4.0f;
+        const float lookAheadRadius2 = 6.0f;
+        const float lookAheadRadius3 = 8.0f;
+        const float cutStrength1 = 0.5f;
+        const float cutStrength2 = 0.4f;
+        const float cutStrength3 = 0.3f;
+        // 1칸 앞
+        if (m_pathIndex + 1 < (_int)m_path.size() && distToCur < lookAheadRadius1)
+        {
+            const _float3& next1 = m_path[m_pathIndex + 1];
+
+            float t = 1.0f - (distToCur / lookAheadRadius1);
+            t = std::clamp(t, 0.0f, 1.0f);
+
+            float blend = t * cutStrength1;
+
+            _float3 blended{
+                target.x * (1.0f - blend) + next1.x * blend,
+                target.y * (1.0f - blend) + next1.y * blend,
+                target.z * (1.0f - blend) + next1.z * blend
+            };
+
+            target = blended;
+        }
+
+        // 2칸 앞
+        if (m_pathIndex + 2 < (_int)m_path.size() && distToCur < lookAheadRadius2)
+        {
+            const _float3& next2 = m_path[m_pathIndex + 2];
+
+            float t2 = 1.0f - (distToCur / lookAheadRadius2);
+            t2 = std::clamp(t2, 0.0f, 1.0f);
+
+            float blend2 = t2 * cutStrength2;
+
+            _float3 blended2{
+                target.x * (1.0f - blend2) + next2.x * blend2,
+                target.y * (1.0f - blend2) + next2.y * blend2,
+                target.z * (1.0f - blend2) + next2.z * blend2
+            };
+
+            target = blended2;
+        }
+
+        // 3칸 앞
+        if (m_pathIndex + 3 < (_int)m_path.size() && distToCur < lookAheadRadius3)
+        {
+            const _float3& next3 = m_path[m_pathIndex + 3];
+
+            float t3 = 1.0f - (distToCur / lookAheadRadius3);
+            t3 = std::clamp(t3, 0.0f, 1.0f);
+
+            float blend3 = t3 * cutStrength3;
+
+            _float3 blended3{
+                target.x * (1.0f - blend3) + next3.x * blend3,
+                target.y * (1.0f - blend3) + next3.y * blend3,
+                target.z * (1.0f - blend3) + next3.z * blend3
+            };
+
+            target = blended3;
+        }
+        // ---- look-ahead 끝 ----
+    }
+
+    // 목표까지 벡터/거리
+    _float3 toTarget3{
+        target.x - curPos3.x,
+        target.y - curPos3.y,
+        target.z - curPos3.z
+    };
+
+    float distToTarget = sqrtf(
+        toTarget3.x * toTarget3.x +
+        toTarget3.y * toTarget3.y +
+        toTarget3.z * toTarget3.z
+    );
+
+    // directToPlayer 아닐 때만 웨이포인트 인덱스 갱신
+    if (!directToPlayer)
+    {
+        if (distToTarget < m_arriveRadius)
+        {
+            ++m_pathIndex;
+
+            if (m_pathIndex >= (_int)m_path.size())
+                return;
+
+            target = m_path[m_pathIndex];
+            toTarget3.x = target.x - curPos3.x;
+            toTarget3.y = target.y - curPos3.y;
+            toTarget3.z = target.z - curPos3.z;
+
+            distToTarget = sqrtf(
+                toTarget3.x * toTarget3.x +
+                toTarget3.y * toTarget3.y +
+                toTarget3.z * toTarget3.z
+            );
+
+            if (distToTarget <= 0.f)
+                return;
+        }
+    }
+
+    // 방향 벡터
+    _vector toTarget = XMLoadFloat3(&toTarget3);
+    _vector dir = XMVector3Normalize(toTarget);
+
+    m_aimDir = dir;
+
+    _float speed = m_speed;
+    _float distance = speed * fTimeDelta;
+    if (distance <= 0.f)
+        return;
+
+    // 네비용 delta
+    _vector delta = XMVectorScale(dir, distance);
+
+    // 1차 이동 적용
+    pTransform->Translate(m_aimDir, fTimeDelta);
+    _vector movePos = pTransform->GetState(MATRIXROW_POSITION);
+
+    // -----------------------------
+    // [2] Door 충돌 처리 (Player와 동일 패턴)
+    // -----------------------------
+    {
+        Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
+        pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
+        Layer* pDoorLayer = m_pEngineUtility->FindLayer(m_pEngineUtility->GetCurrentSceneId(), TEXT("Door"));
+        if (pDoorLayer)
+        {
+            list<Object*> doors = pDoorLayer->GetAllObjects();
+            for (auto& door : doors)
+            {
+                Collision* pDoorCol = static_cast<Collision*>(door->FindComponent(TEXT("Collision")));
+                if (pDoorCol && pDoorCol->Intersect(pCollision))
+                {
+                    // 문에 박으면 원위치로 롤백
+                    pTransform->SetState(MATRIXROW_POSITION, prePos);
+                    return;
+                }
+            }
+        }
+    }
+
+    // -----------------------------
+    // [3] 네비게이션 슬라이드 처리
+    // -----------------------------
+    _int cellIndex = -1;
+
+    // 새 위치가 셀 안이면 그대로 OK
+    if (m_pEngineUtility->IsInCell(movePos, &cellIndex))
+        return;
+
+    // 이전 위치조차 셀 밖이면 그냥 롤백
+    if (!m_pEngineUtility->IsInCell(prePos, &cellIndex))
+    {
+        pTransform->SetState(MATRIXROW_POSITION, prePos);
+        return;
+    }
+
+    // 슬라이드 벡터 적용
+    _vector slideDelta{};
+    if (m_pEngineUtility->GetSlideVectorOnCell(prePos, delta, cellIndex, &slideDelta))
+    {
+        pTransform->SetState(MATRIXROW_POSITION, prePos + slideDelta);
+
+        // 안전장치: 여전히 셀 밖이면 롤백
+        _vector slidePos = pTransform->GetState(MATRIXROW_POSITION);
+        if (!m_pEngineUtility->IsInCell(slidePos))
+            pTransform->SetState(MATRIXROW_POSITION, prePos);
+    }
+    else
+    {
+        pTransform->SetState(MATRIXROW_POSITION, prePos);
+    }
 }
 
 void Shieldbug::Rotate(_float fTimeDelta)
@@ -994,4 +1290,68 @@ _bool Shieldbug::ApplyDamageToPlayer(Object* pTarget, Info* info, _float damage)
     }
 
     return true;
+}
+
+_bool Shieldbug::BuildPathToTarget(const _float3& targetPos)
+{
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!pTransform || !m_pEngineUtility)
+        return false;
+
+    _vector vMyPos = pTransform->GetState(MATRIXROW_POSITION);
+    _float3 myPos;
+    XMStoreFloat3(&myPos, vMyPos);
+
+    std::vector<_int> cellPath;
+    if (!m_pEngineUtility->FindPath(XMLoadFloat3(&myPos), XMLoadFloat3(&targetPos), cellPath))
+        return false;
+
+    m_path.clear();
+
+    if (!m_pEngineUtility->BuildMidWaypointsFromCellPath(
+        XMLoadFloat3(&myPos), XMLoadFloat3(&targetPos), cellPath, m_path))
+    {
+        return false;
+    }
+
+    m_pathIndex = 0;
+    return true;
+}
+
+void Shieldbug::UpdatePath(_float dt)
+{
+    if (!m_isMove)
+        return;
+
+    m_repathTimer -= dt;
+
+    // 타겟(플레이어) 위치 가져오기
+    const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+    Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
+    if (!pPlayer)
+        return;
+
+    Transform* pPlayerTf = static_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform")));
+    if (!pPlayerTf)
+        return;
+
+    _vector vPlayerPos = pPlayerTf->GetState(MATRIXROW_POSITION);
+    _float3 playerPos;
+    XMStoreFloat3(&playerPos, vPlayerPos);
+
+    // 1) 아직 경로가 없거나 다 써버렸으면 → 무조건 새로 만든다
+    const bool needNewPath =
+        m_path.empty() ||
+        m_pathIndex < 0 ||
+        m_pathIndex >= (_int)m_path.size();
+
+    // 2) 경로는 있긴 한데, 리패스 시간도 지났으면 → 새로 만든다
+    if (needNewPath || m_repathTimer <= 0.f)
+    {
+        if (BuildPathToTarget(playerPos))
+        {
+            m_repathTimer = m_repathInterval;
+        }
+        // 실패하면 그냥 기존 경로 유지 (혹은 지워도 됨: m_path.clear(); m_pathIndex=-1;)
+    }
 }

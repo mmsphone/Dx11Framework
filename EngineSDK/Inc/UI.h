@@ -22,6 +22,7 @@ public:
 	void ApplyUIDesc(const UI_DESC& desc);
 	const UI_DESC& GetUIDesc() const;
 	void SetVisible(_bool bVisible);
+	_bool IsVisible();
 
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free() override;

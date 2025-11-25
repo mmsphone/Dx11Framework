@@ -83,6 +83,18 @@ HRESULT UIImage::Render()
     if (m_pTexture)
         m_pTexture->BindShaderResources(pShader, "g_Texture");
    
+    if (FAILED(pShader->BindRawValue("g_UseCustomAlpha", &m_useCustomAlpha, sizeof(_bool))))
+        return E_FAIL;
+    if (FAILED(pShader->BindRawValue("g_CustomAlpha", &m_customAlpha, sizeof(_float))))
+        return E_FAIL;
+
+    if (FAILED(pShader->BindRawValue("g_UseCustomColor", &m_useCustomColor, sizeof(_bool))))
+        return E_FAIL;
+    if (FAILED(pShader->BindRawValue("g_Gamma", &m_customGamma, sizeof(_float))))
+        return E_FAIL;
+    if (FAILED(pShader->BindRawValue("g_Brightness", &m_customBrightness, sizeof(_float))))
+        return E_FAIL;
+
     _uint passIndex = 0;
 
     pShader->BindRawValue("g_iMaskingType", &m_MaskingType, sizeof(_int));
@@ -100,9 +112,9 @@ HRESULT UIImage::Render()
 
         passIndex = 2;   // ★ 마스크 패스
     }
-    else if (m_MaskingType == 2)
+    else if (m_MaskingType == 2 || m_MaskingType == 3 || m_MaskingType == 4)
     {
-        pShader->BindRawValue("g_hpRatio", &m_Ratio, sizeof(_float));
+        pShader->BindRawValue("g_Ratio", &m_Ratio, sizeof(_float));
         passIndex = 2;
     }
     else
@@ -123,15 +135,64 @@ void UIImage::SetScissor(const D3D11_RECT& rect)
     m_MaskingType = 1;
 }
 
-void UIImage::SetRatio(const _float hpRatio)
+void UIImage::SetHPRatio(const _float hpRatio)
 {
-    m_Ratio = hpRatio;
+    m_Ratio = clamp(hpRatio, 0.f, 1.f);
     m_MaskingType = 2;
+}
+
+void UIImage::SetLoadingRatio(const _float ratio)
+{
+    m_Ratio = clamp(ratio, 0.f, 1.f);
+    m_MaskingType = 3;
+}
+
+void UIImage::SetBulletRatio(const _float ratio)
+{
+    m_Ratio = clamp(ratio, 0.f, 1.f);
+    m_MaskingType = 4;
 }
 
 void UIImage::ClearMasking()
 {
     m_MaskingType = 0;
+}
+
+void UIImage::SetAlpha(_float alpha)
+{
+    m_useCustomAlpha = true;
+    m_customAlpha = clamp(alpha, 0.f, 1.f);
+}
+
+void UIImage::ResetAlpha()
+{
+    m_useCustomAlpha = false;
+    m_customAlpha = 1.f;
+}
+
+void UIImage::SetBrightness(_float brightness)
+{
+    m_useCustomColor = true;
+    m_customBrightness = brightness;
+}
+
+void UIImage::SetGamma(_float gamma)
+{
+    m_useCustomColor = true;
+    m_customGamma = gamma;
+}
+
+void UIImage::ResetCustomColor()
+{
+    m_useCustomColor = false;
+    m_customBrightness = 1.f;
+    m_customGamma = 1.f;
+}
+
+void UIImage::SetRotationRad(_float rad)
+{
+    Transform* pTransform = static_cast<Transform*>(FindComponent(L"Transform"));
+    pTransform->RotateRadian(_vector{ 0.f,0.f,1.f,0.f }, rad);
 }
 
 UIImage* UIImage::Create()

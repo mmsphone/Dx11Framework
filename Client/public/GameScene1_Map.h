@@ -15,6 +15,7 @@ private:
 public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
+	virtual HRESULT RenderShadow(_uint iIndex) override;
 
 	static GameScene1_Map* Create();
 	virtual Object* Clone(void* pArg) override;

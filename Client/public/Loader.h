@@ -5,6 +5,7 @@
 
 NS_BEGIN(Engine)
 class EngineUtility;
+class UIImage;
 NS_END
 
 NS_BEGIN(Client)
@@ -20,7 +21,6 @@ public:
 
 	HRESULT Loading();
 	_bool isFinished() const;
-	void PrintText();
 
 	static Loader* Create(SCENE eNextLevelID);
 	virtual void Free() override;
@@ -28,6 +28,7 @@ private:
 	HRESULT LoadingForLogo();
 	HRESULT LoadingForGamePlay();
 	HRESULT LoadMapObjects(SCENE sceneId, const std::vector<MAP_OBJECTDATA>& mapData, const std::unordered_map<std::string, std::pair<std::wstring, std::wstring>>& nameMap);
+	void UpdateLoadingRatio(class UIImage* ui, _float* fCur, const _float fMax);
 
 private:
 	EngineUtility* m_pEngineUtility = { nullptr };

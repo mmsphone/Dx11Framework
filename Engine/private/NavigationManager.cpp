@@ -5,6 +5,36 @@
 #include "Cell.h"
 #include "Shader.h"
 
+inline _float3 ToFloat3(_fvector v)
+{
+    _float3 r;
+    XMStoreFloat3(&r, v);
+    return r;
+}
+
+inline float SquaredDist3(const _float3& a, const _float3& b)
+{
+    float dx = a.x - b.x;
+    float dy = a.y - b.y;
+    float dz = a.z - b.z;
+    return dx * dx + dy * dy + dz * dz;
+}
+
+inline bool NearlyEqual3(const _float3& a, const _float3& b, float eps = 1e-4f)
+{
+    return SquaredDist3(a, b) <= eps * eps;
+}
+
+// XZ 평면 기준 signed area * 2
+inline float TriArea2_XZ(const _float3& a, const _float3& b, const _float3& c)
+{
+    float abx = b.x - a.x;
+    float abz = b.z - a.z;
+    float acx = c.x - a.x;
+    float acz = c.z - a.z;
+    return abx * acz - abz * acx; // >0 이면 c가 ab의 왼쪽
+}
+
 NavigationManager::NavigationManager()
     :m_pEngineUtility{EngineUtility::GetInstance()}
 {
@@ -574,6 +604,211 @@ _bool NavigationManager::RandomPointAround(_fvector center, _float radius, _floa
     return false;
 }
 
+
+_bool NavigationManager::FindPath(_fvector startPos, _fvector goalPos, vector<_int>& outCellPath)
+{
+    outCellPath.clear();
+
+    if (m_Cells.empty())
+        return false;
+
+    _int startCell = {};
+    IsInCell(startPos, &startCell); // 네가 쓰는 함수 이름에 맞게
+    _int goalCell = {};
+    IsInCell(goalPos, &goalCell);
+
+    if (startCell < 0 || goalCell < 0)
+        return false;
+
+    if (startCell == goalCell)
+    {
+        outCellPath.push_back(startCell);
+        return true;
+    }
+
+    const size_t cellCount = m_Cells.size();
+
+    // 2) A* 노드 배열 준비
+    std::vector<AStarNode> nodes(cellCount);
+
+    // 휴리스틱: 셀 중심 간 거리
+    auto Heuristic = [&](int cellIdx) -> float
+        {
+            _float3 c = GetCellCenter(cellIdx);
+            _float3 gg;
+            XMStoreFloat3(&gg, goalPos);
+
+            _float3 d{
+                gg.x - c.x,
+                gg.y - c.y,
+                gg.z - c.z
+            };
+
+            return sqrtf(d.x * d.x + d.y * d.y + d.z * d.z);
+        };
+
+    // 셀 중심 캐시 (약간의 최적화용, 원하면 생략해도 됨)
+    std::vector<_float3> centers(cellCount);
+    for (size_t i = 0; i < cellCount; ++i)
+        centers[i] = GetCellCenter((_int)i);
+
+    auto DistanceCells = [&](int a, int b) -> float
+        {
+            const _float3& ca = centers[a];
+            const _float3& cb = centers[b];
+
+            _float3 d{
+                cb.x - ca.x,
+                cb.y - ca.y,
+                cb.z - ca.z
+            };
+            return sqrtf(d.x * d.x + d.y * d.y + d.z * d.z);
+        };
+
+    // 3) 시작 노드 세팅
+    nodes[startCell].g = 0.f;
+    nodes[startCell].f = Heuristic(startCell);
+
+    priority_queue<OpenEntry, vector<OpenEntry>, CompareOpenEntry> open;
+    open.push(OpenEntry{ nodes[startCell].f, startCell });
+
+    std::vector<_int> neighbors;
+
+    // 4) 메인 루프
+    while (!open.empty())
+    {
+        _int current = open.top().index;
+        open.pop();
+
+        // 이미 처리 끝난 노드면 스킵 (중복 push 방지용)
+        if (nodes[current].closed)
+            continue;
+
+        // 목표 셀 도달
+        if (current == goalCell)
+        {
+            // 5) 경로 재구성
+            _int c = goalCell;
+            while (c != -1)
+            {
+                outCellPath.push_back(c);
+                c = nodes[c].parent;
+            }
+            std::reverse(outCellPath.begin(), outCellPath.end());
+            return true;
+        }
+
+        nodes[current].closed = true;
+
+        // 이웃 순회
+        GetNeighborIndices(current, neighbors);
+
+        for (_int nb : neighbors)
+        {
+            if (nb < 0 || nb >= (_int)cellCount)
+                continue;
+
+            if (nodes[nb].closed)
+                continue;
+
+            float tentativeG = nodes[current].g + DistanceCells(current, nb);
+
+            if (tentativeG < nodes[nb].g)
+            {
+                nodes[nb].parent = current;
+                nodes[nb].g = tentativeG;
+                nodes[nb].f = tentativeG + Heuristic(nb);
+
+                open.push(OpenEntry{ nodes[nb].f, nb });
+            }
+        }
+    }
+
+    // 경로 없음
+    return false;
+}
+
+_bool NavigationManager::BuildCenterWaypointsFromCellPath(const vector<_int>& cellPath, vector<_float3>& outWaypoints) const
+{
+    outWaypoints.clear();
+    if (cellPath.empty())
+        return false;
+
+    outWaypoints.reserve(cellPath.size());
+
+    for (_int cellIdx : cellPath)
+    {
+        if (cellIdx < 0 || cellIdx >= (_int)m_Cells.size())
+            continue;
+
+        outWaypoints.push_back(GetCellCenter(cellIdx));
+    }
+
+    return !outWaypoints.empty();
+}
+
+_bool NavigationManager::BuildFunnelWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const
+{
+    outWaypoints.clear();
+
+    if (cellPath.empty())
+        return false;
+
+    std::vector<Portal> portals;
+    if (!BuildPortalsFromCells(startPos, goalPos, cellPath, portals))
+        return false;
+
+    _float3 start;
+    XMStoreFloat3(&start, startPos);
+
+    StringPullFunnel(start, portals, outWaypoints);
+
+    return !outWaypoints.empty();
+}
+
+_bool NavigationManager::BuildMidWaypointsFromCellPath(_fvector startPos, _fvector goalPos, const vector<_int>& cellPath, vector<_float3>& outWaypoints) const
+{
+    outWaypoints.clear();
+    if (cellPath.empty())
+        return false;
+
+    _float3 start, goal;
+    XMStoreFloat3(&start, startPos);
+    XMStoreFloat3(&goal, goalPos);
+
+    if (cellPath.size() == 1)
+    {
+        outWaypoints.push_back(goal);
+        return true;
+    }
+
+    outWaypoints.reserve(cellPath.size() + 1);
+
+    for (size_t i = 0; i + 1 < cellPath.size(); ++i)
+    {
+        _int c0 = cellPath[i];
+        _int c1 = cellPath[i + 1];
+
+        _float3 v0, v1;
+        if (!FindSharedEdge(c0, c1, v0, v1))
+            return false;
+
+        // 공유 엣지의 중앙점
+        _float3 mid{
+            (v0.x + v1.x) * 0.5f,
+            (v0.y + v1.y) * 0.5f,
+            (v0.z + v1.z) * 0.5f
+        };
+
+        outWaypoints.push_back(mid);
+    }
+
+    // 마지막에 정확한 목표 위치도 한 번 더 찍어줌
+    outWaypoints.push_back(goal);
+
+    return !outWaypoints.empty();
+}
+
 NavigationManager* NavigationManager::Create()
 {
     NavigationManager* pInstance = new NavigationManager();
@@ -838,4 +1073,232 @@ bool NavigationManager::FindNearestEdgePairXZ(const _float3 triA[3], const _floa
     else { outA0 = A0; outA1 = A1; outB0 = B1; outB1 = B0; }
 
     return true;
+}
+
+_float3 NavigationManager::GetCellCenter(_int iCellIndex) const
+{
+    _float3 a, b, c;
+    XMStoreFloat3(&a, m_Cells[iCellIndex]->GetPoint(POINTTYPE::A));
+    XMStoreFloat3(&b, m_Cells[iCellIndex]->GetPoint(POINTTYPE::B));
+    XMStoreFloat3(&c, m_Cells[iCellIndex]->GetPoint(POINTTYPE::C));
+
+    _float3 center{
+        (a.x + b.x + c.x) / 3.f,
+        (a.y + b.y + c.y) / 3.f,
+        (a.z + b.z + c.z) / 3.f,
+    };
+    return center;
+}
+
+void NavigationManager::GetNeighborIndices(_int iCellIndex, vector<_int>& outNeighbors) const
+{
+    outNeighbors.clear();
+    Cell* cell = m_Cells[iCellIndex];
+
+    for (_int i = 0; i < 3; ++i)
+    {
+        _int n = cell->GetNeighborIndex(LINETYPE(i)); // 네 쪽 함수 이름에 맞게 수정
+        if (n >= 0)
+            outNeighbors.push_back(n);
+    }
+}
+
+_bool NavigationManager::FindSharedEdge(_int cellA, _int cellB, _float3& outV0, _float3& outV1) const
+{
+    if (cellA < 0 || cellB < 0 ||
+        cellA >= (_int)m_Cells.size() ||
+        cellB >= (_int)m_Cells.size())
+        return false;
+
+    const Cell* a = m_Cells[cellA];
+    const Cell* b = m_Cells[cellB];
+
+    _float3 aPts[3];
+    _float3 bPts[3];
+
+    XMStoreFloat3(&aPts[0], a->GetPoint(POINTTYPE::A));
+    XMStoreFloat3(&aPts[1], a->GetPoint(POINTTYPE::B));
+    XMStoreFloat3(&aPts[2], a->GetPoint(POINTTYPE::C));
+
+    XMStoreFloat3(&bPts[0], b->GetPoint(POINTTYPE::A));
+    XMStoreFloat3(&bPts[1], b->GetPoint(POINTTYPE::B));
+    XMStoreFloat3(&bPts[2], b->GetPoint(POINTTYPE::C));
+
+    // 공통되는 두 점 찾기 (epsilon 비교)
+    int foundIdxA[2] = { -1, -1 };
+    int foundIdxB[2] = { -1, -1 };
+    int foundCount = 0;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            if (NearlyEqual3(aPts[i], bPts[j]))
+            {
+                if (foundCount < 2)
+                {
+                    foundIdxA[foundCount] = i;
+                    foundIdxB[foundCount] = j;
+                }
+                ++foundCount;
+            }
+        }
+    }
+
+    if (foundCount < 2)
+        return false;
+
+    // 두 점이 공통 엣지
+    outV0 = aPts[foundIdxA[0]];
+    outV1 = aPts[foundIdxA[1]];
+    return true;
+}
+
+_bool NavigationManager::BuildPortalsFromCells(_fvector startPos, _fvector goalPos, const std::vector<_int>& cellPath, std::vector<Portal>& outPortals) const
+{
+    outPortals.clear();
+
+    if (cellPath.empty())
+        return false;
+
+    _float3 start;
+    XMStoreFloat3(&start, startPos);
+
+    // 셀 경로가 1개뿐이면 포털 없이 바로 goal로 처리
+    if (cellPath.size() == 1)
+    {
+        Portal p;
+        _float3 goal;
+        XMStoreFloat3(&goal, goalPos);
+        p.left = goal;
+        p.right = goal;
+        outPortals.push_back(p);
+        return true;
+    }
+
+    outPortals.reserve(cellPath.size());
+
+    for (size_t i = 0; i + 1 < cellPath.size(); ++i)
+    {
+        const _int c0 = cellPath[i];
+        const _int c1 = cellPath[i + 1];
+
+        _float3 v0, v1;
+        if (!FindSharedEdge(c0, c1, v0, v1))
+            return false; // nav 데이터가 깨졌거나 이웃 정의가 잘못된 경우
+
+        // start 기준으로 left/right 정렬
+        // TriArea2_XZ(start, v0, v1) > 0 이면 v1이 오른쪽 쪽에 있는 셈
+        // (winding에 따라 부호가 바뀔 수 있으니 필요하면 나중에 뒤집어줘도 됨)
+        Portal p;
+
+        if (TriArea2_XZ(start, v0, v1) >= 0.f)
+        {
+            p.left = v0;
+            p.right = v1;
+        }
+        else
+        {
+            p.left = v1;
+            p.right = v0;
+        }
+
+        outPortals.push_back(p);
+    }
+
+    // 마지막 포털로 goal을 degenerate portal로 추가
+    {
+        Portal p;
+        _float3 goal;
+        XMStoreFloat3(&goal, goalPos);
+        p.left = goal;
+        p.right = goal;
+        outPortals.push_back(p);
+    }
+
+    return !outPortals.empty();
+}
+
+void NavigationManager::StringPullFunnel(const _float3& start, const std::vector<Portal>& portals, std::vector<_float3>& outPoints) const
+{
+    outPoints.clear();
+    if (portals.empty())
+    {
+        outPoints.push_back(start);
+        return;
+    }
+
+    outPoints.reserve(portals.size() + 1);
+    outPoints.push_back(start);
+
+    // apex/left/right 초기 상태
+    _float3 apex = start;
+    _float3 left = portals[0].left;
+    _float3 right = portals[0].right;
+
+    int apexIndex = 0;
+    int leftIndex = 0;
+    int rightIndex = 0;
+
+    for (int i = 1; i < (int)portals.size(); ++i)
+    {
+        const _float3& newLeft = portals[i].left;
+        const _float3& newRight = portals[i].right;
+
+        // ----- 왼쪽 갱신 -----
+        if (TriArea2_XZ(apex, left, newLeft) >= 0.f)
+        {
+            left = newLeft;
+            leftIndex = i;
+        }
+
+        // 왼쪽 갱신으로 funnel이 뒤집혔는지 검사
+        if (TriArea2_XZ(apex, right, left) < 0.f)
+        {
+            // apex -> right 가 확정된 코너
+            outPoints.push_back(right);
+
+            apex = right;
+            apexIndex = rightIndex;
+
+            // 새 apex 기준으로 funnel 재설정
+            left = apex;
+            right = apex;
+            leftIndex = apexIndex;
+            rightIndex = apexIndex;
+
+            // i를 apexIndex부터 다시
+            i = apexIndex;
+            continue;
+        }
+
+        // ----- 오른쪽 갱신 -----
+        if (TriArea2_XZ(apex, right, newRight) <= 0.f)
+        {
+            right = newRight;
+            rightIndex = i;
+        }
+
+        // 오른쪽 갱신으로 funnel이 뒤집혔는지 검사
+        if (TriArea2_XZ(apex, right, left) < 0.f)
+        {
+            // apex -> left 가 확정된 코너
+            outPoints.push_back(left);
+
+            apex = left;
+            apexIndex = leftIndex;
+
+            left = apex;
+            right = apex;
+            leftIndex = apexIndex;
+            rightIndex = apexIndex;
+
+            i = apexIndex;
+            continue;
+        }
+    }
+
+    // 마지막 목적지(마지막 포털의 left/right) 추가
+    const _float3& goal = portals.back().left;
+    outPoints.push_back(goal);
 }

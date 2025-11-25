@@ -39,8 +39,12 @@ HRESULT Player::Initialize(void* pArg)
     if (FAILED(SetUpInfo()))
         return E_FAIL;
 
+    if (FAILED(ReadyPlayerHitUI()))
+        return E_FAIL;
+
     Physics* pPhysics = static_cast<Physics*>(FindComponent(TEXT("Physics")));
     pPhysics->SetOnGround(true);
+    m_isPlayingMinigame = false;
 
     return S_OK;
 }
@@ -84,9 +88,9 @@ void Player::Update(_float fTimeDelta)
         _float maxHP = *std::get_if<_float>(desc.GetPtr("MaxHP"));
         _float hpRatio = curHP / maxHP;
 
-        static_cast<UIImage*>(hpFront)->SetRatio(hpRatio);
+        static_cast<UIImage*>(hpFront)->SetHPRatio(hpRatio);
     }
-    
+    UpdateHitUI(fTimeDelta);
 }
 
 void Player::LateUpdate(_float fTimeDelta)
@@ -196,6 +200,14 @@ void Player::SetHit(_vector dirXZ, float power, float duration)
     m_kbActive = true;
 
     m_isMove = false;
+
+    m_hitDirWorld = XMVector3Normalize(-dir);
+    m_hitUiRemain = m_hitUIDuration;
+}
+
+void Player::SetPlayingMinigame(_bool bPlayingMinigame)
+{
+    m_isPlayingMinigame = bPlayingMinigame;
 }
 
 HRESULT Player::ReadyComponents()
@@ -247,10 +259,18 @@ HRESULT Player::SetUpParts()
 void Player::SetUpAnimIndexMap()
 {
     m_animIndexMap = {
-        { "Idle",       0 },
-        { "Walk",       5 },
-        { "Run",        4 },
-        { "Attack",      8 },
+        { "Idle",           0 },
+        { "MeleeAttack",    1 },
+        { "Throw",          2 },
+        { "Help",           3 },
+        { "Run",            4 },
+        { "Walk",           5 },
+        { "Pickup",         6 },
+        { "Reload",         7 },
+        { "Attack",         8 },
+        { "Draw",           9 },
+        { "MeleeWeaponAttack", 10 },
+        { "ThrowAway",      11 },
     };
 }
 
@@ -261,6 +281,7 @@ void Player::SetUpPriorityIndexMap()
         { "Walk",       1 },
         { "Run",        2 },
         { "Attack",      3 },
+        { "Reload",  4 },
     };
 }
 
@@ -329,9 +350,19 @@ HRESULT Player::SetUpStateMachine()
     pSM->RegisterState("Attack", {
         [](Object* owner, StateMachine* sm){
             Player* pPlayer = static_cast<Player*>(owner);
-            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            if (!pPlayer || !pModel)
+            Object* pWeapon = pPlayer->m_Parts.at(0);
+            Info* partInfo = static_cast<Info*>(pWeapon->FindComponent(TEXT("Info")));
+            INFO_DESC desc = partInfo->GetInfo();
+            _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
+            _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
+            if (curBullet <= 0)
+            {
+                if (curAmmo > 0)
+                    sm->SetState("Reload");
                 return;
+            }
+
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
             pModel->SetAnimation(pPlayer->FindAnimIndex("Attack"), false, 0.05f, true);
             pPlayer->Shoot();
         },
@@ -347,6 +378,60 @@ HRESULT Player::SetUpStateMachine()
         },
         nullptr
     });
+    pSM->RegisterState("Reload", {
+        [](Object* owner, StateMachine* sm) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
+
+            pModel->SetAnimation(pPlayer->FindAnimIndex("Reload"), false, 0.05f, false);
+        },
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
+            pPlayer->Rotate(fTimeDelta);
+
+            pModel->PlayAnimation(fTimeDelta);
+        },
+        [](Object* owner, StateMachine* sm) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Object* pWeapon = pPlayer->m_Parts.at(0);
+            Info* partInfo = static_cast<Info*>(pWeapon->FindComponent(TEXT("Info")));
+
+            INFO_DESC desc = partInfo->GetInfo();
+            _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
+            _int maxBullet = *std::get_if<_int>(desc.GetPtr("MaxBullet"));
+            _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
+
+            if (curBullet == 0 && curAmmo > 0)
+            {
+                _int newAmmoCount = curAmmo - 1;
+                desc.SetData("CurAmmo", newAmmoCount);
+
+                curBullet = maxBullet;
+                desc.SetData("CurBullet", curBullet);
+                partInfo->BindInfoDesc(desc);
+
+                auto* util = pPlayer->m_pEngineUtility;
+                if (util)
+                {
+                    util->FindUI(L"ammo_front1")->SetVisible(newAmmoCount >= 1);
+                    util->FindUI(L"ammo_front2")->SetVisible(newAmmoCount >= 2);
+                    util->FindUI(L"ammo_front3")->SetVisible(newAmmoCount >= 3);
+                    util->FindUI(L"ammo_front4")->SetVisible(newAmmoCount >= 4);
+                    util->FindUI(L"ammo_front5")->SetVisible(newAmmoCount >= 5);
+
+                    if (auto* bulletLabel = dynamic_cast<UILabel*>(util->FindUI(L"bulletCount")))
+                        bulletLabel->SetText(to_wstring(curBullet));
+
+                    if (auto* pMouseBulletCount = dynamic_cast<UIImage*>(util->FindUI(L"MouseBulletCount")))
+                    {
+                        _float bulletRatio = static_cast<_float>(curBullet) / static_cast<_float>(maxBullet);
+                        pMouseBulletCount->SetBulletRatio(bulletRatio);
+                    }
+                }
+            }
+        }
+        });
 
     // 전이 정의
     //Idle ->
@@ -470,11 +555,39 @@ HRESULT Player::SetUpStateMachine()
             return pModel->isAnimFinished() && pPlayer->m_isShoot;
         }, true);
 
+    //Reload ->
+    pSM->AddTransition("Reload", "Idle", FindPriorityIndex("Idle"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            return pModel->isAnimFinished() && !pPlayer->m_isMove && !pPlayer->m_isShoot;
+        });
+    pSM->AddTransition("Reload", "Walk", FindPriorityIndex("Walk"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            return pModel->isAnimFinished() && pPlayer->m_isMove && !pPlayer->m_isSprint && !pPlayer->m_isShoot;
+        });
+    pSM->AddTransition("Reload", "Run", FindPriorityIndex("Run"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            return pModel->isAnimFinished() && pPlayer->m_isMove && pPlayer->m_isSprint && !pPlayer->m_isShoot;
+        });
+    pSM->AddTransition("Reload", "Attack", FindPriorityIndex("Attack"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            return pModel->isAnimFinished() && pPlayer->m_isShoot;
+        });
+
+
     //초기 상태 설정
     pSM->SetState("Idle");
 
     return S_OK;
 }   
+
 HRESULT Player::SetUpInfo()
 {
     Info* pInfo = dynamic_cast<Info*>(FindComponent(TEXT("Info")));
@@ -495,9 +608,57 @@ HRESULT Player::SetUpInfo()
     return S_OK;
 }
 
+HRESULT Player::ReadyPlayerHitUI()
+{
+    {
+        UI_DESC desc{};
+        desc.fSpeedPerSec = 0.f;
+        desc.fRotationPerSec = 0.f;
+        desc.type = UITYPE::UI_IMAGE;
+        desc.name = "PlayerHitDir";
+        desc.x = g_iWinSizeX >> 1;
+        desc.y = g_iWinSizeY >> 1;
+        desc.z = 0.f;
+        desc.w = 512.f * 0.3f;
+        desc.h = 256.f * 0.3f;
+        desc.visible = true;
+        desc.imagePath = L"../bin/Resources/Textures/Hit/hitDir.png";
+
+        m_pEngineUtility->AddObject(SCENE::STATIC, L"UIImage", SCENE::GAMEPLAY, L"HitUI", &desc);
+
+        UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindObject(SCENE::GAMEPLAY, L"HitUI", 0));
+        m_pEngineUtility->AddUI(L"HitDir", pUI);
+        pUI->SetVisible(false);
+    }
+    {
+        UI_DESC desc{};
+        desc.fSpeedPerSec = 0.f;
+        desc.fRotationPerSec = 0.f;
+        desc.type = UITYPE::UI_IMAGE;
+        desc.name = "PlayerHitScreen";
+        desc.x = g_iWinSizeX >> 1;
+        desc.y = g_iWinSizeY >> 1;
+        desc.z = 0.01f;
+        desc.w = 1280.f;
+        desc.h = 720.f;
+        desc.visible = true;
+        desc.imagePath = L"../bin/Resources/Textures/Hit/hitScreen.png";
+
+        m_pEngineUtility->AddObject(SCENE::STATIC, L"UIImage", SCENE::GAMEPLAY, L"HitUI", &desc);
+
+        UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindObject(SCENE::GAMEPLAY, L"HitUI", 1));
+        m_pEngineUtility->AddUI(L"HitScreen", pUI);
+        pUI->SetVisible(false);
+    }
+    return S_OK;
+}
+
 void Player::InputCheck()
 {
     m_isMove = false;
+
+    if (m_isPlayingMinigame)
+        return;
 
     _vector dir = XMVectorZero();
 
@@ -691,24 +852,23 @@ void Player::Shoot()
     {
         INFO_DESC desc = partInfo->GetInfo();
         _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
-        if (curBullet == 0)
-        {
-            _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
-            if (curAmmo == 0)
-                return;
-            _int newAmmoCount = curAmmo - 1;
-            desc.SetData("CurAmmo", newAmmoCount);
-            m_pEngineUtility->FindUI(L"ammo_front1")->SetVisible(newAmmoCount >= 1);
-            m_pEngineUtility->FindUI(L"ammo_front2")->SetVisible(newAmmoCount >= 2);
-            m_pEngineUtility->FindUI(L"ammo_front3")->SetVisible(newAmmoCount >= 3);
-            m_pEngineUtility->FindUI(L"ammo_front4")->SetVisible(newAmmoCount >= 4);
-            m_pEngineUtility->FindUI(L"ammo_front5")->SetVisible(newAmmoCount >= 5);
+        _int maxBullet = *std::get_if<_int>(desc.GetPtr("MaxBullet"));
 
-            curBullet = *std::get_if<_int>(desc.GetPtr("MaxBullet"));
-        }
-        desc.SetData("CurBullet", curBullet - 1);
-        static_cast<UILabel*>(m_pEngineUtility->FindUI(L"bulletCount"))->SetText(to_wstring(curBullet));
+        // ★ 재장전은 Reload 상태에서만 처리. 여기서는 0발이면 그냥 발사 안 함.
+        if (curBullet <= 0)
+            return;
+
+        curBullet -= 1;
+        desc.SetData("CurBullet", curBullet);
         partInfo->BindInfoDesc(desc);
+
+        _float bulletRatio = static_cast<_float>(curBullet) / static_cast<_float>(maxBullet);
+
+        if (auto* bulletLabel = dynamic_cast<UILabel*>(m_pEngineUtility->FindUI(L"bulletCount")))
+            bulletLabel->SetText(to_wstring(curBullet));
+
+        if (auto* pMouseBulletCount = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"MouseBulletCount")))
+            pMouseBulletCount->SetBulletRatio(bulletRatio);
     }
 
     _float2 mouse = m_pEngineUtility->GetMousePos();
@@ -754,7 +914,10 @@ void Player::Shoot()
         Projectile::PROJECTILE_DESC Desc{};
         Desc.moveDir = moveDir;
         Desc.accTime = 0.f;
-        Desc.damageAmount = 20.f;
+
+        Info* pWeaponInfo = static_cast<Info*>(m_Parts.at(0)->FindComponent(TEXT("Info")));
+        _float damage = *std::get_if<_float>(pWeaponInfo->GetInfo().GetPtr("Damage"));
+        Desc.damageAmount = damage;
         Desc.faction = FACTION_PLAYER;
         Desc.hitRadius = 1.f;
         Desc.lifeTime = 2.f;
@@ -845,6 +1008,85 @@ void Player::HitBack(_float fTimeDelta)
     {
         m_kbActive = false;
     }
+}
+
+void Player::UpdateHitUI(_float fTimeDelta)
+{
+    UIImage* hitDir = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"HitDir"));
+    UIImage* hitScreen = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"HitScreen"));
+    if (hitDir == nullptr || hitScreen == nullptr)
+        return;
+
+    if (m_hitUiRemain <= 0.f || XMVector3Equal(m_hitDirWorld, XMVectorZero()))
+    {
+        hitDir->SetVisible(false);
+        hitScreen->SetVisible(false);
+        return;
+    }
+    m_hitUiRemain = max(0.f, m_hitUiRemain - fTimeDelta);
+    if (m_hitUiRemain <= 0.f)
+    {
+        hitDir->SetVisible(false);
+        hitScreen->SetVisible(false);
+        return;
+    }
+
+    hitDir->SetVisible(true);
+    hitScreen->SetVisible(true);
+
+    const _float t = m_hitUiRemain / m_hitUIDuration;
+
+    const _float alphaDir = t;
+    const _float alphaScreen = t * 0.6f;
+
+    hitDir->SetAlpha(alphaDir);
+    hitScreen->SetAlpha(alphaScreen);
+
+    auto* tf = dynamic_cast<Transform*>(hitDir->FindComponent(TEXT("Transform")));
+    if (!tf)
+        return;
+
+    static bool    s_initBasePos = false;
+    static _vector s_basePos = XMVectorZero();
+    if (!s_initBasePos)
+    {
+        s_basePos = tf->GetState(MATRIXROW_POSITION);
+        s_initBasePos = true;
+    }
+
+    _matrix view = m_pEngineUtility->GetTransformMatrix(D3DTS_VIEW);
+    _matrix invView = XMMatrixInverse(nullptr, view);
+
+    _vector camRight = XMVector3Normalize(invView.r[0]);
+    _vector camForward = XMVector3Normalize(invView.r[2]);
+
+    _vector hitDirWorld = XMVector3Normalize(XMVectorSetY(m_hitDirWorld, 0.f));
+
+    float dotF = XMVectorGetX(XMVector3Dot(hitDirWorld, camForward));
+    float dotR = XMVectorGetX(XMVector3Dot(hitDirWorld, camRight));
+
+    float dirX = dotR;
+    float dirY = -dotF;
+
+    float len = sqrtf(dirX * dirX + dirY * dirY);
+    if (len < 1e-4f)
+    {
+        tf->SetState(MATRIXROW_POSITION, s_basePos);
+        tf->RotateRadian(_vector{ 0.f, 0.f, 1.f, 0.f }, 0.f);
+        return;
+    }
+
+    dirX /= len;
+    dirY /= len;
+    float angle = -atan2f(dirX, -dirY);
+    tf->RotateRadian(_vector{ 0.f, 0.f, 1.f, 0.f }, angle);
+
+    const _float edgeOffset = 40.f;
+    _float2 centerPos = { g_iWinSizeX >> 1, g_iWinSizeY >> 1 };
+    UI_DESC desc = hitDir->GetUIDesc();
+    desc.x = centerPos.x + dirX * edgeOffset;
+    desc.y = centerPos.y + dirY * edgeOffset;
+    hitDir->ApplyUIDesc(desc);
 }
 
 Player* Player::Create()

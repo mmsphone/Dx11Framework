@@ -17,11 +17,14 @@ public:
 	virtual HRESULT Render() override;
 
 	void SetDoor(class Door* pDoor);
+	void UnlockDoor();
 	void OpenDoor();
 
 	static Panel* Create();
 	virtual Object* Clone(void* pArg) override;
 	virtual void Free() override;
+
+	void SetVisiblePanelUI(_bool bVisible);
 
 private:
 	HRESULT ReadyComponents();
@@ -32,6 +35,11 @@ private:
 	_bool m_worked = false;
 
 	class Door* m_pTargetDoor = { nullptr };
+
+	_bool openedHackingUI = false;
+
+	_float m_keyBlinkAcc = 0.f;
+	_bool m_keyBlinkOnState = false;
 };
 
 NS_END

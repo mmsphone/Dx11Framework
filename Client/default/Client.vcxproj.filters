@@ -37,23 +37,14 @@
     <Filter Include="05.Template\ContainerTemplate">
       <UniqueIdentifier>{2d1dfebb-f54b-4bea-86bf-7633bed8400f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="05.Template\UITemplate">
-      <UniqueIdentifier>{3777f9ff-04f3-4f9d-a73d-99a1a744a632}</UniqueIdentifier>
-    </Filter>
     <Filter Include="06.Object\Camera">
       <UniqueIdentifier>{4b6558c9-45a2-482f-86e5-7d3039b39247}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.Object\UI">
-      <UniqueIdentifier>{e5e5be0c-6aac-4ca7-a845-cdbf3b7e4ea0}</UniqueIdentifier>
     </Filter>
     <Filter Include="06.Object\Camera\FreeCam">
       <UniqueIdentifier>{83ab0ef4-b24f-4dfc-b9ea-8257bb3125ac}</UniqueIdentifier>
     </Filter>
     <Filter Include="06.Object\Camera\FixedCam">
       <UniqueIdentifier>{b583cca0-d59a-47fe-a173-64cd5bc3705c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="06.Object\UI\Background">
-      <UniqueIdentifier>{af2bca54-0abf-4f7d-8201-63b6c24c1d45}</UniqueIdentifier>
     </Filter>
     <Filter Include="06.Object\Object">
       <UniqueIdentifier>{e09c72b1-9d7b-4163-9383-ebabd779fc82}</UniqueIdentifier>
@@ -106,6 +97,18 @@
     <Filter Include="06.Object\Object\Console">
       <UniqueIdentifier>{bd6969ab-c9f9-48cb-ab9a-47daa3fb9024}</UniqueIdentifier>
     </Filter>
+    <Filter Include="06.Object\Effect\BloodHitEffect">
+      <UniqueIdentifier>{08399256-bf79-473e-bf4f-a7d83d373804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Effect\BloodDieEffect">
+      <UniqueIdentifier>{08c7a5b8-c38d-4f59-a52f-883972bfe1bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\UI">
+      <UniqueIdentifier>{262e446c-1649-479f-bf28-5dceb7f81623}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\UI\hackingGameUI">
+      <UniqueIdentifier>{bcc95001-25d0-497c-882e-0ec216af78f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h">
@@ -141,9 +144,6 @@
     <ClInclude Include="..\public\FreeCam.h">
       <Filter>06.Object\Camera\FreeCam</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\Background.h">
-      <Filter>06.Object\UI\Background</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\ObjectTemplate.h">
       <Filter>05.Template\ObjectTemplate</Filter>
     </ClInclude>
@@ -155,9 +155,6 @@
     </ClInclude>
     <ClInclude Include="..\public\GameScene1_Map.h">
       <Filter>06.Object\Object\GameScene1_Map</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\UITemplate.h">
-      <Filter>05.Template\UITemplate</Filter>
     </ClInclude>
     <ClInclude Include="..\public\FixedCam.h">
       <Filter>06.Object\Camera\FixedCam</Filter>
@@ -186,20 +183,26 @@
     <ClInclude Include="..\public\Worm_Projectile.h">
       <Filter>06.Object\Projectile\Worm</Filter>
     </ClInclude>
-    <ClInclude Include="..\public\BloodHitEffect.h">
-      <Filter>06.Object\Effect</Filter>
-    </ClInclude>
     <ClInclude Include="..\public\EffectTemplate.h">
       <Filter>05.Template\EffectTemplate</Filter>
-    </ClInclude>
-    <ClInclude Include="..\public\Door.h">
-      <Filter>06.Object\Object\Door</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Panel.h">
       <Filter>06.Object\Object\Panel</Filter>
     </ClInclude>
     <ClInclude Include="..\public\Console.h">
       <Filter>06.Object\Object\Console</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BloodHitEffect.h">
+      <Filter>06.Object\Effect\BloodHitEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\BloodDieEffect.h">
+      <Filter>06.Object\Effect\BloodDieEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Door.h">
+      <Filter>06.Object\Object\Door</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\hackingGameUI.h">
+      <Filter>06.Object\UI\hackingGameUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -237,9 +240,6 @@
     <ClCompile Include="..\private\FreeCam.cpp">
       <Filter>06.Object\Camera\FreeCam</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\Background.cpp">
-      <Filter>06.Object\UI\Background</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\ObjectTemplate.cpp">
       <Filter>05.Template\ObjectTemplate</Filter>
     </ClCompile>
@@ -251,9 +251,6 @@
     </ClCompile>
     <ClCompile Include="..\private\GameScene1_Map.cpp">
       <Filter>06.Object\Object\GameScene1_Map</Filter>
-    </ClCompile>
-    <ClCompile Include="..\private\UITemplate.cpp">
-      <Filter>05.Template\UITemplate</Filter>
     </ClCompile>
     <ClCompile Include="..\private\FixedCam.cpp">
       <Filter>06.Object\Camera\FixedCam</Filter>
@@ -282,9 +279,6 @@
     <ClCompile Include="..\private\Worm_Projectile.cpp">
       <Filter>06.Object\Projectile\Worm</Filter>
     </ClCompile>
-    <ClCompile Include="..\private\BloodHitEffect.cpp">
-      <Filter>06.Object\Effect</Filter>
-    </ClCompile>
     <ClCompile Include="..\private\EffectTemplate.cpp">
       <Filter>05.Template\EffectTemplate</Filter>
     </ClCompile>
@@ -296,6 +290,15 @@
     </ClCompile>
     <ClCompile Include="..\private\Console.cpp">
       <Filter>06.Object\Object\Console</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BloodHitEffect.cpp">
+      <Filter>06.Object\Effect\BloodHitEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\BloodDieEffect.cpp">
+      <Filter>06.Object\Effect\BloodDieEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\hackingGameUI.cpp">
+      <Filter>06.Object\UI\hackingGameUI</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

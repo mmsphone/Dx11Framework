@@ -36,6 +36,7 @@ private:
 	void RenderNonLights();
 	void RenderBlend();
 	void RenderUI();
+	void renderMouse();
 
 	HRESULT ReadyShadowDepthStencilView();
 	HRESULT ChangeViewportSize(_uint iWidth, _uint iHeight);

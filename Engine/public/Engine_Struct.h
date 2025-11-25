@@ -299,12 +299,11 @@ namespace Engine
 		_float fontSize = 32.f;
 		_float4 fontColor = {1.f, 1.f, 1.f, 1.f};
 
-		//UIImage, UIButton
+		//UIImage
 		_wstring     imagePath;
 
 		//UIButton
 		_bool enable = true;
-
 	}UI_DESC;
 
 }

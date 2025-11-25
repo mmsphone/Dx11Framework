@@ -13,15 +13,14 @@ private:
 public:
 	_vector GetPoint(POINTTYPE ePoint) const;
 	_uint GetIndex() const;
-	_uint GetNeighborIndex(LINETYPE eLine);
-	void SetNeighborIndex(LINETYPE eLine, _uint iNeighborIndex);
+	_int GetNeighborIndex(LINETYPE eLine);
+	void SetNeighborIndex(LINETYPE eLine, _int iNeighborIndex);
 
 	HRESULT Initialize(const _float3* pPoints, _uint iIndex);
 	_bool isIn(_fvector vResultPos, _int* pNeighborIndex);
 	_bool ComparePoints(_fvector vSour, _fvector vDest);
 	_bool ComparePointsEps(_fvector vSour, _fvector vDest, _float eps);
 	_float ComputeHeight(_fvector vResultPos);
-
 	void SetIndex(_int iIndex);
 
 	static Cell* Create(const _float3* pPoints, _uint iIndex);

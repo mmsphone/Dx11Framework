@@ -44,13 +44,14 @@ void TriggerBoxManager::ClearTriggerBoxes()
 
 void TriggerBoxManager::UpdateTriggers()
 {
-    for (auto* pBox : m_TriggerBoxes)
+    for (auto& triggerBox : m_TriggerBoxes)
     {
-        if (pBox)
-            pBox->UpdateTrigger();
+        if (triggerBox)
+            triggerBox->UpdateTrigger();
     }
 }
 
+#ifdef _DEBUG
 void TriggerBoxManager::RenderTriggerBoxes()
 {
     for (auto* pBox : m_TriggerBoxes)
@@ -59,6 +60,7 @@ void TriggerBoxManager::RenderTriggerBoxes()
             pBox->RenderTriggerBox();
     }
 }
+#endif
 
 const vector<TriggerBox*>& TriggerBoxManager::GetTriggerBoxes() const
 {

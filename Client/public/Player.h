@@ -22,6 +22,7 @@ public:
     _uint FindAnimIndex(string animName, _uint fallback = 0) const;
     _uint FindPriorityIndex(string toStateName, _uint fallback = 0) const;
     void SetHit(_vector dirXZ, float power, float duration);
+    void SetPlayingMinigame(_bool bPlayingMinigame);
 
     static Player* Create();
     virtual Container* Clone(void* pArg) override;
@@ -35,12 +36,14 @@ protected:
     void SetUpPriorityIndexMap();
     HRESULT SetUpStateMachine();
     HRESULT SetUpInfo();
+    HRESULT ReadyPlayerHitUI();
 
     void InputCheck();
     void Move(_float fTimeDelta);
     void Rotate(_float fTimeDelta);
     void Shoot();
     void HitBack(_float fTimeDelta);
+    void UpdateHitUI(_float fTimeDelta);
 
 private:
     unordered_map<string, _uint> m_animIndexMap;
@@ -62,6 +65,12 @@ private:
     float   m_kbPower = 0.f;
 
     _float scaleOffset = 0.025f;
+
+    _vector m_hitDirWorld{};
+    _float  m_hitUiRemain = 0.f;
+    _float m_hitUIDuration = 0.5f;
+
+    _bool m_isPlayingMinigame = false;
 };
 
 NS_END

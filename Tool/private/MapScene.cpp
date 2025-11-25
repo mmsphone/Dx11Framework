@@ -60,30 +60,30 @@ HRESULT MapScene::Initialize()
 	m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("FieldObject"), FieldObject::Create());
 
 	//Cam
-	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("FreeCam"), FreeCam::Create())))
-		return E_FAIL;
-
-	FreeCam::FREECAM_DESC			Desc{};
-	Desc.vEye = _float3(0.f, 10.f, -6.f);
-	Desc.vAt = _float3(0.f, 0.f, 0.f);
-	Desc.fFovy = XMConvertToRadians(60.0f);
-	Desc.fNear = 0.1f;
-	Desc.fFar = 500.f;
-	Desc.fSensor = 0.1f;
-	Desc.fSpeedPerSec = 40.f;
-	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
-	
-	if (FAILED(m_pEngineUtility->AddObject(SCENE::MAP, TEXT("FreeCam"), SCENE::MAP, TEXT("Cam"), &Desc)))
-		return E_FAIL;
+	//if (FAILED(m_pEngineUtility->AddPrototype(SCENE::MAP, TEXT("FreeCam"), FreeCam::Create())))
+	//	return E_FAIL;
+	//
+	//FreeCam::FREECAM_DESC			Desc{};
+	//Desc.vEye = _float3(0.f, 10.f, -6.f);
+	//Desc.vAt = _float3(0.f, 0.f, 0.f);
+	//Desc.fFovy = XMConvertToRadians(60.0f);
+	//Desc.fNear = 0.1f;
+	//Desc.fFar = 500.f;
+	//Desc.fSensor = 0.1f;
+	//Desc.fSpeedPerSec = 40.f;
+	//Desc.fRotationPerSec = XMConvertToRadians(120.0f);
+	//
+	//if (FAILED(m_pEngineUtility->AddObject(SCENE::MAP, TEXT("FreeCam"), SCENE::MAP, TEXT("Cam"), &Desc)))
+	//	return E_FAIL;
 
 	//IMGUI Panel
 	string str = "MapPanel";
 	MapPanel* pPanel = MapPanel::Create(str);
 	m_pEngineUtility->AddPanel(pPanel->GetPanelName(), pPanel);
 
-	string strCamPanel = "MapCamPanel";
-	CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MAP);
-	m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);
+	//string strCamPanel = "MapCamPanel";
+	//CamPanel* pCamPanel = CamPanel::Create(strCamPanel, SCENE::MAP);
+	//m_pEngineUtility->AddPanel(pCamPanel->GetPanelName(), pCamPanel);
 
 	string strAssetPanel = "AssetPanel";
 	AssetPanel* pAssetPanel = AssetPanel::Create(strAssetPanel);

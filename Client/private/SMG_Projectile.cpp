@@ -79,7 +79,7 @@ HRESULT SMG_Projectile::Render()
     if (FAILED(pShader->BindRawValue("g_vCamPosition", m_pEngineUtility->GetCamPosition(), sizeof(_float4))))
         return E_FAIL;
 
-    _float4 bulletColor = { 1.0f, 0.5f, 0.2f, 1.0f }; // 오렌지색
+    _float4 bulletColor = { 1.0f, 1.f, 0.2f, 1.0f }; // 노란색
     if (FAILED(pShader->BindRawValue("g_vProjectileColor", &bulletColor, sizeof(_float4))))
         return E_FAIL;
 
@@ -91,12 +91,12 @@ HRESULT SMG_Projectile::Render()
         return E_FAIL;
 
     // 잔상 길이 (월드 단위) – 게임 스케일 맞춰서 적당히 조절
-    _float trailLen = min(m_desc.accTime * m_desc.fSpeedPerSec, 1.5f);
+    _float trailLen = min(m_desc.accTime * m_desc.fSpeedPerSec, 1.f);
     if (FAILED(pShader->BindRawValue("g_fTrailLength", &trailLen, sizeof(_float))))
         return E_FAIL;
 
     // 총알 사각형 크기
-    _float projectileSize = 0.05f; 
+    _float projectileSize = 0.05f;
     if (FAILED(pShader->BindRawValue("g_fProjectileSize", &projectileSize, sizeof(_float))))
         return E_FAIL;
 

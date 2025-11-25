@@ -72,6 +72,7 @@ void TriggerBox::UpdateTrigger()
 	}
 }
 
+#ifdef _DEBUG
 HRESULT TriggerBox::RenderTriggerBox()
 {
 	auto pContext = m_pEngineUtility->GetContext();
@@ -100,6 +101,7 @@ HRESULT TriggerBox::RenderTriggerBox()
 
 	return S_OK;
 }
+#endif
 
 const TRIGGERBOX_DESC& TriggerBox::GetTriggerBoxDesc()
 {

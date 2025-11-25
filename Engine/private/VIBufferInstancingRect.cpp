@@ -13,6 +13,9 @@ VIBufferInstancingRect::VIBufferInstancingRect(const VIBufferInstancingRect& Pro
     , m_pSpeeds{ Prototype.m_pSpeeds }
     , m_isLoop{ Prototype.m_isLoop }
     , m_vPivot{ Prototype.m_vPivot }
+    , m_repeatable{ Prototype.m_repeatable }
+    , m_vRepeatDurationRange{ Prototype.m_vRepeatDurationRange }
+    , m_pRepeatDurations{ Prototype.m_pRepeatDurations }
 {
 }
 
@@ -109,6 +112,7 @@ HRESULT VIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
     m_pInstanceVertices = new VTXINSTANCEPARTICLE[m_iNumInstance];
     ZeroMemory(m_pInstanceVertices, sizeof(VTXINSTANCEPARTICLE) * m_iNumInstance);
     m_pSpeeds = new _float[m_iNumInstance];
+    m_pRepeatDurations = new _float[m_iNumInstance];
 
     for (size_t i = 0; i < m_iNumInstance; i++)
     {
@@ -128,6 +132,8 @@ HRESULT VIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
             m_pEngineUtility->Random(pInstanceDesc->vLifeTime.x, pInstanceDesc->vLifeTime.y),
             0.0f
         );
+
+        m_pRepeatDurations[i] = m_pEngineUtility->Random(pInstanceDesc->repeatDuration.x, pInstanceDesc->repeatDuration.y);
     }
 
     m_vPivot = pInstanceDesc->vPivot;
@@ -135,6 +141,8 @@ HRESULT VIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
 
 #pragma endregion
 
+    m_repeatable = pInstanceDesc->repeatable;
+    m_vRepeatDurationRange = pInstanceDesc->repeatDuration;
 
     return S_OK;
 }
@@ -199,6 +207,77 @@ void VIBufferInstancingRect::Spread(_float fTimeDelta)
     m_pEngineUtility->GetContext()->Unmap(m_pVBInstance, 0);
 }
 
+void VIBufferInstancingRect::SpreadRepeat(_float fTimeDelta)
+{
+    // 반복 기능 안 쓰면 그냥 Spread
+    if (!m_repeatable)
+    {
+        Spread(fTimeDelta);
+        return;
+    }
+
+    D3D11_MAPPED_SUBRESOURCE SubResource{};
+    if (FAILED(m_pEngineUtility->GetContext()->Map(
+        m_pVBInstance, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &SubResource)))
+    {
+        return;
+    }
+
+    VTXINSTANCEPARTICLE* pVertices =
+        static_cast<VTXINSTANCEPARTICLE*>(SubResource.pData);
+
+    for (size_t i = 0; i < m_iNumInstance; ++i)
+    {
+        const _float repeatDur = (m_pRepeatDurations ? m_pRepeatDurations[i] : 0.f);
+        if (repeatDur <= 0.f)
+        {
+            // duration이 0 이하면 그냥 Spread 처럼만 움직이게
+            _vector vMoveDir = XMVectorSetW(
+                XMLoadFloat4(&pVertices[i].vTranslation) - XMLoadFloat3(&m_vPivot), 0.f);
+
+            if (!XMVector3Equal(vMoveDir, XMVectorZero()))
+            {
+                vMoveDir = XMVector3Normalize(vMoveDir);
+                XMStoreFloat4(&pVertices[i].vTranslation,
+                    XMLoadFloat4(&pVertices[i].vTranslation)
+                    + vMoveDir * m_pSpeeds[i] * fTimeDelta);
+            }
+            continue;
+        }
+
+        // 1) Spread처럼 밖으로 퍼지게
+        _vector vMoveDir = XMVectorSetW(
+            XMLoadFloat4(&pVertices[i].vTranslation) - XMLoadFloat3(&m_vPivot), 0.f);
+
+        if (XMVector3Equal(vMoveDir, XMVectorZero()))
+        {
+            _vector basePos = XMLoadFloat4(&m_pInstanceVertices[i].vTranslation);
+            vMoveDir = XMVectorSetW(basePos - XMLoadFloat3(&m_vPivot), 0.f);
+            if (XMVector3Equal(vMoveDir, XMVectorZero()))
+                continue;
+        }
+
+        vMoveDir = XMVector3Normalize(vMoveDir);
+
+        XMStoreFloat4(&pVertices[i].vTranslation,
+            XMLoadFloat4(&pVertices[i].vTranslation)
+            + vMoveDir * m_pSpeeds[i] * fTimeDelta);
+
+        // 2) 사이클 시간 누적
+        pVertices[i].vLifeTime.y += fTimeDelta;
+
+        // 3) 자기 duration 넘으면 초기 위치로 리셋
+        if (pVertices[i].vLifeTime.y >= repeatDur)
+        {
+            pVertices[i].vLifeTime.y = 0.f;
+            pVertices[i].vTranslation = m_pInstanceVertices[i].vTranslation;
+        }
+    }
+
+    m_pEngineUtility->GetContext()->Unmap(m_pVBInstance, 0);
+}
+
+
 VIBufferInstancingRect* VIBufferInstancingRect::Create(const INSTANCE_DESC* pDesc)
 {
     VIBufferInstancingRect* pInstance = new VIBufferInstancingRect();
@@ -234,6 +313,6 @@ void VIBufferInstancingRect::Free()
     {
         SafeDeleteArray(m_pInstanceVertices);
         SafeDeleteArray(m_pSpeeds);
+        SafeDeleteArray(m_pRepeatDurations);
     }
-
 }

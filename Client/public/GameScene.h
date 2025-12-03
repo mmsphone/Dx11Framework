@@ -16,14 +16,23 @@ public:
 	virtual void Update(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
-	HRESULT ReadyLights();
-	HRESULT ReadyLayerCamera();
-	HRESULT ReadyUI();
-	HRESULT ReadyMouse();
-	HRESULT PanelDoorLink();
+	void EndScene(_bool bEnd);
 
 	static GameScene* Create();
 	virtual void Free() override;
+
+private:
+	HRESULT ReadyLights();
+	HRESULT ReadyLayerCamera();
+	HRESULT ReadyUI();
+	HRESULT ReadyMinimap();
+	HRESULT ReadyMouse();
+	HRESULT PanelDoorLink();
+	HRESULT ReadyQuest();
+	HRESULT ReadyEnding();
+
+private:
+	_bool m_next = false;
 };
 
 NS_END

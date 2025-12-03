@@ -23,6 +23,14 @@
 #include "UIButton.h"
 #include "BloodDieEffect.h"
 #include "hackingGameUI.h"
+#include "hacking2GameUI.h"
+#include "QuestUI.h"
+#include "minimapUI.h"
+#include "Ammobag.h"
+#include "endingUI.h"
+#include "Itembox.h"
+#include "Grenade.h"
+#include "ExplosionEffect.h"
 
 Loader::Loader()
 	: m_pEngineUtility{ EngineUtility::GetInstance() }
@@ -89,7 +97,7 @@ HRESULT Loader::LoadingForLogo()
 {
 	UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"Loadingbar_Front"));
 	_float fCur = 0.f;
-	_float fMax = 6.f;
+	_float fMax = 7.f;
 	pUI->SetLoadingRatio(0.f);
 
 	m_pEngineUtility->LoadUI("../bin/data/logoUI_background.dat", SCENE::LOGO);
@@ -105,6 +113,9 @@ HRESULT Loader::LoadingForLogo()
 	m_pEngineUtility->LoadUI("../bin/data/logoUI_text.dat", SCENE::LOGO);
 	UpdateLoadingRatio(pUI, &fCur, fMax);
 
+	m_pEngineUtility->LoadSound("BGM_lobby", L"../bin/Resources/Sounds/BGM_lobby.wav", false, true);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
 	m_isFinished = true;
 	return S_OK;
 }
@@ -113,7 +124,7 @@ HRESULT Loader::LoadingForGamePlay()
 {
 	UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"Loadingbar_Front"));
 	_float fCur = 0.f;
-	_float fMax = 50.f;
+	_float fMax = 179.f;
 	pUI->SetLoadingRatio(0.f);
 
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodCore"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodCore.png"), 1))))
@@ -128,8 +139,46 @@ HRESULT Loader::LoadingForGamePlay()
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_BloodSpray2"), Texture::Create(TEXT("../bin/Resources/Textures/BloodHit/bloodTexture2.png"), 1))))
 		return E_FAIL;
 	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionComet"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/comet.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionParticle"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/fire_particle_7.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionFire"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/flamethrowerfire102.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionBlast"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/fluid_blast.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionDebris1"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/particle_debris_burst_001.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionDebris2"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/particle_debris_burst_002.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionGlow1"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/particle_glow_01.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionGlow2"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/particle_glow_04.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionGlow3"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/particle_glow_05.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionGlow4"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/particle_glow_09.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionRing"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/particle_ring_wave_5.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionSmoke"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/smoke1.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Texture_ExplosionCrater"), Texture::Create(TEXT("../bin/Resources/Textures/Explosion/snow_crater_1.png"), 1))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	
-
 	ModelData* model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/GameScene1/GameScene1.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_GameScene1_Map"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
@@ -164,6 +213,18 @@ HRESULT Loader::LoadingForGamePlay()
 	UpdateLoadingRatio(pUI, &fCur, fMax);
 	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Console/Console.bin");
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Console"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/ammobag/ammobag.bin");
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Ammobag"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Itembox/Itembox.bin");
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Itembox"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	model = m_pEngineUtility->LoadNoAssimpModel("../bin/Resources/Models/Grenade/Grenade.bin");
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Model_Grenade"), Model::Create(MODELTYPE::MODELTYPE_NONANIM, model))))
 		return E_FAIL;
 	UpdateLoadingRatio(pUI, &fCur, fMax);
 
@@ -299,7 +360,86 @@ HRESULT Loader::LoadingForGamePlay()
 			return E_FAIL;
 	}
 	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 1;                   // 큰 판 1장
+		rectDesc.vScale = _float2(1.f, 1.f);   // 기본 크기 (반경은 셰이더에서 g_RadiusScale로 곱)
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);
+		rectDesc.vRange = _float3(0.f, 0.f, 0.f); // 랜덤 위치 없음
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(0.f, 0.f);      // 움직이지 않음
+		rectDesc.vLifeTime = _float2(1.f, 1.f);
+		rectDesc.isLoop = false;
+		rectDesc.repeatable = false;
 
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_Explosion"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 300;                 // 불 파편 개수
+		rectDesc.vScale = _float2(0.05f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);   // 기준은 0,0,0 (Transform에서 옮김)
+		rectDesc.vRange = _float3(0.4f, 0.4f, 0.4f); // 퍼지는 랜덤 범위
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(3.f, 7.f);        // 랜덤 속도
+		rectDesc.vLifeTime = _float2(0.4f, 0.7f);      // 개별 파편 수명
+		rectDesc.isLoop = false;
+		rectDesc.repeatable = false;                    // 한 번에 “빵” 하고 끝나는 타입
+
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY,TEXT("VIBuffer_ExplosionParticle"),VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 300;                 // 불 파편 개수
+		rectDesc.vScale = _float2(0.05f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);   // 기준은 0,0,0 (Transform에서 옮김)
+		rectDesc.vRange = _float3(0.4f, 0.4f, 0.4f); // 퍼지는 랜덤 범위
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(3.f, 7.f);        // 랜덤 속도
+		rectDesc.vLifeTime = _float2(0.4f, 0.7f);      // 개별 파편 수명
+		rectDesc.isLoop = false;
+		rectDesc.repeatable = false;                    // 한 번에 “빵” 하고 끝나는 타입
+
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_ExplosionFire"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 300;                 // 불 파편 개수
+		rectDesc.vScale = _float2(0.05f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);   // 기준은 0,0,0 (Transform에서 옮김)
+		rectDesc.vRange = _float3(0.4f, 0.4f, 0.4f); // 퍼지는 랜덤 범위
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(3.f, 7.f);        // 랜덤 속도
+		rectDesc.vLifeTime = _float2(0.4f, 0.7f);      // 개별 파편 수명
+		rectDesc.isLoop = false;
+		rectDesc.repeatable = false;                    // 한 번에 “빵” 하고 끝나는 타입
+
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_ExplosionSmoke"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{
+		VIBufferInstancingRect::RECT_INSTANCE_DESC rectDesc{};
+		rectDesc.iNumInstance = 300;                 // 불 파편 개수
+		rectDesc.vScale = _float2(0.05f, 0.1f);
+		rectDesc.vCenter = _float3(0.f, 0.f, 0.f);   // 기준은 0,0,0 (Transform에서 옮김)
+		rectDesc.vRange = _float3(0.4f, 0.4f, 0.4f); // 퍼지는 랜덤 범위
+		rectDesc.vPivot = _float3(0.f, 0.f, 0.f);
+		rectDesc.vSpeed = _float2(3.f, 7.f);        // 랜덤 속도
+		rectDesc.vLifeTime = _float2(0.4f, 0.7f);      // 개별 파편 수명
+		rectDesc.isLoop = false;
+		rectDesc.repeatable = false;                    // 한 번에 “빵” 하고 끝나는 타입
+
+		if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("VIBuffer_ExplosionDebris"), VIBufferInstancingRect::Create(&rectDesc))))
+			return E_FAIL;
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("GameScene1_Map"), GameScene1_Map::Create())))
 		return E_FAIL;
@@ -343,6 +483,30 @@ HRESULT Loader::LoadingForGamePlay()
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("hackingGameUI"), hackingGameUI::Create())))
 		return E_FAIL;
 	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("hacking2GameUI"), hacking2GameUI::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("questUI"), QuestUI::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("minimapUI"), minimapUI::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Ammobag"), Ammobag::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("endingUI"), endingUI::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Itembox"), Itembox::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("Grenade"), Grenade::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::GAMEPLAY, TEXT("ExplosionEffect"), ExplosionEffect::Create())))
+		return E_FAIL;
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
 	std::vector<MAP_OBJECTDATA> mapData = m_pEngineUtility->LoadMapData("../bin/data/GameScene1_Map.dat");
 	UpdateLoadingRatio(pUI, &fCur, fMax);
@@ -353,6 +517,8 @@ HRESULT Loader::LoadingForGamePlay()
 		{ "Door", {				L"Door",			L"Door" } },
 		{ "Panel", {			L"Panel",			L"Panel" } },
 		{ "Console", {			L"Console",			L"Console" } },
+		{ "ammobag", {			L"Ammobag",			L"Ammobag" } },
+		{ "Itembox", {			L"Itembox",			L"Itembox" } },
 	};
 	if (FAILED(LoadMapObjects(SCENE::GAMEPLAY, mapData, nameMap)))
 		return E_FAIL;
@@ -380,19 +546,17 @@ HRESULT Loader::LoadingForGamePlay()
 	{// 스포너 2
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-118.5f, 18.f, -134.f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-122.5f, 19.5f, -138.5f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-126.f, 18.f, -125.f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-126.5f, 19.5f, -116.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
 	UpdateLoadingRatio(pUI, &fCur, fMax);
 	{// 스포너 3
 		Spawner* pSpawner = Spawner::Create();
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-130.f, 17.f, -90.f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-127.5f, 17.f, -85.f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-134.f, 17.f, -84.f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-122.f, 17.f, -87.f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-139.3f, 17.f, -85.7f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-128.5f, 17.f, -86.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-132.f, 17.f, -85.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-130.f, 17.f, -87.f, 1.f));
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-131.f, 17.f, -86.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
 	UpdateLoadingRatio(pUI, &fCur, fMax);
@@ -415,7 +579,6 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-154.f, 17.f, -45.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-154.f, 17.f, -36.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-150.f, 17.f, -26.5f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-143.f, 16.f, -29.f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
 	UpdateLoadingRatio(pUI, &fCur, fMax);
@@ -428,7 +591,6 @@ HRESULT Loader::LoadingForGamePlay()
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-128.f, 16.5f, 20.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Drone", L"Drone", XMVectorSet(-122.f, 16.f, 15.f, 1.f));
 		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-127.f, 16.5f, 16.5f, 1.f));
-		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Worm", L"Worm", XMVectorSet(-122.f, 16.5f, 22.5f, 1.f));
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
 	UpdateLoadingRatio(pUI, &fCur, fMax);
@@ -446,25 +608,259 @@ HRESULT Loader::LoadingForGamePlay()
 		m_pEngineUtility->AddSpawner(pSpawner);
 	}
 	UpdateLoadingRatio(pUI, &fCur, fMax);
+	{// 스포너 8
+		_float3 spawnRandomRange = { 1.f, 0.f, 1.f };
+		Spawner* pSpawner = Spawner::Create();
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-149.f, 16.f, 3.5f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-151.f, 16.f, 5.5f, 1.f), spawnRandomRange);
+		pSpawner->AddSpawnerMob(SCENE::GAMEPLAY, L"Shieldbug", L"Shieldbug", XMVectorSet(-153.f, 16.f, 3.5f, 1.f), spawnRandomRange);
+		m_pEngineUtility->AddSpawner(pSpawner);
+	}
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 
 	m_pEngineUtility->LoadTriggerBoxes("../bin/data/GameScene1_TriggerBoxes.dat");
 	vector<TriggerBox*> TriggerBoxes = m_pEngineUtility->GetTriggerBoxes();
 	TriggerBoxes[0]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(0); });
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	TriggerBoxes[1]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(1); });
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	TriggerBoxes[2]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(2); });
-	TriggerBoxes[3]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(3); });
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[3]->SetTriggerFunction([]() { 
+		EngineUtility::GetInstance()->Spawn(3); 
+		static_cast<QuestUI*>(EngineUtility::GetInstance()->FindUI(L"questUI"))->SetNpcType(QUEST_NPC_MALE);
+		EngineUtility::GetInstance()->StartQuest(2);
+		EngineUtility::GetInstance()->SetMainQuestId(2);
+	});
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	TriggerBoxes[4]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(4); });
+	UpdateLoadingRatio(pUI, &fCur, fMax);
 	TriggerBoxes[5]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(5); });
-	TriggerBoxes[6]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(6); });
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[6]->SetTriggerFunction([]() { 
+		EngineUtility::GetInstance()->Spawn(6); 
+		static_cast<QuestUI*>(EngineUtility::GetInstance()->FindUI(L"questUI"))->SetNpcType(QUEST_NPC_MALE);
+		EngineUtility::GetInstance()->StartQuest(3);
+		EngineUtility::GetInstance()->SetMainQuestId(3);
+		});
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[8]->SetTriggerFunction([]() { EngineUtility::GetInstance()->Spawn(8); });
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
+	TriggerBoxes[0]->SetTriggerTag(L"trigger0");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[1]->SetTriggerTag(L"trigger1");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[2]->SetTriggerTag(L"trigger2");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[3]->SetTriggerTag(L"trigger3");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[4]->SetTriggerTag(L"trigger4");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[5]->SetTriggerTag(L"trigger5");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[6]->SetTriggerTag(L"trigger6");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[7]->SetTriggerTag(L"trigger7");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[8]->SetTriggerTag(L"trigger8");
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	TriggerBoxes[9]->SetTriggerTag(L"trigger9");
 	UpdateLoadingRatio(pUI, &fCur, fMax);
 
 	m_pEngineUtility->LoadUI("../bin/data/minimap.dat", SCENE::GAMEPLAY);
 	UpdateLoadingRatio(pUI, &fCur, fMax);
 	m_pEngineUtility->LoadUI("../bin/data/playerUI.dat", SCENE::GAMEPLAY);
 	UpdateLoadingRatio(pUI, &fCur, fMax);
+
 	m_pEngineUtility->LoadUI("../bin/data/hackingUI.dat", SCENE::GAMEPLAY);
 	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/hacking2UI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/ammobagUI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/itemboxUI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
+	m_pEngineUtility->LoadUI("../bin/data/waveUI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/questUI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
 	m_pEngineUtility->LoadUI("../bin/data/hackingGame.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadUI("../bin/data/hacking2Game.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
+	m_pEngineUtility->LoadUI("../bin/data/endingUI.dat", SCENE::GAMEPLAY);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
+	//BGM
+	m_pEngineUtility->LoadSound("BGM_game", L"../bin/Resources/Sounds/BGM_game.mp3", false, true);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("BGM_wave", L"../bin/Resources/Sounds/BGM_wave.mp3", false, true);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("BGM_minigame2downloading", L"../bin/Resources/Sounds/BGM_minigame2downloading.wav", false, true);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("BGM_waveBeep", L"../bin/Resources/Sounds/BGM_waveBeep.wav", false, true);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+
+	//FBX
+	m_pEngineUtility->LoadSound("FBX_doorMove", L"../bin/Resources/Sounds/FBX_doorMove.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneRoar1", L"../bin/Resources/Sounds/FBX_droneRoar1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneRoar2", L"../bin/Resources/Sounds/FBX_droneRoar2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_explosion", L"../bin/Resources/Sounds/FBX_explosion.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_gameclear", L"../bin/Resources/Sounds/FBX_gameclear.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_gameover", L"../bin/Resources/Sounds/FBX_gameover.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_minigameButton", L"../bin/Resources/Sounds/FBX_minigameButton.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_minigame2Button", L"../bin/Resources/Sounds/FBX_minigame2Button.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_minigame2Show", L"../bin/Resources/Sounds/FBX_minigame2Show.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_pickupItembox", L"../bin/Resources/Sounds/FBX_pickupItembox.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_pickupAmmobag", L"../bin/Resources/Sounds/FBX_pickupAmmobag.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_reload", L"../bin/Resources/Sounds/FBX_reload.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_shieldbugRoar1", L"../bin/Resources/Sounds/FBX_shieldbugRoar1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_shootAR1", L"../bin/Resources/Sounds/FBX_shootAR1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_shootAR2", L"../bin/Resources/Sounds/FBX_shootAR2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_throw", L"../bin/Resources/Sounds/FBX_throw.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneDie1", L"../bin/Resources/Sounds/FBX_droneDie1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneDie2", L"../bin/Resources/Sounds/FBX_droneDie2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneDie3", L"../bin/Resources/Sounds/FBX_droneDie3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneDie4", L"../bin/Resources/Sounds/FBX_droneDie4.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit1", L"../bin/Resources/Sounds/FBX_droneHit1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit2", L"../bin/Resources/Sounds/FBX_droneHit2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit3", L"../bin/Resources/Sounds/FBX_droneHit3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit4", L"../bin/Resources/Sounds/FBX_droneHit4.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit5", L"../bin/Resources/Sounds/FBX_droneHit5.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit6", L"../bin/Resources/Sounds/FBX_droneHit6.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit7", L"../bin/Resources/Sounds/FBX_droneHit7.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit8", L"../bin/Resources/Sounds/FBX_droneHit8.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit9", L"../bin/Resources/Sounds/FBX_droneHit9.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit10", L"../bin/Resources/Sounds/FBX_droneHit10.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit11", L"../bin/Resources/Sounds/FBX_droneHit11.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_droneHit12", L"../bin/Resources/Sounds/FBX_droneHit12.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_shieldbugHit1", L"../bin/Resources/Sounds/FBX_shieldbugHit1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_shieldbugHit2", L"../bin/Resources/Sounds/FBX_shieldbugHit2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_wormDie1", L"../bin/Resources/Sounds/FBX_wormDie1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepConcrete1", L"../bin/Resources/Sounds/FBX_playerStepConcrete1.wav", false, false); //
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepConcrete2", L"../bin/Resources/Sounds/FBX_playerStepConcrete2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepConcrete3", L"../bin/Resources/Sounds/FBX_playerStepConcrete3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepConcrete4", L"../bin/Resources/Sounds/FBX_playerStepConcrete4.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepMetal1", L"../bin/Resources/Sounds/FBX_playerStepMetal1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepMetal2", L"../bin/Resources/Sounds/FBX_playerStepMetal2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepMetal3", L"../bin/Resources/Sounds/FBX_playerStepMetal3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerStepMetal4", L"../bin/Resources/Sounds/FBX_playerStepMetal4.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerAFK1", L"../bin/Resources/Sounds/FBX_playerAFK1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerAFK2", L"../bin/Resources/Sounds/FBX_playerAFK2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerAFK3", L"../bin/Resources/Sounds/FBX_playerAFK3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHackComplete1", L"../bin/Resources/Sounds/FBX_playerHackComplete1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHackComplete2", L"../bin/Resources/Sounds/FBX_playerHackComplete2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHackComplete3", L"../bin/Resources/Sounds/FBX_playerHackComplete3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHolyshit", L"../bin/Resources/Sounds/FBX_playerHolyshit.wav", false, false); //
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHit1", L"../bin/Resources/Sounds/FBX_playerHit1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHit2", L"../bin/Resources/Sounds/FBX_playerHit2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHit3", L"../bin/Resources/Sounds/FBX_playerHit3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHit4", L"../bin/Resources/Sounds/FBX_playerHit4.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHit5", L"../bin/Resources/Sounds/FBX_playerHit5.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHit6", L"../bin/Resources/Sounds/FBX_playerHit6.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerHit7", L"../bin/Resources/Sounds/FBX_playerHit7.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerDie1", L"../bin/Resources/Sounds/FBX_playerDie1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerDie2", L"../bin/Resources/Sounds/FBX_playerDie2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerThrow1", L"../bin/Resources/Sounds/FBX_playerThrow1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerThrow2", L"../bin/Resources/Sounds/FBX_playerThrow2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerReload1", L"../bin/Resources/Sounds/FBX_playerReload1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerReload2", L"../bin/Resources/Sounds/FBX_playerReload2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerOpenDoor", L"../bin/Resources/Sounds/FBX_playerOpenDoor.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerYes", L"../bin/Resources/Sounds/FBX_playerYes.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_raider", L"../bin/Resources/Sounds/FBX_raider.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerShell1", L"../bin/Resources/Sounds/FBX_playerShell1.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerShell2", L"../bin/Resources/Sounds/FBX_playerShell2.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_playerShell3", L"../bin/Resources/Sounds/FBX_playerShell3.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_questGoNext", L"../bin/Resources/Sounds/FBX_questGoNext.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_quest1End", L"../bin/Resources/Sounds/FBX_quest1End.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_quest3End", L"../bin/Resources/Sounds/FBX_quest3End.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_questDownload", L"../bin/Resources/Sounds/FBX_questDownload.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_questEscape", L"../bin/Resources/Sounds/FBX_questEscape.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_questGoDeeper", L"../bin/Resources/Sounds/FBX_questGoDeeper.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_questHacking", L"../bin/Resources/Sounds/FBX_questHacking.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_questPickup", L"../bin/Resources/Sounds/FBX_questPickup.wav", false, false);
+	UpdateLoadingRatio(pUI, &fCur, fMax);
+	m_pEngineUtility->LoadSound("FBX_swing", L"../bin/Resources/Sounds/FBX_swing.wav", false, false);
 	UpdateLoadingRatio(pUI, &fCur, fMax);
 
 	m_isFinished = true;
@@ -559,5 +955,5 @@ void Loader::Free()
 	CloseHandle(m_hThread);
 	DeleteCriticalSection(&m_CriticalSection);
 
-	m_pEngineUtility->DestroyInstance();
+	SafeRelease(m_pEngineUtility);
 }

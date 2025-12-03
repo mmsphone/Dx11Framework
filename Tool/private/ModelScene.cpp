@@ -62,6 +62,9 @@ HRESULT ModelScene::Initialize()
 	Desc.fRotationPerSec = XMConvertToRadians(120.0f);
 	if (FAILED(m_pEngineUtility->AddObject(SCENE::MODEL, TEXT("FreeCam"), SCENE::MODEL, TEXT("Cam"), &Desc)))
 		return E_FAIL;
+	Camera* pCam = static_cast<Camera*>(m_pEngineUtility->FindObject(SCENE::MODEL, TEXT("Cam"), 0));
+	m_pEngineUtility->SetMainCamera(pCam);
+
 	LIGHT_DESC		LightDesc{};
 	LightDesc.eType = LIGHT::LIGHT_DIRECTIONAL;
 	LightDesc.vDirection = _float4(1.f, -1.f, 1.f, 0.f);

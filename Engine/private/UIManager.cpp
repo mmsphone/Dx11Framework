@@ -26,6 +26,11 @@ UI* UIManager::FindUI(_wstring tagUI)
 	return it->second;
 }
 
+_uint UIManager::GetUICount()
+{
+	return m_UIs.size();
+}
+
 void UIManager::ClearUIs()
 {
 	m_UIs.clear();

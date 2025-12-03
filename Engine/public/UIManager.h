@@ -13,6 +13,7 @@ public:
 	void AddUI(_wstring tagUI, class UI* pUI);
 	void RemoveUI(_wstring tagUI);
 	class UI* FindUI(_wstring tagUI);
+	_uint GetUICount();
 	void ClearUIs();
 
 	static UIManager* Create();

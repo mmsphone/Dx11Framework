@@ -90,6 +90,13 @@ public:
 	const _float* GetPipelineFarDistance();
 	void SetPipelineFarDistance(const _float& fFarDistance);
 
+	// CameraManager
+	void RegisterCamera(class Camera* pCamera);
+	void UnregisterCamera(class Camera* pCamera);
+	void SetMainCamera(class Camera* pCamera);
+	class Camera* GetMainCamera() const;
+	void RequestCameraShake(const struct CAMERA_SHAKE_DESC& desc);
+
 	//LightManager
 	const LIGHT_DESC* GetLight(_uint iIndex);
 	HRESULT AddLight(const LIGHT_DESC& LightDesc);
@@ -232,6 +239,31 @@ public:
 	void RemoveUI(_wstring tagUI);
 	class UI* FindUI(_wstring tagUI);
 	void ClearUIs();
+	_uint GetUICount();
+
+	//QuestManager
+	class Quest* AddQuest(const QUEST_DESC& desc);
+	class Quest* FindQuest(_int questId);
+	void ClearQuest();
+	void  StartQuest(_int questId);
+	QUEST GetQuestState(_int questId);
+	void  PushEvent(const QUEST_EVENT& ev);
+	void  SetMainQuestId(_int questId);
+	_int  GetMainQuestId() const;
+	void         SetQuestStartFunction(_int questId, const std::function<void()>& func);
+	void         SetQuestCompleteFunction(_int questId, const std::function<void()>& func);
+	void         SetContentsStartFunction(_int questId, _int contentsIndex, const std::function<void()>& func);
+	void         SetContentsCompleteFunction(_int questId, _int contentsIndex, const std::function<void()>& func);
+
+	//SoundManager
+	_bool LoadSound(const std::string& key,const std::wstring& path,_bool is3D = true,_bool loop = false);
+	void  UnloadSound(const std::string& key);
+	void  PlaySound2D(const std::string& key,_float volume = 1.f);
+	void  PlaySound3D(const std::string& key,const _float3& vWorldPos,_float volume = 1.f);
+	void  StopSound(const std::string& key);
+	void  SetSoundListener(const _float3& pos,const _float3& forward,const _float3& up,const _float3& vel = _float3(0.f, 0.f, 0.f));
+	void Play2DWithCallback(const std::string& key, float volume, const std::function<void()>& onEnd);
+	void Play3DWithCallback(const std::string& key, float x, float y, float z, float volume, const std::function<void()>& onEnd);
 
 private:
 	class Graphic* m_pGraphic = { nullptr };
@@ -242,6 +274,7 @@ private:
 	class ObjectManager* m_pObjectManager = { nullptr };
 	class RenderManager* m_pRenderManager = { nullptr };
 	class Pipeline* m_pPipeLine = { nullptr };
+	class CameraManager* m_pCameraManager = { nullptr };
 	class LightManager* m_pLightManager = { nullptr };
 	class FontManager* m_pFontManager = { nullptr };
 	class IMGUIManager* m_pIMGUIManager = { nullptr };
@@ -255,6 +288,8 @@ private:
 	class TriggerBoxManager* m_pTriggerBoxManager = { nullptr };
 	class Frustum* m_pFrustum = { nullptr };
 	class UIManager* m_pUIManager = { nullptr };
+	class QuestManager* m_pQuestManager = { nullptr };
+	class SoundManager* m_pSoundManager = { nullptr };
 };
 
 NS_END

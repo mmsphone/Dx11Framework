@@ -21,6 +21,9 @@
 #include "TriggerBoxManager.h"
 #include "Frustum.h"
 #include "UIManager.h"
+#include "QuestManager.h"
+#include "CameraManager.h"
+#include "SoundManager.h"
 
 IMPLEMENT_SINGLETON(EngineUtility)
 
@@ -56,6 +59,9 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 
 	m_pPipeLine = Pipeline::Create();
 	CHECKNULLPTR(m_pPipeLine) return E_FAIL;
+
+	m_pCameraManager = CameraManager::Create();
+	CHECKNULLPTR(m_pCameraManager) return E_FAIL;
 
 	m_pLightManager = LightManager::Create();
 	CHECKNULLPTR(m_pLightManager) return E_FAIL;
@@ -93,6 +99,12 @@ HRESULT EngineUtility::InitializeEngine(const ENGINE_DESC& EngineDesc)
 	m_pUIManager = UIManager::Create();
 	CHECKNULLPTR(m_pUIManager) return E_FAIL;
 
+	m_pQuestManager = QuestManager::Create();
+	CHECKNULLPTR(m_pQuestManager) return E_FAIL;
+
+	m_pSoundManager = SoundManager::Create();
+	CHECKNULLPTR(m_pSoundManager) return E_FAIL;
+
 	return S_OK;
 }
 
@@ -101,12 +113,16 @@ void EngineUtility::UpdateEngine(_float fTimeDelta)
 	m_pInput->Update();
 
 	m_pObjectManager->PriorityUpdate(fTimeDelta);
+	m_pCameraManager->Update(fTimeDelta);
 	m_pPipeLine->Update();
 	m_pObjectManager->Update(fTimeDelta);
 	m_pTriggerBoxManager->UpdateTriggers();
-	m_pObjectManager->LateUpdate(fTimeDelta);
+	m_pQuestManager->Update(fTimeDelta);
 
 	m_pSceneManager->Update(fTimeDelta);
+
+	m_pSoundManager->Update();
+	m_pObjectManager->LateUpdate(fTimeDelta);
 }
 
 HRESULT EngineUtility::BeginDraw(const _float4* pColor)
@@ -134,6 +150,8 @@ HRESULT EngineUtility::EndDraw()
 
 void EngineUtility::ReleaseEngine()
 {
+	SafeRelease(m_pSoundManager);
+	SafeRelease(m_pQuestManager);
 	SafeRelease(m_pUIManager);
 	SafeRelease(m_pFrustum);
 	SafeRelease(m_pTriggerBoxManager);
@@ -148,6 +166,7 @@ void EngineUtility::ReleaseEngine()
 	SafeRelease(m_pFontManager);
 	
 	SafeRelease(m_pLightManager);
+	SafeRelease(m_pCameraManager);
 	SafeRelease(m_pPipeLine);
 
 	SafeRelease(m_pSceneManager);
@@ -411,6 +430,31 @@ const _float* EngineUtility::GetPipelineFarDistance()
 void EngineUtility::SetPipelineFarDistance(const _float& fFarDistance)
 {
 	m_pPipeLine->SetPipelineFarDistance(fFarDistance);
+}
+
+void EngineUtility::RegisterCamera(class Camera* pCamera)
+{
+	m_pCameraManager->RegisterCamera(pCamera);
+}
+
+void EngineUtility::UnregisterCamera(class Camera* pCamera)
+{
+	m_pCameraManager->UnregisterCamera(pCamera);
+}
+
+void EngineUtility::SetMainCamera(class Camera* pCamera)
+{
+	m_pCameraManager->SetMainCamera(pCamera);
+}
+
+class Camera* EngineUtility::GetMainCamera() const
+{
+	return m_pCameraManager->GetMainCamera();
+}
+
+void EngineUtility::RequestCameraShake(const CAMERA_SHAKE_DESC& desc)
+{
+	m_pCameraManager->RequestCameraShake(desc);
 }
 
 const LIGHT_DESC* EngineUtility::GetLight(_uint iIndex)
@@ -958,4 +1002,109 @@ class UI* EngineUtility::FindUI(_wstring tagUI)
 void EngineUtility::ClearUIs()
 {
 	m_pUIManager->ClearUIs();
+}
+
+_uint EngineUtility::GetUICount()
+{
+	return m_pUIManager->GetUICount();
+}
+
+class Quest* EngineUtility::AddQuest(const QUEST_DESC& desc)
+{
+	return m_pQuestManager->AddQuest(desc);
+}
+
+class Quest* EngineUtility::FindQuest(_int questId)
+{
+	return m_pQuestManager->FindQuest(questId);
+}
+
+void EngineUtility::ClearQuest()
+{
+	m_pQuestManager->ClearQuest();
+}
+
+void   EngineUtility::StartQuest(_int questId)
+{
+	m_pQuestManager->StartQuest(questId);
+}
+
+QUEST  EngineUtility::GetQuestState(_int questId)
+{
+	return m_pQuestManager->GetQuestState(questId);
+}
+
+void   EngineUtility::PushEvent(const QUEST_EVENT& ev)
+{
+	m_pQuestManager->PushEvent(ev);
+}
+
+void   EngineUtility::SetMainQuestId(_int questId)
+{
+	m_pQuestManager->SetMainQuestId(questId);
+}
+
+_int   EngineUtility::GetMainQuestId() const
+{
+	return m_pQuestManager->GetMainQuestId();
+}
+
+void EngineUtility::SetQuestStartFunction(_int questId, const std::function<void()>& func)
+{
+	m_pQuestManager->SetQuestStartFunction(questId, func);
+}
+
+void EngineUtility::SetQuestCompleteFunction(_int questId, const std::function<void()>& func)
+{
+	m_pQuestManager->SetQuestCompleteFunction(questId, func);
+}
+
+void EngineUtility::SetContentsStartFunction(_int questId, _int contentsIndex, const std::function<void()>& func)
+{
+	m_pQuestManager->SetContentsStartFunction(questId, contentsIndex, func);
+}
+
+void EngineUtility::SetContentsCompleteFunction(_int questId, _int contentsIndex, const std::function<void()>& func)
+{
+	m_pQuestManager->SetContentsCompleteFunction(questId, contentsIndex, func);
+}
+
+_bool EngineUtility::LoadSound(const std::string& key, const std::wstring& path, _bool is3D, _bool loop)
+{
+	return m_pSoundManager->LoadSound(key, path, is3D, loop);
+}
+
+void  EngineUtility::UnloadSound(const std::string& key)
+{
+	m_pSoundManager->UnloadSound(key);
+}
+
+void  EngineUtility::PlaySound2D(const std::string& key, _float volume)
+{
+	m_pSoundManager->Play2D(key, volume);
+}
+
+void  EngineUtility::PlaySound3D(const std::string& key, const _float3& vWorldPos, _float volume)
+{
+	m_pSoundManager->Play3D(key, vWorldPos.x, vWorldPos.y, vWorldPos.z, volume);
+}
+
+void EngineUtility::StopSound(const std::string& key)
+{
+	m_pSoundManager->StopSound(key);
+}
+
+void  EngineUtility::SetSoundListener(const _float3& pos, const _float3& forward, const _float3& up, const _float3& vel)
+{
+	m_pSoundManager->SetListener(pos, forward, up, vel);
+}
+
+void EngineUtility::Play2DWithCallback(const std::string& key, float volume, const std::function<void()>& onEnd)
+{
+	m_pSoundManager->Play2DWithCallback(key, volume, onEnd);
+}
+
+void EngineUtility::Play3DWithCallback(const std::string& key, float x, float y, float z, float volume, const std::function<void()>& onEnd)
+{
+	m_pSoundManager->Play3DWithCallback(key, x, y, z, volume, onEnd);
 }

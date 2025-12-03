@@ -21,8 +21,10 @@ public:
     void SetEnable(_bool bEnable);
     _bool IsEnable();
 
-    void AddButtonFunction(function<void()> func);
-    void DoButtonFunctions();
+    void AddLeftButtonFunction(function<void()> func);
+    void DoLeftButtonFunctions();
+    void AddRightButtonFunction(function<void()> func);
+    void DoRightButtonFunctions();
     void ClearButtonFunctions();
 
     void SetDefaultImage(const wstring& defaultKey);
@@ -41,7 +43,8 @@ private:
     UI* m_text = { nullptr };
     UI* m_defaultImage = { nullptr };
     UI* m_onImage = { nullptr };
-    vector<function<void()>> buttonFunctions{};
+    vector<function<void()>> leftButtonFunctions{};
+    vector<function<void()>> rightButtonFunctions{};
 };
 
 NS_END

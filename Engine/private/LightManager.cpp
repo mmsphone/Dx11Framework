@@ -54,8 +54,11 @@ void LightManager::ClearLights()
 {
     for (auto& pLight : m_Lights)
         SafeRelease(pLight);
+    for (auto& pLight : m_ActiveLights)
+        SafeRelease(pLight);
 
     m_Lights.clear();
+    m_ActiveLights.clear();
 }
 LightManager* LightManager::Create()
 {
@@ -66,7 +69,8 @@ HRESULT LightManager::RenderLights(class Shader* pShader, class VIBufferRect* pV
 {
     for (auto& pLight : m_ActiveLights)
     {
-        pLight->RenderLight(pShader, pVIBuffer);
+        if(pLight)
+            pLight->RenderLight(pShader, pVIBuffer);
     }
     return S_OK;
 }

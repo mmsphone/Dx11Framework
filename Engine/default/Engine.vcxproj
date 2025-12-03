@@ -24,6 +24,7 @@
     <ClInclude Include="..\public\Base.h" />
     <ClInclude Include="..\public\Bone.h" />
     <ClInclude Include="..\public\Camera.h" />
+    <ClInclude Include="..\public\CameraManager.h" />
     <ClInclude Include="..\public\Cell.h" />
     <ClInclude Include="..\public\Channel.h" />
     <ClInclude Include="..\public\Collision.h" />
@@ -67,6 +68,8 @@
     <ClInclude Include="..\public\Pipeline.h" />
     <ClInclude Include="..\public\Projectile.h" />
     <ClInclude Include="..\public\PrototypeManager.h" />
+    <ClInclude Include="..\public\Quest.h" />
+    <ClInclude Include="..\public\QuestManager.h" />
     <ClInclude Include="..\public\RenderManager.h" />
     <ClInclude Include="..\public\RenderTarget.h" />
     <ClInclude Include="..\public\RenderTargetManager.h" />
@@ -76,6 +79,7 @@
     <ClInclude Include="..\public\Shader.h" />
     <ClInclude Include="..\public\ShadowLight.h" />
     <ClInclude Include="..\public\ShadowLightManager.h" />
+    <ClInclude Include="..\public\SoundManager.h" />
     <ClInclude Include="..\public\Spawner.h" />
     <ClInclude Include="..\public\SpawnerManager.h" />
     <ClInclude Include="..\public\StateMachine.h" />
@@ -106,6 +110,7 @@
     <ClCompile Include="..\private\Base.cpp" />
     <ClCompile Include="..\private\Bone.cpp" />
     <ClCompile Include="..\private\Camera.cpp" />
+    <ClCompile Include="..\private\CameraManager.cpp" />
     <ClCompile Include="..\private\Cell.cpp" />
     <ClCompile Include="..\private\Channel.cpp" />
     <ClCompile Include="..\private\Collision.cpp" />
@@ -142,6 +147,8 @@
     <ClCompile Include="..\private\Pipeline.cpp" />
     <ClCompile Include="..\private\Projectile.cpp" />
     <ClCompile Include="..\private\PrototypeManager.cpp" />
+    <ClCompile Include="..\private\Quest.cpp" />
+    <ClCompile Include="..\private\QuestManager.cpp" />
     <ClCompile Include="..\private\RenderManager.cpp" />
     <ClCompile Include="..\private\RenderTarget.cpp" />
     <ClCompile Include="..\private\RenderTargetManager.cpp" />
@@ -151,6 +158,7 @@
     <ClCompile Include="..\private\Shader.cpp" />
     <ClCompile Include="..\private\ShadowLight.cpp" />
     <ClCompile Include="..\private\ShadowLightManager.cpp" />
+    <ClCompile Include="..\private\SoundManager.cpp" />
     <ClCompile Include="..\private\Spawner.cpp" />
     <ClCompile Include="..\private\SpawnerManager.cpp" />
     <ClCompile Include="..\private\StateMachine.cpp" />
@@ -188,6 +196,7 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\bin\Shader\Shader_Deferred.hlsl" />
+    <FxCompile Include="..\bin\Shader\Shader_Explosion.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_InstancingPos.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_Cell.hlsl" />
     <FxCompile Include="..\bin\Shader\Shader_InstancingPosTex.hlsl" />
@@ -294,7 +303,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;_IMGUI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../public/;../public/IMGUI/;$(SolutionDir)EngineSDK\Inc\fMod;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -302,8 +311,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11d.lib;DirectXTKd.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI;$(SolutionDir)EngineSDK\Lib\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11d.lib;DirectXTKd.lib;assimp-vc143-mtd.lib;fmodL_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderType>Effect</ShaderType>
@@ -328,7 +337,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;ENGINE_EXPORTS;_WINDOWS;_USRDLL;_IMGUI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../public/;../public/IMGUI/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../public/;../public/IMGUI/;$(SolutionDir)EngineSDK\Inc\fMod;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -338,8 +347,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI</AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11.lib;DirectXTK.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../ThirdPartyLib/;../public/IMGUI;$(SolutionDir)EngineSDK\Lib\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>d3d11.lib;dxguid.lib;dinput8.lib;Effects11.lib;DirectXTK.lib;assimp-vc143-mt.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <FxCompile>
       <ShaderType>Effect</ShaderType>

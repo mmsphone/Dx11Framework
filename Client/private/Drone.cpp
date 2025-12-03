@@ -50,7 +50,7 @@ HRESULT Drone::Initialize(void* pArg)
 
     m_arriveRadius = 1.f;
     m_repathInterval = 1.f;
-    m_repathTimer = 0.f;
+    m_repathTimer = m_pEngineUtility->Random(0.f, m_repathInterval);
     m_isDying = false;
 
     return S_OK;
@@ -59,6 +59,9 @@ HRESULT Drone::Initialize(void* pArg)
 void Drone::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
+
+    if (m_kbActive)
+        HitBack(fTimeDelta);
 
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     if (!m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
@@ -200,6 +203,19 @@ _uint Drone::FindPriorityIndex(string toStateName, _uint fallback) const
     return fallback;
 }
 
+void Drone::SetHit(_vector dirXZ, float power, float duration)
+{
+    _vector dir = XMVector3Normalize(XMVectorSetY(dirXZ, 0.f));
+    if (XMVector3Equal(dir, XMVectorZero()))
+        return;
+
+    m_kbDir = dir;
+    m_kbPower = max(0.f, power);
+    m_kbDuration = max(0.01f, duration);
+    m_kbRemain = m_kbDuration;
+    m_kbActive = true;
+}
+
 Drone* Drone::Create()
 {
     Drone* pInstance = new Drone();
@@ -301,6 +317,12 @@ HRESULT Drone::SetUpStateMachine()
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
 
             pModel->SetAnimation(pDrone->FindAnimIndex("Roar"), false, 0.05f);
+
+            _float r = EngineUtility::GetInstance()->Random(0, 2);
+            if (r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar1");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar2");
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -350,6 +372,7 @@ HRESULT Drone::SetUpStateMachine()
 
             pModel->SetAnimation(pDrone->FindAnimIndex("Attack"), false, 0.05f, true);
             pDrone->m_targetAttackable = true;
+
         },
         [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
@@ -376,6 +399,32 @@ HRESULT Drone::SetUpStateMachine()
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
 
             pModel->SetAnimation(pDrone->FindAnimIndex("Hit"), false, 0.05f, true);
+
+            _float r = EngineUtility::GetInstance()->Random(0, 12);
+            if (r >= 11)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit1");
+            else if (r >= 10)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit2");
+            else if (r >= 9)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit3");
+            else if (r >= 8)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit4");
+            else if (r >= 7)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit5");
+            else if (r >= 6)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit6");
+            else if (r >= 5)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit7");
+            else if (r >= 4)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit8");
+            else if (r >= 3)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit9");
+            else if (r >= 2)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit10");      
+            else if (r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit11");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit12");
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -412,6 +461,26 @@ HRESULT Drone::SetUpStateMachine()
 
                 EngineUtility::GetInstance()->AddObject(SCENE::GAMEPLAY, TEXT("BloodDieEffect"), SCENE::GAMEPLAY, TEXT("Effect"), &desc);
             }
+            {
+                Object* pPlayer = EngineUtility::GetInstance()->FindObject(SCENE::GAMEPLAY, L"Player", 0);
+                QUEST_EVENT ev{};
+                ev.type = EVENTTYPE_KILL;
+                ev.pInstigator = pPlayer;
+                ev.pTarget = owner;
+                ev.tag = L"Drone";
+                EngineUtility::GetInstance()->PushEvent(ev);
+            }
+
+            _float r = EngineUtility::GetInstance()->Random(0, 4);
+            if(r >= 3)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie1");
+            else if(r >= 2)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie2");
+            else if(r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie3");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie4");
+           
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
@@ -683,7 +752,7 @@ void Drone::SetUpAIInputData()
 
     m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(MATRIXROW_POSITION));
 
-    m_pAIInputCache->SetData("SightRange", _float{ 10.f });
+    m_pAIInputCache->SetData("SightRange", _float{ 8.f });
     m_pAIInputCache->SetData("FovDegree", _float{ 360.f });
     m_pAIInputCache->SetData("AttackRange", _float{ 1.2f });
     m_pAIInputCache->SetData("ChasePersistTime", _float{ 5.f });
@@ -721,7 +790,9 @@ HRESULT Drone::SetUpAIProcess()
                 in.SetData("Distance", _float{ distance });
 
                 // 파라미터(없으면 기본값)
-                const float sightRange = in.GetPtr("SightRange") ? std::get<_float>(*in.GetPtr("SightRange")) : 6.f;
+                float sightRange = in.GetPtr("SightRange") ? std::get<_float>(*in.GetPtr("SightRange")) : 10.f;
+                _float globalSightScale = static_cast<Player*>(m_pEngineUtility->FindObject(SCENE::GAMEPLAY, L"Player", 0))->GetGlobalSightScale();
+                sightRange *= globalSightScale;
                 const float fovDeg = in.GetPtr("FovDegree") ? std::get<_float>(*in.GetPtr("FovDegree")) : 360.f;
                 const float chasePersistTime = in.GetPtr("ChasePersistTime") ? std::get<_float>(*in.GetPtr("ChasePersistTime")) : 3.f;
 
@@ -895,8 +966,8 @@ void Drone::Move(_float fTimeDelta)
         const float lookAheadRadius1 = 4.0f;
         const float lookAheadRadius2 = 6.0f;
         const float lookAheadRadius3 = 8.0f;
-        const float cutStrength1 = 0.5f;
-        const float cutStrength2 = 0.4f;
+        const float cutStrength1 = 0.3f;
+        const float cutStrength2 = 0.3f;
         const float cutStrength3 = 0.3f;
         // 1칸 앞
         if (m_pathIndex + 1 < (_int)m_path.size() && distToCur < lookAheadRadius1)
@@ -1278,4 +1349,65 @@ void Drone::UpdatePath(_float dt)
         }
         // 실패하면 그냥 기존 경로 유지 (혹은 지워도 됨: m_path.clear(); m_pathIndex=-1;)
     }
+}
+
+void Drone::HitBack(_float fTimeDelta)
+{
+    auto* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!pTransform)
+    {
+        m_kbActive = false;
+        return;
+    }
+
+    const float dt = max(0.f, fTimeDelta);
+
+    // 남은 시간 비율(1 → 0) 기반으로 감속
+    const float t = (m_kbDuration > 1e-6f) ? (m_kbRemain / m_kbDuration) : 0.f;
+    const float speed = m_kbPower * t;
+
+    _vector prePos = pTransform->GetState(MATRIXROW_POSITION);
+    pTransform->Translate(m_kbDir, speed * dt);
+
+    _vector newPos = pTransform->GetState(MATRIXROW_POSITION);
+
+    // 네비 밖으로 밀려나면 원복
+    _int cellIndex = -1;
+    if (!m_pEngineUtility->IsInCell(newPos, &cellIndex))
+    {
+        pTransform->SetState(MATRIXROW_POSITION, prePos);
+    }
+    else
+    {
+        // 네비 높이에 붙이기 (필요 없으면 생략해도 됨)
+        _vector fixed{};
+        m_pEngineUtility->SetHeightOnCell(newPos, &fixed);
+        pTransform->SetState(MATRIXROW_POSITION, fixed);
+    }
+
+    // 문 등과 충돌 시도 원복 (Player와 동일하게 하고 싶으면)
+    if (auto* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision"))))
+    {
+        pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
+        Layer* pDoorLayer = m_pEngineUtility->FindLayer(
+            m_pEngineUtility->GetCurrentSceneId(), TEXT("Door"));
+        if (pDoorLayer)
+        {
+            for (auto& door : pDoorLayer->GetAllObjects())
+            {
+                if (!door) continue;
+                auto* dCol = dynamic_cast<Collision*>(door->FindComponent(TEXT("Collision")));
+                if (dCol && dCol->Intersect(pCollision))
+                {
+                    pTransform->SetState(MATRIXROW_POSITION, prePos);
+                    break;
+                }
+            }
+        }
+    }
+
+    m_kbRemain -= dt;
+    if (m_kbRemain <= 0.f)
+        m_kbActive = false;
 }

@@ -113,6 +113,7 @@ HRESULT VIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
     ZeroMemory(m_pInstanceVertices, sizeof(VTXINSTANCEPARTICLE) * m_iNumInstance);
     m_pSpeeds = new _float[m_iNumInstance];
     m_pRepeatDurations = new _float[m_iNumInstance];
+    m_pVerticalSpeeds = new _float[m_iNumInstance];
 
     for (size_t i = 0; i < m_iNumInstance; i++)
     {
@@ -134,6 +135,7 @@ HRESULT VIBufferInstancingRect::InitializePrototype(const INSTANCE_DESC* pDesc)
         );
 
         m_pRepeatDurations[i] = m_pEngineUtility->Random(pInstanceDesc->repeatDuration.x, pInstanceDesc->repeatDuration.y);
+        m_pVerticalSpeeds[i] = m_pEngineUtility->Random( pInstanceDesc->vSpeed.x, pInstanceDesc->vSpeed.y);
     }
 
     m_vPivot = pInstanceDesc->vPivot;
@@ -277,6 +279,151 @@ void VIBufferInstancingRect::SpreadRepeat(_float fTimeDelta)
     m_pEngineUtility->GetContext()->Unmap(m_pVBInstance, 0);
 }
 
+void VIBufferInstancingRect::SpreadXZ(_float fTimeDelta)
+{
+    D3D11_MAPPED_SUBRESOURCE SubResource{};
+    if (FAILED(m_pEngineUtility->GetContext()->Map(
+        m_pVBInstance, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &SubResource)))
+    {
+        return;
+    }
+
+    VTXINSTANCEPARTICLE* pVertices =
+        static_cast<VTXINSTANCEPARTICLE*>(SubResource.pData);
+
+    for (size_t i = 0; i < m_iNumInstance; ++i)
+    {
+        // 중심에서 현재 위치까지의 벡터
+        _vector vMoveDir = XMVectorSetW(
+            XMLoadFloat4(&pVertices[i].vTranslation) - XMLoadFloat3(&m_vPivot), 0.f);
+
+        // Y 성분 제거 → XZ 평면만 남김
+        vMoveDir = XMVectorSetY(vMoveDir, 0.f);
+
+        if (!XMVector3Equal(vMoveDir, XMVectorZero()))
+        {
+            vMoveDir = XMVector3Normalize(vMoveDir);
+
+            XMStoreFloat4(&pVertices[i].vTranslation,
+                XMLoadFloat4(&pVertices[i].vTranslation)
+                + vMoveDir * m_pSpeeds[i] * fTimeDelta);
+        }
+
+        pVertices[i].vLifeTime.y += fTimeDelta;
+
+        // 루프 사용 중이면 원래 위치로 되돌리는 로직 유지
+        if (m_isLoop && pVertices[i].vLifeTime.y >= pVertices[i].vLifeTime.x)
+        {
+            pVertices[i].vLifeTime.y = 0.f;
+            pVertices[i].vTranslation = m_pInstanceVertices[i].vTranslation;
+        }
+    }
+
+    m_pEngineUtility->GetContext()->Unmap(m_pVBInstance, 0);
+}
+
+void VIBufferInstancingRect::SpreadUpward(_float fTimeDelta)
+{
+    D3D11_MAPPED_SUBRESOURCE SubResource{};
+    if (FAILED(m_pEngineUtility->GetContext()->Map(
+        m_pVBInstance, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &SubResource)))
+    {
+        return;
+    }
+
+    VTXINSTANCEPARTICLE* pVertices =
+        static_cast<VTXINSTANCEPARTICLE*>(SubResource.pData);
+
+    for (size_t i = 0; i < m_iNumInstance; ++i)
+    {
+        // XZ 방향으로 퍼지는 방향 먼저 계산
+        _vector vRadial = XMVectorSetW(
+            XMLoadFloat4(&pVertices[i].vTranslation) - XMLoadFloat3(&m_vPivot), 0.f);
+        vRadial = XMVectorSetY(vRadial, 0.f); // XZ만
+
+        _vector vDir;
+        if (!XMVector3Equal(vRadial, XMVectorZero()))
+        {
+            vRadial = XMVector3Normalize(vRadial);
+
+            // 위 방향 성분을 섞어서 "위로 올라가는 연기"
+            _vector vUp = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+
+            // 가중치는 적당히 0.4 정도, 필요하면 조절
+            vDir = XMVector3Normalize(vRadial + vUp * 0.4f);
+        }
+        else
+        {
+            // 중심에 너무 가까우면 그냥 위로만
+            vDir = XMVectorSet(0.f, 1.f, 0.f, 0.f);
+        }
+
+        XMStoreFloat4(&pVertices[i].vTranslation,
+            XMLoadFloat4(&pVertices[i].vTranslation)
+            + vDir * m_pSpeeds[i] * fTimeDelta);
+
+        pVertices[i].vLifeTime.y += fTimeDelta;
+
+        if (m_isLoop && pVertices[i].vLifeTime.y >= pVertices[i].vLifeTime.x)
+        {
+            pVertices[i].vLifeTime.y = 0.f;
+            pVertices[i].vTranslation = m_pInstanceVertices[i].vTranslation;
+        }
+    }
+
+    m_pEngineUtility->GetContext()->Unmap(m_pVBInstance, 0);
+}
+
+void VIBufferInstancingRect::SpreadGravity(_float fTimeDelta, _float gravity)
+{
+    D3D11_MAPPED_SUBRESOURCE SubResource{};
+    if (FAILED(m_pEngineUtility->GetContext()->Map(
+        m_pVBInstance, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &SubResource)))
+    {
+        return;
+    }
+
+    VTXINSTANCEPARTICLE* pVertices =
+        static_cast<VTXINSTANCEPARTICLE*>(SubResource.pData);
+
+    for (size_t i = 0; i < m_iNumInstance; ++i)
+    {
+        // 1) 수평(XZ)로 퍼지게
+        _vector vMoveDir = XMVectorSetW(
+            XMLoadFloat4(&pVertices[i].vTranslation) - XMLoadFloat3(&m_vPivot), 0.f);
+        vMoveDir = XMVectorSetY(vMoveDir, 0.f);
+
+        if (!XMVector3Equal(vMoveDir, XMVectorZero()))
+        {
+            vMoveDir = XMVector3Normalize(vMoveDir);
+
+            XMStoreFloat4(&pVertices[i].vTranslation,
+                XMLoadFloat4(&pVertices[i].vTranslation)
+                + vMoveDir * m_pSpeeds[i] * fTimeDelta);
+        }
+
+        // 2) 시간 누적
+        pVertices[i].vLifeTime.y += fTimeDelta;
+        const _float t = pVertices[i].vLifeTime.y;
+
+        // 3) Y 방향 포물선: y = y0 + v0 * t - 0.5 * g * t^2
+        const _float y0 = m_pInstanceVertices[i].vTranslation.y;
+        const _float v0 = (m_pVerticalSpeeds ? m_pVerticalSpeeds[i] : 0.f);
+
+        _float4 curPos = pVertices[i].vTranslation;
+        curPos.y = y0 + v0 * t - 0.5f * gravity * t * t;
+        pVertices[i].vTranslation = curPos;
+
+        // 4) 루프 모드면 다시 초기화
+        if (m_isLoop && t >= pVertices[i].vLifeTime.x)
+        {
+            pVertices[i].vLifeTime.y = 0.f;
+            pVertices[i].vTranslation = m_pInstanceVertices[i].vTranslation;
+        }
+    }
+
+    m_pEngineUtility->GetContext()->Unmap(m_pVBInstance, 0);
+}
 
 VIBufferInstancingRect* VIBufferInstancingRect::Create(const INSTANCE_DESC* pDesc)
 {
@@ -314,5 +461,6 @@ void VIBufferInstancingRect::Free()
         SafeDeleteArray(m_pInstanceVertices);
         SafeDeleteArray(m_pSpeeds);
         SafeDeleteArray(m_pRepeatDurations);
+        SafeDeleteArray(m_pVerticalSpeeds);
     }
 }

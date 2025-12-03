@@ -661,6 +661,7 @@ HRESULT SaveLoadManager::LoadUI(const std::string& path, _uint iSceneIndex)
         int len = MultiByteToWideChar( CP_UTF8, 0, d.name.c_str(), -1,nullptr, 0);
         wstring result(len - 1, 'L\0');
         MultiByteToWideChar( CP_UTF8, 0, d.name.c_str(), -1,result.data(),len);
+        pUI->SetVisible(false);
         m_pEngineUtility->AddUI(result, pUI);
     }
 

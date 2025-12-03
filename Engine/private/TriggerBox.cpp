@@ -69,6 +69,17 @@ void TriggerBox::UpdateTrigger()
 
 		if (m_TriggerFunction)
 			m_TriggerFunction();
+
+		{
+			QUEST_EVENT ev{};
+			ev.type = EVENTTYPE_TRIGGER_IN;
+			ev.pInstigator = pPlayer;
+			ev.pTarget = nullptr;
+			ev.tag = m_desc.triggerTag;
+			ev.intParam = -1;
+
+			m_pEngineUtility->PushEvent(ev);
+		}
 	}
 }
 
@@ -118,6 +129,11 @@ void TriggerBox::UpdateFromDesc(const TRIGGERBOX_DESC& desc)
 
 	SafeRelease(m_pCollisionBoxAABB);
 	m_pCollisionBoxAABB = CollisionBoxAABB::Create(&aabbDesc);
+}
+
+void TriggerBox::SetTriggerTag(const _wstring& triggerTag)
+{
+	m_desc.triggerTag = triggerTag;
 }
 
 TriggerBox* TriggerBox::Create(void* pArg)

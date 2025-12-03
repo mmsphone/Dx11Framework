@@ -20,6 +20,8 @@ public:
 	void UnlockDoor();
 	void OpenDoor();
 
+	void SetPanelTag(const _wstring& panelTag);
+
 	static Panel* Create();
 	virtual Object* Clone(void* pArg) override;
 	virtual void Free() override;
@@ -40,6 +42,8 @@ private:
 
 	_float m_keyBlinkAcc = 0.f;
 	_bool m_keyBlinkOnState = false;
+
+	_wstring m_panelTag{};
 };
 
 NS_END

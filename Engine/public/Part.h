@@ -24,6 +24,8 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	void SetVisible(_bool bVisible);
+
 	const _float4x4* GetCombinedWorldMatrix() const;
 
 	virtual Object* Clone(void* pArg) = 0;
@@ -31,6 +33,7 @@ public:
 protected:
 	const _float4x4* m_pParentMatrix = { nullptr };
 	_float4x4			m_CombinedWorldMatrix = { };
+	_bool m_bVisible = true;
 };
 
 NS_END

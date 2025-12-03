@@ -17,8 +17,9 @@ LoadingScene::LoadingScene()
 
 HRESULT LoadingScene::Initialize(SCENE eNextSceneId)
 {
+	m_pEngineUtility->PlaySound2D("BGM_loading");
 	m_eNextSceneId = eNextSceneId;
-
+	m_pEngineUtility->ClearUIs();
 	if (FAILED(ReadyLayerBackGround()))
 		return E_FAIL;
 
@@ -31,9 +32,33 @@ HRESULT LoadingScene::Initialize(SCENE eNextSceneId)
 
 void LoadingScene::Update(_float fTimeDelta)
 {
- 	if (true == m_pLoader->isFinished())
+	{
+		// 로딩 아이콘 찾아오기
+		UIImage* pCycle = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"Loading_Cycle"));
+		if (pCycle)
+		{
+			// static으로 각도 누적
+			static _float sAngleRad = 0.f;
+
+			// 초당 180도 회전 (원하면 90.f, 360.f 등으로 조절해도 됨)
+			const _float rotateSpeed = XMConvertToRadians(180.f);
+
+			// 시계 방향 → 수학 좌표계 기준으로는 음수 회전
+			sAngleRad -= rotateSpeed * fTimeDelta;
+
+			// 너무 값이 커지지 않게 래핑
+			if (sAngleRad <= -XM_2PI)
+				sAngleRad += XM_2PI;
+
+			// 절대 각도로 세팅
+			pCycle->SetRotationRad(sAngleRad);
+		}
+	}
+
+ 	if (true == m_pLoader->isFinished() && m_pEngineUtility->IsKeyPressed(DIK_RETURN))
 	{
 		Scene* pNextScene = { nullptr };
+		m_pEngineUtility->StopSound("BGM_loading");
 
 		switch (m_eNextSceneId)
 		{
@@ -46,7 +71,6 @@ void LoadingScene::Update(_float fTimeDelta)
 		}
 		if (FAILED(m_pEngineUtility->ChangeScene(m_eNextSceneId, pNextScene)))
 			return;
-
 		return;
 	}
 }
@@ -132,6 +156,25 @@ HRESULT LoadingScene::ReadyLayerBackGround()
 		UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindLayer(SCENE::LOADING, L"UI")->GetAllObjects().back());
 		pUI->SetLoadingRatio(0.f);
 		m_pEngineUtility->AddUI(L"Loadingbar_Front", pUI);
+	}
+	{
+		UI_DESC desc{};
+		desc.fSpeedPerSec = 0.f;
+		desc.fRotationPerSec = 0.f;
+		desc.type = UITYPE::UI_IMAGE;
+		desc.name = "Loading_cycle";
+		desc.x = 570.f;
+		desc.y = 650.f;
+		desc.z = 0.f;
+		desc.w = 64.f * 1.f;
+		desc.h = 64.f * 1.f;
+		desc.visible = true;
+		desc.imagePath = L"../bin/Resources/Textures/Loading/Loading_cycle.png";
+
+		m_pEngineUtility->AddObject(SCENE::STATIC, L"UIImage", SCENE::LOADING, L"UI", &desc);
+
+		UIImage* pUI = dynamic_cast<UIImage*>(m_pEngineUtility->FindLayer(SCENE::LOADING, L"UI")->GetAllObjects().back());
+		m_pEngineUtility->AddUI(L"Loading_Cycle", pUI);
 	}
 
 	return S_OK;

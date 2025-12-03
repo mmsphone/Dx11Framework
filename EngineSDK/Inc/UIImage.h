@@ -22,6 +22,8 @@ public:
     void SetHPRatio(const _float hpRatio);
     void SetLoadingRatio(const _float ratio);
     void SetBulletRatio(const _float ratio);
+    void SetMaskingColor(const _float4 vColor);
+    void SetMaskingColorGradient(const _float4 vColor);
     void ClearMasking();
 
     void SetAlpha(_float alpha);
@@ -54,6 +56,7 @@ private:
     _bool m_useCustomColor = false;
     _float m_customGamma = 1.f;
     _float m_customBrightness = 1.f;
+    _float4 m_vCustomColor = {};
 };
 
 NS_END

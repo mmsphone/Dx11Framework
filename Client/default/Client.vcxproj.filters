@@ -109,6 +109,30 @@
     <Filter Include="06.Object\UI\hackingGameUI">
       <UniqueIdentifier>{bcc95001-25d0-497c-882e-0ec216af78f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="06.Object\UI\hacking2GameUI">
+      <UniqueIdentifier>{bfe42ad8-259a-4ecc-8f41-53f14f40c0a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\UI\QuestUI">
+      <UniqueIdentifier>{84257d7a-6b00-45c4-be95-9640b92f2786}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\UI\minimapUI">
+      <UniqueIdentifier>{f2605dd8-102e-47cf-a8b4-acd76680b42c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Object\Ammobag">
+      <UniqueIdentifier>{ff426cc0-aa53-4c14-84d8-6a1d8570e99b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\UI\endingUI">
+      <UniqueIdentifier>{3a6c4eb5-18a0-4aab-ba92-f39d98c3718e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Object\Itembox">
+      <UniqueIdentifier>{55e09eef-b0ad-4a81-bcc7-fb6ef21e30bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Object\Grenade">
+      <UniqueIdentifier>{894f45db-463d-41c4-9989-65bcbf104677}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="06.Object\Effect\ExplosionEffect">
+      <UniqueIdentifier>{3fa3300a-5142-483a-a8a9-ea0a49b2db00}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h">
@@ -203,6 +227,30 @@
     </ClInclude>
     <ClInclude Include="..\public\hackingGameUI.h">
       <Filter>06.Object\UI\hackingGameUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\hacking2GameUI.h">
+      <Filter>06.Object\UI\hacking2GameUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\QuestUI.h">
+      <Filter>06.Object\UI\QuestUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\minimapUI.h">
+      <Filter>06.Object\UI\minimapUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Ammobag.h">
+      <Filter>06.Object\Object\Ammobag</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\endingUI.h">
+      <Filter>06.Object\UI\endingUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Itembox.h">
+      <Filter>06.Object\Object\Itembox</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Grenade.h">
+      <Filter>06.Object\Object\Grenade</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\ExplosionEffect.h">
+      <Filter>06.Object\Effect\ExplosionEffect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -299,6 +347,30 @@
     </ClCompile>
     <ClCompile Include="..\private\hackingGameUI.cpp">
       <Filter>06.Object\UI\hackingGameUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\hacking2GameUI.cpp">
+      <Filter>06.Object\UI\hacking2GameUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\QuestUI.cpp">
+      <Filter>06.Object\UI\QuestUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\minimapUI.cpp">
+      <Filter>06.Object\UI\minimapUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Ammobag.cpp">
+      <Filter>06.Object\Object\Ammobag</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\endingUI.cpp">
+      <Filter>06.Object\UI\endingUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Itembox.cpp">
+      <Filter>06.Object\Object\Itembox</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\Grenade.cpp">
+      <Filter>06.Object\Object\Grenade</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\ExplosionEffect.cpp">
+      <Filter>06.Object\Effect\ExplosionEffect</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

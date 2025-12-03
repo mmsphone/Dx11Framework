@@ -612,9 +612,9 @@ _bool NavigationManager::FindPath(_fvector startPos, _fvector goalPos, vector<_i
     if (m_Cells.empty())
         return false;
 
-    _int startCell = {};
+    _int startCell = -1;
+    _int goalCell = -1;
     IsInCell(startPos, &startCell); // 네가 쓰는 함수 이름에 맞게
-    _int goalCell = {};
     IsInCell(goalPos, &goalCell);
 
     if (startCell < 0 || goalCell < 0)

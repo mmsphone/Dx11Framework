@@ -55,7 +55,7 @@ void LightManager::ClearLights()
     for (auto& pLight : m_Lights)
         SafeRelease(pLight);
     for (auto& pLight : m_ActiveLights)
-        SafeRelease(pLight);
+        pLight = nullptr;
 
     m_Lights.clear();
     m_ActiveLights.clear();

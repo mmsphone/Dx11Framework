@@ -148,7 +148,22 @@ void Panel::OpenDoor()
     {
         m_pTargetDoor->Open();
         m_worked = true;
+
+        {
+            Object* pPlayer = m_pEngineUtility->FindObject(SCENE::GAMEPLAY, L"Player", 0);
+            QUEST_EVENT ev{};
+            ev.type = EVENTTYPE_INTERACT;
+            ev.pInstigator = pPlayer;
+            ev.pTarget = this;
+            ev.tag = m_panelTag;
+            m_pEngineUtility->PushEvent(ev);
+        }
     }
+}
+
+void Panel::SetPanelTag(const _wstring& panelTag)
+{
+    m_panelTag = panelTag;
 }
 
 Panel* Panel::Create()

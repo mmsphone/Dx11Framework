@@ -21,7 +21,7 @@ HRESULT Shieldbug::Initialize(void* pArg)
 {
     OBJECT_DESC* pDesc = new OBJECT_DESC;
 
-    m_speed = 2.5f;
+    m_speed = 3.f;
     pDesc->fSpeedPerSec = m_speed;
     pDesc->fRotationPerSec = XMConvertToRadians(180.0f);
 
@@ -50,7 +50,7 @@ HRESULT Shieldbug::Initialize(void* pArg)
 
     m_arriveRadius = 1.f;
     m_repathInterval = 1.f;
-    m_repathTimer = 0.f;
+    m_repathTimer = m_pEngineUtility->Random(0.f, m_repathInterval);
 
     m_isDying = false;
     m_deathFade = 1.f;
@@ -61,6 +61,9 @@ HRESULT Shieldbug::Initialize(void* pArg)
 void Shieldbug::Update(_float fTimeDelta)
 {
     __super::Update(fTimeDelta);
+
+    if (m_kbActive)
+        HitBack(fTimeDelta);
 
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     if (!m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
@@ -200,6 +203,19 @@ _uint Shieldbug::FindPriorityIndex(string toStateName, _uint fallback) const
     return fallback;
 }
 
+void Shieldbug::SetHit(_vector dirXZ, float power, float duration)
+{
+    _vector dir = XMVector3Normalize(XMVectorSetY(dirXZ, 0.f));
+    if (XMVector3Equal(dir, XMVectorZero()))
+        return;
+
+    m_kbDir = dir;
+    m_kbPower = max(0.f, power);
+    m_kbDuration = max(0.01f, duration);
+    m_kbRemain = m_kbDuration;
+    m_kbActive = true;
+}
+
 Shieldbug* Shieldbug::Create()
 {
     Shieldbug* pInstance = new Shieldbug();
@@ -303,6 +319,8 @@ HRESULT Shieldbug::SetUpStateMachine()
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
 
             pModel->SetAnimation(pShieldbug->FindAnimIndex("Roar"), false, 0.05f);
+
+            EngineUtility::GetInstance()->PlaySound2D("FBX_shieldbugRoar1");
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -423,6 +441,12 @@ HRESULT Shieldbug::SetUpStateMachine()
             if (!pShieldbug || !pModel)
                 return;
             pModel->SetAnimation(pShieldbug->FindAnimIndex("Hit"), false, 0.05f, true);
+
+            _float r = EngineUtility::GetInstance()->Random(0, 2);
+            if (r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit1");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit2");
         },
          [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -458,6 +482,16 @@ HRESULT Shieldbug::SetUpStateMachine()
             e.vCenterWS = centerPos;
             e.baseColor = _float4(0.2f, 1.f, 0.2f, 1.f);
             EngineUtility::GetInstance()->AddObject( SCENE::GAMEPLAY, TEXT("BloodDieEffect"), SCENE::GAMEPLAY, TEXT("Effect"), &e);
+
+            {
+                Object* pPlayer = EngineUtility::GetInstance()->FindObject(SCENE::GAMEPLAY, L"Player", 0);
+                QUEST_EVENT ev{};
+                ev.type = EVENTTYPE_KILL;
+                ev.pInstigator = pPlayer;
+                ev.pTarget = owner;
+                ev.tag = L"Shieldbug";
+                EngineUtility::GetInstance()->PushEvent(ev);
+            }
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Shieldbug* pShieldbug = dynamic_cast<Shieldbug*>(owner);
@@ -487,6 +521,7 @@ HRESULT Shieldbug::SetUpStateMachine()
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
             if (!pModel)
                 return false;
+
             return pModel->isAnimFinished() && sm->GetTimeInState() > 0.1f;
         });
 
@@ -595,6 +630,30 @@ HRESULT Shieldbug::SetUpStateMachine()
         [](Object* owner, StateMachine*) {
             Shieldbug* pShieldbug = dynamic_cast<Shieldbug*>(owner);
             return pShieldbug->m_isAttack;
+        });
+    pSM->AddTransition("Defend", "Hit", FindPriorityIndex("Hit"),
+        [](Object* owner, StateMachine*) {
+            Shieldbug* pShieldbug = dynamic_cast<Shieldbug*>(owner);
+            if (!pShieldbug)
+                return false;
+            Info* pInfo = dynamic_cast<Info*>(pShieldbug->FindComponent(TEXT("Info")));
+            if (!pInfo)
+                return false;
+            if (*std::get_if<_bool>(pInfo->GetInfo().GetPtr("IsHit")))
+            {
+                pInfo->GetInfo().SetData("IsHit", false);
+                return true;
+            }
+            else
+                return false;
+        });
+    pSM->AddTransition("Defend", "Die", FindPriorityIndex("Die"),
+        [](Object* owner, StateMachine*) {
+            Shieldbug* pShieldbug = dynamic_cast<Shieldbug*>(owner);
+            if (!pShieldbug) return false;
+            Info* pInfo = dynamic_cast<Info*>(pShieldbug->FindComponent(TEXT("Info")));
+            if (!pInfo) return false;
+            return pInfo->IsDead();
         });
 
     //Attack ->
@@ -729,15 +788,15 @@ HRESULT Shieldbug::SetUpInfo()
         return E_FAIL;
 
     INFO_DESC desc;
-    desc.SetData("MaxHP", _float{ 60.f });
-    desc.SetData("CurHP", _float{ 60.f });
+    desc.SetData("MaxHP", _float{ 50.f });
+    desc.SetData("CurHP", _float{ 50.f });
     desc.SetData("InvincibleTime", _float{ 0.1f });
     desc.SetData("InvincibleLeft", _float{ 0.f });
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
     desc.SetData("IsHit", _bool{ false });
     desc.SetData("Faction", FACTION_MONSTER);
-    desc.SetData("AttackDamage", _float{ 15.f });
+    desc.SetData("AttackDamage", _float{ 30.f });
     pInfo->BindInfoDesc(desc);
 
     return S_OK;
@@ -753,7 +812,7 @@ void Shieldbug::SetUpAIInputData()
         return;
     m_pAIInputCache->SetData("PlayerPos", pTransform->GetState(MATRIXROW_POSITION));
 
-    m_pAIInputCache->SetData("SightRange", _float{ 10.f });
+    m_pAIInputCache->SetData("SightRange", _float{ 8.f });
     m_pAIInputCache->SetData("TrackRange", _float{ 4.f });
     m_pAIInputCache->SetData("FovDegree", _float{ 360.f });
     m_pAIInputCache->SetData("AttackRange", _float{ 2.5f });
@@ -789,7 +848,9 @@ HRESULT Shieldbug::SetUpAIProcess()
                 const _float distance = XMVectorGetX(XMVector3Length(playerPos - shieldbugPos));
                 in.SetData("Distance", _float{ distance });
 
-                const float sightRange = in.GetPtr("SightRange") ? std::get<_float>(*in.GetPtr("SightRange")) : 8.f;
+                float sightRange = in.GetPtr("SightRange") ? std::get<_float>(*in.GetPtr("SightRange")) : 10.f;
+                _float globalSightScale = static_cast<Player*>(m_pEngineUtility->FindObject(SCENE::GAMEPLAY, L"Player", 0))->GetGlobalSightScale();
+                sightRange *= globalSightScale;
                 const float fovDeg = in.GetPtr("FovDegree") ? std::get<_float>(*in.GetPtr("FovDegree")) : 360.f;
                 const float chasePersistTime = in.GetPtr("ChasePersistTime") ? std::get<_float>(*in.GetPtr("ChasePersistTime")) : 3.f;
 
@@ -828,7 +889,7 @@ HRESULT Shieldbug::SetUpAIProcess()
 
             const AIValue* pShieldbugPos = in.GetPtr("ShieldbugPos");
             const AIValue* pPlayerPos = in.GetPtr("PlayerPos");
-            if (!pShieldbugPos || !pPlayerPos) 
+            if (!pShieldbugPos || !pPlayerPos)
                 return;
 
             const _vector shieldbugPos = std::get<_vector>(*pShieldbugPos);
@@ -839,26 +900,42 @@ HRESULT Shieldbug::SetUpAIProcess()
             const bool  visible = in.GetPtr("Visible") ? std::get<_bool>(*in.GetPtr("Visible")) : false;
             const bool  chaseAlive = in.GetPtr("ChaseAlive") ? std::get<_bool>(*in.GetPtr("ChaseAlive")) : false;
 
-            const float trackRange = in.GetPtr("TrackRange") ? std::get<_float>(*in.GetPtr("TrackRange")) : 4.5f;
             const float attackRange = in.GetPtr("AttackRange") ? std::get<_float>(*in.GetPtr("AttackRange")) : 2.5f;
 
-            const bool inSight = visible;
-            const bool inTrack = (distance <= trackRange);
-            const bool inAttack = (distance <= attackRange);
+            // ★ 방어 거리 구간
+            const float defendNear = 4.f;
+            const float defendFar = 6.f;
 
-            if (inSight && !inTrack)
+            const bool inSight = visible;
+            const bool inAttackRange = (distance <= attackRange);
+            const bool inDefendBand = (distance >= defendNear && distance <= defendFar);
+
+            // --- 우선순위: 공격 > 방어 > 추적 ---
+
+            // 1) 공격 거리 안
+            if ((inSight || chaseAlive) && inAttackRange)
+            {
+                out.SetData("isAttack", _bool{ true });
+                return;
+            }
+
+            // 2) 4 ~ 6 구간: 방어 상태
+            if (inSight && inDefendBand)
             {
                 out.SetData("isDefend", _bool{ true });
+                return;
             }
-            else if ((inSight || chaseAlive) && inTrack && !inAttack)
+
+            // 3) 그 외(공격 거리 밖 & 방어 구간 밖)인데,
+            //    시야 안에 있거나 추적 유지 시간 안이면 계속 쫓아감
+            if ((inSight || chaseAlive) && !inAttackRange && !inDefendBand)
             {
                 out.SetData("isMove", _bool{ true });
                 out.SetData("moveDir", dir);
+                return;
             }
-            else if ((inSight || chaseAlive) && inAttack)
-            {
-                out.SetData("isAttack", _bool{ true });
-            }
+
+            // 4) 나머지: 아무 것도 하지 않음 (Idle로 떨어지게)
         };
 
     // [3] ACT: 출력 보정
@@ -1354,4 +1431,65 @@ void Shieldbug::UpdatePath(_float dt)
         }
         // 실패하면 그냥 기존 경로 유지 (혹은 지워도 됨: m_path.clear(); m_pathIndex=-1;)
     }
+}
+
+void Shieldbug::HitBack(_float fTimeDelta)
+{
+    auto* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!pTransform)
+    {
+        m_kbActive = false;
+        return;
+    }
+
+    const float dt = max(0.f, fTimeDelta);
+
+    // 남은 시간 비율(1 → 0) 기반으로 감속
+    const float t = (m_kbDuration > 1e-6f) ? (m_kbRemain / m_kbDuration) : 0.f;
+    const float speed = m_kbPower * t;
+
+    _vector prePos = pTransform->GetState(MATRIXROW_POSITION);
+    pTransform->Translate(m_kbDir, speed * dt);
+
+    _vector newPos = pTransform->GetState(MATRIXROW_POSITION);
+
+    // 네비 밖으로 밀려나면 원복
+    _int cellIndex = -1;
+    if (!m_pEngineUtility->IsInCell(newPos, &cellIndex))
+    {
+        pTransform->SetState(MATRIXROW_POSITION, prePos);
+    }
+    else
+    {
+        // 네비 높이에 붙이기 (필요 없으면 생략해도 됨)
+        _vector fixed{};
+        m_pEngineUtility->SetHeightOnCell(newPos, &fixed);
+        pTransform->SetState(MATRIXROW_POSITION, fixed);
+    }
+
+    // 문 등과 충돌 시도 원복 (Player와 동일하게 하고 싶으면)
+    if (auto* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision"))))
+    {
+        pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
+        Layer* pDoorLayer = m_pEngineUtility->FindLayer(
+            m_pEngineUtility->GetCurrentSceneId(), TEXT("Door"));
+        if (pDoorLayer)
+        {
+            for (auto& door : pDoorLayer->GetAllObjects())
+            {
+                if (!door) continue;
+                auto* dCol = dynamic_cast<Collision*>(door->FindComponent(TEXT("Collision")));
+                if (dCol && dCol->Intersect(pCollision))
+                {
+                    pTransform->SetState(MATRIXROW_POSITION, prePos);
+                    break;
+                }
+            }
+        }
+    }
+
+    m_kbRemain -= dt;
+    if (m_kbRemain <= 0.f)
+        m_kbActive = false;
 }

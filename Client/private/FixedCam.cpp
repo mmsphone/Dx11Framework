@@ -1,8 +1,6 @@
 ﻿#include "FixedCam.h"
 #include "EngineUtility.h"
 
-NS_BEGIN(Client)
-
 FixedCam::FixedCam()
     : Camera{ }
 {
@@ -23,12 +21,13 @@ HRESULT FixedCam::Initialize(void* pArg)
     if (FAILED(__super::Initialize(pArg)))
         return E_FAIL;
 
+    m_pEngineUtility->RegisterCamera(this);
+
     return S_OK;
 }
 
 void FixedCam::PriorityUpdate(_float fTimeDelta)
 {
-    UpdatePipeLine();
 }
 
 void FixedCam::Update(_float fTimeDelta)
@@ -72,7 +71,7 @@ Object* FixedCam::Clone(void* pArg)
 
 void FixedCam::Free()
 {
+    m_pEngineUtility->UnregisterCamera(this);
     __super::Free();
 }
 
-NS_END

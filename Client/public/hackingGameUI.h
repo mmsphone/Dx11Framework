@@ -35,7 +35,7 @@ private:
 	void CloseGame();
 	void OnGameClear();
 
-	void OnCellClick(_uint line, _uint row, _uint col);
+	void OnCellClick(_uint line, _uint row, _uint col, _int dirStep);
 	unsigned char GetRotatedMask(unsigned char baseMask, _int rotation) const;
 	_bool         CheckLine(_uint line) const;
 	void          UpdateLineVisual(_uint line);

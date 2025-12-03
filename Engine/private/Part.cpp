@@ -44,6 +44,11 @@ HRESULT Part::Render()
 	return S_OK;
 }
 
+void Part::SetVisible(_bool bVisible)
+{
+    m_bVisible = bVisible;
+}
+
 const _float4x4* Part::GetCombinedWorldMatrix() const
 {
     return &m_CombinedWorldMatrix;

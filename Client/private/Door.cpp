@@ -132,6 +132,9 @@ void Door::Open()
 
     m_isOpening = true;
     m_openT = 0.f;
+
+    m_pEngineUtility->PlaySound2D("FBX_doorMove");
+    m_pEngineUtility->PlaySound2D("FBX_playerOpenDoor");
 }
 
 Door* Door::Create()

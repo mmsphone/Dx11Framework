@@ -241,6 +241,18 @@
     <Filter Include="03.Utility\UIManager">
       <UniqueIdentifier>{cbae5ff7-e8c5-477f-aca0-f40071e5aad9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="04.ForUtility\Quest">
+      <UniqueIdentifier>{81d7f1d0-79d0-469e-b1ed-85d5a4f0a20e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\QuestManager">
+      <UniqueIdentifier>{7a826e9a-e405-4a9c-8b55-74c58c5308a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\CameraManger">
+      <UniqueIdentifier>{89901cbc-15a1-45da-a98e-0762e396dc6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="03.Utility\SoundManager">
+      <UniqueIdentifier>{73ade301-2dc9-47d0-b2b7-30b80401ca3f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\public\Base.h">
@@ -482,6 +494,18 @@
     </ClInclude>
     <ClInclude Include="..\public\UIManager.h">
       <Filter>03.Utility\UIManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\Quest.h">
+      <Filter>04.ForUtility\Quest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\QuestManager.h">
+      <Filter>03.Utility\QuestManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\CameraManager.h">
+      <Filter>03.Utility\CameraManger</Filter>
+    </ClInclude>
+    <ClInclude Include="..\public\SoundManager.h">
+      <Filter>03.Utility\SoundManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -728,6 +752,18 @@
     <ClCompile Include="..\private\UIManager.cpp">
       <Filter>03.Utility\UIManager</Filter>
     </ClCompile>
+    <ClCompile Include="..\private\Quest.cpp">
+      <Filter>04.ForUtility\Quest</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\QuestManager.cpp">
+      <Filter>03.Utility\QuestManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\CameraManager.cpp">
+      <Filter>03.Utility\CameraManger</Filter>
+    </ClCompile>
+    <ClCompile Include="..\private\SoundManager.cpp">
+      <Filter>03.Utility\SoundManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bin\Shader\Engine_Shader_Defines.hlsli">
@@ -769,6 +805,9 @@
       <Filter>07.Shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\bin\Shader\Shader_VtxBloodHit.hlsl">
+      <Filter>07.Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\bin\Shader\Shader_Explosion.hlsl">
       <Filter>07.Shaders</Filter>
     </FxCompile>
   </ItemGroup>

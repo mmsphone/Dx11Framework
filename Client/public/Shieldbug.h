@@ -27,6 +27,8 @@ public:
     _uint FindAnimIndex(string animName, _uint fallback = 0) const;
     _uint FindPriorityIndex(string toStateName, _uint fallback = 0) const;
 
+    void SetHit(_vector dirXZ, float power, float duration);
+
     static Shieldbug* Create();
     virtual Object* Clone(void* pArg) override;
     virtual void Free() override;
@@ -48,6 +50,7 @@ private:
 
     _bool  BuildPathToTarget(const _float3& targetPos);
     void UpdatePath(_float dt);
+    void HitBack(_float fTimeDelta);
 
 private:
     unordered_map<string, _uint> m_animIndexMap;
@@ -81,6 +84,13 @@ private:
 
     _bool  m_isDying = false;
     _float m_deathFade = 1.f;
+
+    // ¡Ú ³Ë¹é »óÅÂ
+    bool   m_kbActive = false;
+    float  m_kbRemain = 0.f;
+    float  m_kbDuration = 0.f;
+    _vector m_kbDir = {};
+    float   m_kbPower = 0.f;
 };
 
 NS_END

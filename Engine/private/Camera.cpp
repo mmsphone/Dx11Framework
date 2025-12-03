@@ -41,9 +41,6 @@ HRESULT Camera::Initialize(void* pArg)
     pTransform->SetState(MATRIXROW::MATRIXROW_POSITION, XMVectorSetW(XMLoadFloat3(&pDesc->vEye), 1.f));
     pTransform->LookAt(XMVectorSetW(XMLoadFloat3(&pDesc->vAt), 1.f));
 
-    /* 초기데이터 파이프라인에 셋팅. */
-    UpdatePipeLine();
-
     return S_OK;
 }
 
@@ -64,15 +61,27 @@ HRESULT Camera::Render()
 	return S_OK;
 }
 
+_float Camera::GetFovy() const
+{
+    return m_fFovy;
+}
+
+_float Camera::GetNear() const
+{
+    return m_fNear;
+}
+
+_float Camera::GetFar() const
+{
+    return m_fFar;
+}
+
+_float Camera::GetAspect() const
+{
+    return m_fAspect;
+}
+
 void Camera::Free()
 {
     __super::Free();
-}
-
-void Camera::UpdatePipeLine()
-{
-    Transform* pTransform = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
-    m_pEngineUtility->SetPipelineTransform(D3DTS::D3DTS_VIEW, pTransform->GetWorldMatrixInverse());
-    m_pEngineUtility->SetPipelineTransform(D3DTS::D3DTS_PROJECTION, XMMatrixPerspectiveFovLH(m_fFovy, m_fAspect, m_fNear, m_fFar));
-    m_pEngineUtility->SetPipelineFarDistance(m_fFar);
 }

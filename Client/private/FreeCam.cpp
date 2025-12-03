@@ -25,6 +25,8 @@ HRESULT FreeCam::Initialize(void* pArg)
     if (FAILED(__super::Initialize(pArg)))
         return E_FAIL;
 
+    m_pEngineUtility->RegisterCamera(this);
+
     return S_OK;
 }
 
@@ -84,8 +86,6 @@ void FreeCam::PriorityUpdate(_float fTimeDelta)
                 pTransform->RotateTimeDelta(pTransform->GetState(MATRIXROW_RIGHT), moveAngle);
         }
     }
-
-    UpdatePipeLine();
 }
 
 void FreeCam::Update(_float fTimeDelta)
@@ -130,5 +130,6 @@ Object* FreeCam::Clone(void* pArg)
 
 void FreeCam::Free()
 {
+    m_pEngineUtility->UnregisterCamera(this);
     __super::Free();
 }

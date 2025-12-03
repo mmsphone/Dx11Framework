@@ -272,6 +272,7 @@ namespace Engine
 	//트리거박스 데이터
 	typedef struct tagTriggerBoxDesc
 	{
+		_wstring triggerTag;
 		_float3 center;
 		_float3 Extents;
 	}TRIGGERBOX_DESC;
@@ -306,7 +307,75 @@ namespace Engine
 		_bool enable = true;
 	}UI_DESC;
 
+	//컨텐츠용 구조체
+	typedef struct tagContentsDesc
+	{
+		_int          id = 0;
+		CONTENTS      state = CONTENTS_INACTIVE;
+		CONTENTSTYPE  type = CONTENTSTYPE_TRIGGER;
+
+		// 대상 식별용 태그 (Trigger 이름, Enemy 타입, Console 이름 등)
+		_wstring   targetTag;
+
+		// 위치/ID 기반이 필요할 때 (TriggerBox ID 등)
+		_int          triggerId = -1;
+
+		// 진행도
+		_int          requiredCount = 1;
+		_int          currentCount = 0;
+
+		// UI용 텍스트 키 (실제 문자열은 클라에서 해석)
+		_wstring   titleKey;
+		_wstring   descKey;
+
+		std::function<void()> onStart;
+		std::function<void()> onCompleted;
+	}CONTENTS_DESC;
+
+	//퀘스트용 구조체
+	typedef struct  tagQuestDesc
+	{
+		_int          id = 0;
+		QUEST         state = QUEST_INACTIVE;
+
+		_wstring   nameKey;
+		_wstring   descKey;
+
+		// 이 퀘스트를 구성하는 컨텐츠들
+		vector<CONTENTS_DESC> contents;
+		_int          currentContentsIndex = 0; // 현재 진행중인 컨텐츠 인덱스
+
+		std::function<void()> onStart;
+		std::function<void()> onCompleted;
+	}QUEST_DESC;
+
+	//퀘스트 이벤트 구조체
+	typedef struct tagQuestEvent
+	{
+		EVENTTYPE     type = EVENTTYPE_CUSTOM;
+
+		// 누가 / 무엇이 관련됐는지 (실제 사용은 클라에서 자유롭게)
+		class Object* pInstigator = nullptr; // 보통 Player
+		class Object* pTarget = nullptr; // Enemy, Console, Trigger 등
+
+		// 태그/ID 등 추가 정보
+		_wstring   tag;      // enemy type, trigger name, object name 등
+		_int          intParam = 0; // trigger id, item id 등
+
+	}QUEST_EVENT;
+
+	struct CAMERA_SHAKE_DESC
+	{
+		_float3 vCenterWS = _float3(0.f, 0.f, 0.f); // 폭발 중심
+		_float  fInnerRadius = 0.f;                    // 이 거리 이하는 풀 강도
+		_float  fOuterRadius = 0.f;                    // 이 거리 이상은 0
+		_float  fDuration = 0.3f;                   // 전체 지속시간
+
+		_float3 vAmpPos = _float3(0.f, 0.f, 0.f); // 위치 흔들림 진폭
+		_float3 vAmpRotDeg = _float3(0.f, 0.f, 0.f); // 회전 흔들림 진폭(도 단위)
+
+		_float  fFrequency = 10.f;                   // 진동 빈도
+		_bool   bOverride = true;                   // true면 기존 쉐이크 덮어씀
+	};
 }
-
-
 #endif // Engine_Struct_h__

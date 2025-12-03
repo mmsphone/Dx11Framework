@@ -117,6 +117,11 @@ HRESULT UIImage::Render()
         pShader->BindRawValue("g_Ratio", &m_Ratio, sizeof(_float));
         passIndex = 2;
     }
+    else if (m_MaskingType == 5 || m_MaskingType == 6)
+    {
+        pShader->BindRawValue("g_vCustomColor", &m_vCustomColor, sizeof(_float4));
+        passIndex = 2;
+    }
     else
     {
         passIndex = 0;   // 기본 UI 패스
@@ -151,6 +156,18 @@ void UIImage::SetBulletRatio(const _float ratio)
 {
     m_Ratio = clamp(ratio, 0.f, 1.f);
     m_MaskingType = 4;
+}
+
+void UIImage::SetMaskingColor(const _float4 vColor)
+{
+    m_vCustomColor = vColor;
+    m_MaskingType = 5;
+}
+
+void UIImage::SetMaskingColorGradient(const _float4 vColor)
+{
+    m_vCustomColor = vColor;
+    m_MaskingType = 6;
 }
 
 void UIImage::ClearMasking()

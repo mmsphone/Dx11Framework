@@ -8,6 +8,12 @@
 #include "UI.h"
 #include "UILabel.h"
 #include "UIImage.h"
+#include "endingUI.h"
+#include "Grenade.h"
+#include "BloodHitEffect.h"
+#include "Drone.h"
+#include "Worm.h"
+#include "Shieldbug.h"
 
 Player::Player()
     : ContainerTemplate{}
@@ -24,7 +30,7 @@ HRESULT Player::Initialize(void* pArg)
     CONTAINER_DESC* pDesc = new CONTAINER_DESC;
 
     pDesc->iNumParts = 1;
-    pDesc->fSpeedPerSec = 4.f;
+    pDesc->fSpeedPerSec = 3.5f;
     pDesc->fRotationPerSec = XMConvertToRadians(180.0f);
 
     if (FAILED(__super::Initialize(pDesc)))
@@ -53,6 +59,8 @@ void Player::Update(_float fTimeDelta)
 {
     InputCheck();
 
+    UpdateAfkSound(fTimeDelta);
+
     if (m_kbActive)
     {
         HitBack(fTimeDelta);
@@ -65,9 +73,6 @@ void Player::Update(_float fTimeDelta)
     if (auto pSM = dynamic_cast<StateMachine*>(FindComponent(TEXT("StateMachine"))))
         pSM->Update(fTimeDelta);
 
-    if (auto pModel = dynamic_cast<Model*>(FindComponent(TEXT("Model"))))
-        pModel->PlayAnimation(fTimeDelta);
-
     __super::Update(fTimeDelta);
 
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
@@ -77,6 +82,9 @@ void Player::Update(_float fTimeDelta)
 
     Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
+
+    if (auto* pAtkCol = static_cast<Collision*>(FindComponent(TEXT("AttackCollision"))))
+        pAtkCol->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 
 
     UI* hpFront = m_pEngineUtility->FindUI(L"playerHpFront");
@@ -136,6 +144,8 @@ HRESULT Player::Render()
 #ifdef _DEBUG
     Collision* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision")));
     pCollision->Render();
+    Collision* pAttackCollision = dynamic_cast<Collision*>(FindComponent(TEXT("AttackCollision")));
+    pAttackCollision->Render();
 #endif
 
     return S_OK;
@@ -203,11 +213,42 @@ void Player::SetHit(_vector dirXZ, float power, float duration)
 
     m_hitDirWorld = XMVector3Normalize(-dir);
     m_hitUiRemain = m_hitUIDuration;
+
+    _float r = m_pEngineUtility->Random(0, 7);
+    if(r >= 6)
+        m_pEngineUtility->PlaySound2D("FBX_playerHit1");
+    else if (r >= 5)
+        m_pEngineUtility->PlaySound2D("FBX_playerHit2");
+    else if (r >= 4)
+        m_pEngineUtility->PlaySound2D("FBX_playerHit3");
+    else if (r >= 3)
+        m_pEngineUtility->PlaySound2D("FBX_playerHit4");
+    else if (r >= 2)
+        m_pEngineUtility->PlaySound2D("FBX_playerHit5");
+    else if (r >= 1)
+        m_pEngineUtility->PlaySound2D("FBX_playerHit6");
+    else
+        m_pEngineUtility->PlaySound2D("FBX_playerHit7");
 }
 
 void Player::SetPlayingMinigame(_bool bPlayingMinigame)
 {
     m_isPlayingMinigame = bPlayingMinigame;
+}
+
+void Player::SetPickupState()
+{
+    m_isPickup = true;
+}
+
+void Player::SetGlobalSightScale(const _float& sightScale)
+{
+    m_globalSightScale = sightScale;
+}
+
+_float Player::GetGlobalSightScale() const
+{
+    return m_globalSightScale;
 }
 
 HRESULT Player::ReadyComponents()
@@ -226,13 +267,26 @@ HRESULT Player::ReadyComponents()
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("Physics"), TEXT("Physics"), nullptr, &desc)))
         return E_FAIL;
 
-    CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
-    OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
-    XMStoreFloat3(&OBBDesc.vExtents,_vector{ 0.25f, 1.f, 0.25f } / scaleOffset);
-    OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
-    if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
-        return E_FAIL;
+    //본체
+    {
+        CollisionBoxOBB::COLLISIONOBB_DESC     OBBDesc{};
+        OBBDesc.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
+        XMStoreFloat3(&OBBDesc.vExtents, _vector{ 0.25f, 1.f, 0.25f } / scaleOffset);
+        OBBDesc.vCenter = _float3(0.f, OBBDesc.vExtents.y * 0.7f, 0.f);
+        if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("Collision"), nullptr, &OBBDesc)))
+            return E_FAIL;
+    }
 
+    //근접공격용
+    {
+        CollisionBoxOBB::COLLISIONOBB_DESC atk{};
+        atk.vOrientation = _float4(0.f, 0.f, 0.f, 1.f);
+        // 살짝 넓고 더 앞으로 — 필요하면 숫자 조절하면서 튜닝
+        XMStoreFloat3(&atk.vExtents, _vector{ 0.25f, 1.f, 0.6f } / scaleOffset);
+        atk.vCenter = _float3(0.f, atk.vExtents.y * 0.5f, -atk.vExtents.z * 0.6f);
+        if (FAILED(AddComponent(SCENE::STATIC, TEXT("CollisionOBB"), TEXT("AttackCollision"), nullptr, &atk)))
+            return E_FAIL;
+    }
 
     return S_OK;
 }
@@ -280,8 +334,11 @@ void Player::SetUpPriorityIndexMap()
         { "Idle",       0 },
         { "Walk",       1 },
         { "Run",        2 },
-        { "Attack",      3 },
-        { "Reload",  4 },
+        { "Attack",     3 },
+        { "MeleeAttack",4 },
+        { "Throw",      5 },
+        { "Pickup",     6 },
+        { "Reload",     7 },
     };
 }
 
@@ -292,6 +349,61 @@ HRESULT Player::SetUpStateMachine()
     if (!pSM || !pModel)
         return E_FAIL;
 
+    auto CanReload = [](Player* pPlayer) -> bool
+        {
+            if (!pPlayer) return false;
+            if (pPlayer->m_Parts.empty()) return false;
+
+            Object* pWeapon = pPlayer->m_Parts[0];
+            if (!pWeapon) return false;
+
+            Info* partInfo = static_cast<Info*>(pWeapon->FindComponent(TEXT("Info")));
+            if (!partInfo) return false;
+
+            INFO_DESC desc = partInfo->GetInfo();
+            _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
+            _int maxBullet = *std::get_if<_int>(desc.GetPtr("MaxBullet"));
+            _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
+
+            // 남은 탄약 없으면 불가
+            if (curAmmo <= 0)
+                return false;
+
+            // 이미 만탄이면 재장전 의미 없음
+            if (curBullet >= maxBullet)
+                return false;
+
+            return true;
+    };
+
+    auto CanShoot = [](Player* pPlayer) -> bool
+        {
+            if (!pPlayer) return false;
+            if (pPlayer->m_Parts.empty()) return false;
+
+            Object* pWeapon = pPlayer->m_Parts[0];
+            if (!pWeapon) return false;
+
+            Info* partInfo = static_cast<Info*>(pWeapon->FindComponent(TEXT("Info")));
+            if (!partInfo) return false;
+
+            INFO_DESC desc = partInfo->GetInfo();
+            _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
+            return curBullet > 0;
+        };
+
+    auto CanThrow = [](Player* pPlayer) -> bool
+        {
+            if (!pPlayer) return false;
+
+            Info* pInfo = static_cast<Info*>(pPlayer->FindComponent(TEXT("Info")));
+            if (!pInfo) return false;
+
+            INFO_DESC desc = pInfo->GetInfo();
+            _int grenadeCount = *std::get_if<_int>(desc.GetPtr("GrenadeCount"));
+            return grenadeCount > 0;
+        };
+
     //상태 정의
     pSM->RegisterState("Idle", {
         [](Object* owner, StateMachine* sm) {
@@ -301,7 +413,11 @@ HRESULT Player::SetUpStateMachine()
                 return;
             pModel->SetAnimation(pPlayer->FindAnimIndex("Idle"), true, 0.1f);
         },
-        nullptr,
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+             Player* pPlayer = dynamic_cast<Player*>(owner);
+             if (auto pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model"))))
+                 pModel->PlayAnimation(fTimeDelta);
+        },
         nullptr
     });
 
@@ -317,6 +433,9 @@ HRESULT Player::SetUpStateMachine()
             Player* pPlayer = dynamic_cast<Player*>(owner);
             if (!pPlayer)
                 return;
+
+            if (auto pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model"))))
+                pModel->PlayAnimation(fTimeDelta * 1.3f);
 
             if (auto pPhysics = dynamic_cast<Physics*>(owner->FindComponent(TEXT("Physics"))))
                 pPhysics->Update(fTimeDelta);
@@ -338,6 +457,9 @@ HRESULT Player::SetUpStateMachine()
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = dynamic_cast<Player*>(owner);
 
+            if (auto pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model"))))
+                pModel->PlayAnimation(fTimeDelta * 1.3f);
+
             if (auto pPhysics = dynamic_cast<Physics*>(owner->FindComponent(TEXT("Physics"))))
                 pPhysics->Update(fTimeDelta);
 
@@ -356,41 +478,109 @@ HRESULT Player::SetUpStateMachine()
             _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
             _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
             if (curBullet <= 0)
-            {
-                if (curAmmo > 0)
-                    sm->SetState("Reload");
                 return;
-            }
 
             Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
             pModel->SetAnimation(pPlayer->FindAnimIndex("Attack"), false, 0.05f, true);
             pPlayer->Shoot();
+
+            _float r = EngineUtility::GetInstance()->Random(0, 2);
+            if (r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_shootAR1");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_shootAR2");
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = static_cast<Player*>(owner);
             if (!pPlayer)
                 return;
+
+            if (auto pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model"))))
+                pModel->PlayAnimation(fTimeDelta * 1.4f);
+
             pPlayer->Rotate(fTimeDelta);
             Object* pWeapon = pPlayer->m_Parts.at(0);
             if (pWeapon == nullptr)
                 return;
-            static_cast<Model*>(pWeapon->FindComponent(TEXT("Model")))->PlayAnimation(fTimeDelta);
         },
         nullptr
     });
+
+    pSM->RegisterState("MeleeAttack", {
+           // Enter
+        [](Object* owner, StateMachine* sm) {
+        auto* pPlayer = static_cast<Player*>(owner);
+        if (!pPlayer) return;
+        
+        auto* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
+        if (!pModel) return;
+        
+                   // 근접 애니 한 번 재생
+        pModel->SetAnimation(pPlayer->FindAnimIndex("MeleeAttack"), false, 0.05f, false);
+        
+        pPlayer->m_meleeDidHit = false;
+        
+                   // 근접 공격 사운드
+        EngineUtility::GetInstance()->PlaySound2D("FBX_swing");
+        },
+               // Update
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+        auto* pPlayer = static_cast<Player*>(owner);
+        if (!pPlayer) return;
+        
+        auto* pModel = static_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+        if (!pModel) return;
+        
+        pModel->PlayAnimation(fTimeDelta * 1.8f);
+        
+                   // 애니 중간 타이밍에 한 번만 히트
+        const float cur = pModel->GetCurAnimTrackPos();
+        const float total = pModel->GetCurAnimDuration();
+        if (!pPlayer->m_meleeDidHit && total > 0.f && cur > total * 0.35f && cur < total * 0.7f)
+         {
+        pPlayer->DoMeleeAttack();
+        pPlayer->m_meleeDidHit = true;
+        }
+         },
+               // Exit
+        [](Object* owner, StateMachine* sm) {
+        auto* pPlayer = static_cast<Player*>(owner);
+        if (!pPlayer) return;
+        
+        pPlayer->m_meleeDidHit = false;
+                   // 입력 플래그는 InputCheck에서 매 프레임 초기화되므로 여기서 손댈 필요 X
+        }
+     });
     pSM->RegisterState("Reload", {
         [](Object* owner, StateMachine* sm) {
             Player* pPlayer = static_cast<Player*>(owner);
             Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
 
             pModel->SetAnimation(pPlayer->FindAnimIndex("Reload"), false, 0.05f, false);
+
+            EngineUtility::GetInstance()->PlaySound2D("FBX_reload");
+
+            _float r = EngineUtility::GetInstance()->Random(0, 2);
+            if(r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerReload1");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerReload2");
+
+            r = EngineUtility::GetInstance()->Random(0, 3);
+            if (r >= 2)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell1");
+            else if (r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell2");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell3");
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = static_cast<Player*>(owner);
-            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
-            pPlayer->Rotate(fTimeDelta);
 
-            pModel->PlayAnimation(fTimeDelta);
+            if (auto pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model"))))
+                pModel->PlayAnimation(fTimeDelta * 2.2f);
+
+
         },
         [](Object* owner, StateMachine* sm) {
             Player* pPlayer = static_cast<Player*>(owner);
@@ -402,7 +592,7 @@ HRESULT Player::SetUpStateMachine()
             _int maxBullet = *std::get_if<_int>(desc.GetPtr("MaxBullet"));
             _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
 
-            if (curBullet == 0 && curAmmo > 0)
+            if (curBullet < maxBullet && curAmmo > 0)
             {
                 _int newAmmoCount = curAmmo - 1;
                 desc.SetData("CurAmmo", newAmmoCount);
@@ -433,6 +623,86 @@ HRESULT Player::SetUpStateMachine()
         }
         });
 
+    pSM->RegisterState("Pickup", {
+        // Enter
+        [](Object* owner, StateMachine* sm) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return;
+
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
+            if (!pModel) return;
+
+            // Pickup 애니메이션 1회 재생
+            pModel->SetAnimation(pPlayer->FindAnimIndex("Pickup"), false, 0.05f, false);
+        },
+        // Update
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return;
+
+            if (auto* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model"))))
+                pModel->PlayAnimation(fTimeDelta * 2.f);
+        },
+        // Exit
+        [](Object* owner, StateMachine* sm) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return;
+
+            // 한 번 소비하고 플래그 리셋
+            pPlayer->m_isPickup = false;
+        }
+        });
+
+    pSM->RegisterState("Throw", {
+        // Enter
+        [](Object* owner, StateMachine* sm) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return;
+
+            Model* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
+            if (!pModel) return;
+
+            pPlayer->BeginThrowAimFromMouse();
+            // ThrowAway 애니메이션 재생
+            pModel->SetAnimation(pPlayer->FindAnimIndex("Throw"), false, 0.05f, false);
+            
+            pPlayer->m_inThrowState = true;
+            pPlayer->m_throwed = false;
+            pPlayer->GetParts().at(0)->SetVisible(false);
+
+            EngineUtility::GetInstance()->PlaySound2D("FBX_throw");
+
+            _float r = EngineUtility::GetInstance()->Random(0, 2);
+            if (r >= 1)
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerThrow1");
+            else
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerThrow2");
+        },
+        // Update
+        [](Object* owner, StateMachine* sm, _float fTimeDelta) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            Model* pModel = static_cast<Model*>(owner->FindComponent(L"Model"));
+
+            pModel->PlayAnimation(fTimeDelta * 2.5f);
+            pPlayer->Rotate(fTimeDelta);
+            if (pPlayer->m_throwed == false && pModel->GetCurAnimTrackPos() > pModel->GetCurAnimDuration() * 0.53)
+            {
+                pPlayer->m_throwed = true;
+                pPlayer->ThrowGrenade();
+            }
+        },
+        // Exit
+        [](Object* owner, StateMachine* sm) {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return;
+
+            // 플래그 소비
+            pPlayer->m_inThrowState = false;
+            pPlayer->m_isThrow = false;
+            pPlayer->GetParts().at(0)->SetVisible(true);
+        }
+        });
+
     // 전이 정의
     //Idle ->
     pSM->AddTransition("Idle", "Walk", FindPriorityIndex("Walk"),
@@ -452,11 +722,48 @@ HRESULT Player::SetUpStateMachine()
         });
 
     pSM->AddTransition("Idle", "Attack", FindPriorityIndex("Attack"),
+        [CanShoot](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer)
+                return false;
+            if (!pPlayer->m_isShoot) 
+                return false;
+            return CanShoot(pPlayer);
+        });
+    pSM->AddTransition("Idle", "Throw", FindPriorityIndex("Throw"),
+        [CanThrow](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            if (!pPlayer->m_isThrow)
+                return false;
+
+            return CanThrow(pPlayer);
+        });
+    pSM->AddTransition("Idle", "MeleeAttack", FindPriorityIndex("MeleeAttack"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+            return pPlayer->m_isMelee;
+            });
+    pSM->AddTransition("Idle", "Reload", FindPriorityIndex("Reload"),
+        [CanReload](Engine::Object* owner, Engine::StateMachine*)
+        {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            if (!pPlayer->m_isReload)
+                return false;
+
+            return CanReload(pPlayer);
+        });
+    pSM->AddTransition("Idle", "Pickup", FindPriorityIndex("Pickup"),
         [](Engine::Object* owner, Engine::StateMachine*) {
             Player* pPlayer = dynamic_cast<Player*>(owner);
             if (!pPlayer)
                 return false;
-            return pPlayer->m_isShoot;
+
+            return pPlayer->m_isPickup;
         });
 
     //Walk ->
@@ -477,11 +784,48 @@ HRESULT Player::SetUpStateMachine()
         });
 
     pSM->AddTransition("Walk", "Attack", FindPriorityIndex("Attack"),
+        [CanShoot](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer)
+                return false;
+            if (!pPlayer->m_isShoot) 
+                return false;
+            return CanShoot(pPlayer);
+        });
+    pSM->AddTransition("Walk", "MeleeAttack", FindPriorityIndex("MeleeAttack"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+            return pPlayer->m_isMelee;
+            });
+    pSM->AddTransition("Walk", "Throw", FindPriorityIndex("Throw"),
+        [CanThrow](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            if (!pPlayer->m_isThrow)
+                return false;
+
+            return CanThrow(pPlayer);
+        });
+    pSM->AddTransition("Walk", "Reload", FindPriorityIndex("Reload"),
+        [CanReload](Engine::Object* owner, Engine::StateMachine*)
+        {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            if (!pPlayer->m_isReload)
+                return false;
+
+            return CanReload(pPlayer);
+        });
+    pSM->AddTransition("Walk", "Pickup", FindPriorityIndex("Pickup"),
         [](Engine::Object* owner, Engine::StateMachine*) {
             Player* pPlayer = dynamic_cast<Player*>(owner);
             if (!pPlayer)
                 return false;
-            return pPlayer->m_isShoot;
+
+            return pPlayer->m_isPickup;
         });
 
     //Run ->
@@ -499,14 +843,50 @@ HRESULT Player::SetUpStateMachine()
             if (!pPlayer)
                 return false;
             return pPlayer->m_isMove && !pPlayer->m_isSprint; 
-        });
-    
+        });    
     pSM->AddTransition("Run", "Attack", FindPriorityIndex("Attack"),
-        [](Engine::Object* owner, Engine::StateMachine*) {
+        [CanShoot](Engine::Object* owner, Engine::StateMachine*) {
         Player* pPlayer = dynamic_cast<Player*>(owner);
         if (!pPlayer)
             return false;
-        return pPlayer->m_isShoot;
+        if (!pPlayer->m_isShoot) 
+            return false;
+        return CanShoot(pPlayer);
+        });
+    pSM->AddTransition("Run", "MeleeAttack", FindPriorityIndex("MeleeAttack"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+            return pPlayer->m_isMelee;
+            });
+    pSM->AddTransition("Run", "Throw", FindPriorityIndex("Throw"),
+        [CanThrow](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            if (!pPlayer->m_isThrow)
+                return false;
+
+            return CanThrow(pPlayer);
+        });
+    pSM->AddTransition("Run", "Reload", FindPriorityIndex("Reload"),
+        [CanReload](Engine::Object* owner, Engine::StateMachine*)
+        {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            if (!pPlayer->m_isReload)
+                return false;
+
+            return CanReload(pPlayer);
+        });
+    pSM->AddTransition("Run", "Pickup", FindPriorityIndex("Pickup"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer)
+                return false;
+
+            return pPlayer->m_isPickup;
         });
 
     //Attack ->
@@ -544,7 +924,7 @@ HRESULT Player::SetUpStateMachine()
         });
 
     pSM->AddTransition("Attack", "Attack", FindPriorityIndex("Attack"),
-        [](Engine::Object* owner, Engine::StateMachine*) {
+        [CanShoot](Engine::Object* owner, Engine::StateMachine*) {
             Player* pPlayer = dynamic_cast<Player*>(owner);
             if (!pPlayer)
                 return false;
@@ -552,8 +932,67 @@ HRESULT Player::SetUpStateMachine()
             if (!pModel)
                 return false;
 
-            return pModel->isAnimFinished() && pPlayer->m_isShoot;
+            if (!pModel->isAnimFinished()) return false;
+            if (!pPlayer->m_isShoot) return false;
+            return CanShoot(pPlayer);
         }, true);
+    pSM->AddTransition("Attack", "Reload", FindPriorityIndex("Reload"),
+        [CanReload](Engine::Object* owner, Engine::StateMachine*)
+        {
+            Player* pPlayer = static_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            Model* pModel = static_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            if (!pModel->isAnimFinished())
+                return false;
+
+            if (!pPlayer->m_isReload)
+                return false;
+
+            return CanReload(pPlayer);
+        });
+
+    // MeleeAttack ->
+    pSM->AddTransition("MeleeAttack", "Idle", FindPriorityIndex("Idle"),
+        [](Engine::Object* owner, Engine::StateMachine*)
+        {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            auto* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            // 애니 끝났고, 이동 입력도 없으면 Idle
+            return pModel->isAnimFinished() && !pPlayer->m_isMove;
+        });
+
+    pSM->AddTransition("MeleeAttack", "Walk", FindPriorityIndex("Walk"),
+        [](Engine::Object* owner, Engine::StateMachine*)
+        {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            auto* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            // 애니 끝났고, 걷기 입력이면 Walk
+            return pModel->isAnimFinished() && pPlayer->m_isMove && !pPlayer->m_isSprint;
+        });
+
+    pSM->AddTransition("MeleeAttack", "Run", FindPriorityIndex("Run"),
+        [](Engine::Object* owner, Engine::StateMachine*)
+        {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            auto* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            // 애니 끝났고, 달리기 입력이면 Run
+            return pModel->isAnimFinished() && pPlayer->m_isMove && pPlayer->m_isSprint;
+        });
 
     //Reload ->
     pSM->AddTransition("Reload", "Idle", FindPriorityIndex("Idle"),
@@ -575,10 +1014,83 @@ HRESULT Player::SetUpStateMachine()
             return pModel->isAnimFinished() && pPlayer->m_isMove && pPlayer->m_isSprint && !pPlayer->m_isShoot;
         });
     pSM->AddTransition("Reload", "Attack", FindPriorityIndex("Attack"),
-        [](Engine::Object* owner, Engine::StateMachine*) {
+        [CanShoot](Engine::Object* owner, Engine::StateMachine*) {
             Player* pPlayer = static_cast<Player*>(owner);
             Model* pModel = static_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
-            return pModel->isAnimFinished() && pPlayer->m_isShoot;
+            if (!pModel->isAnimFinished()) return false;
+            if (!pPlayer->m_isShoot) return false;
+            return CanShoot(pPlayer);
+        });
+
+    //Throw ->
+    pSM->AddTransition("Throw", "Idle", FindPriorityIndex("Idle"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            Model* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            return pModel->isAnimFinished() && !pPlayer->m_isMove;
+        });
+
+    pSM->AddTransition("Throw", "Walk", FindPriorityIndex("Walk"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            Model* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            return pModel->isAnimFinished() && pPlayer->m_isMove && !pPlayer->m_isSprint;
+        });
+
+    pSM->AddTransition("Throw", "Run", FindPriorityIndex("Run"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            Player* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            Model* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            return pModel->isAnimFinished() && pPlayer->m_isMove && pPlayer->m_isSprint;
+        });
+
+    //Pickup ->
+    pSM->AddTransition("Pickup", "Idle", FindPriorityIndex("Idle"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            auto* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            // 애니 끝나고 입력도 정지면 Idle
+            return pModel->isAnimFinished() && !pPlayer->m_isMove;
+        });
+
+    pSM->AddTransition("Pickup", "Walk", FindPriorityIndex("Walk"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            auto* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            // 애니 끝나고 걷기 입력이면 Walk
+            return pModel->isAnimFinished() && pPlayer->m_isMove && !pPlayer->m_isSprint;
+        });
+
+    pSM->AddTransition("Pickup", "Run", FindPriorityIndex("Run"),
+        [](Engine::Object* owner, Engine::StateMachine*) {
+            auto* pPlayer = dynamic_cast<Player*>(owner);
+            if (!pPlayer) return false;
+
+            auto* pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model")));
+            if (!pModel) return false;
+
+            // 애니 끝나고 달리기 입력이면 Run
+            return pModel->isAnimFinished() && pPlayer->m_isMove && pPlayer->m_isSprint;
         });
 
 
@@ -595,14 +1107,18 @@ HRESULT Player::SetUpInfo()
         return E_FAIL;
 
     INFO_DESC desc;
-    desc.SetData("MaxHP", _float{ 120.f });
-    desc.SetData("CurHP", _float{ 120.f });
+    desc.SetData("MaxHP", _float{ 100.f });
+    desc.SetData("CurHP", _float{ 100.f });
     desc.SetData("InvincibleTime", _float{ 0.3f });
     desc.SetData("InvincibleLeft", _float{ 0.f });
     desc.SetData("Time", _float{ 0.f });
     desc.SetData("LastHit", _float{ -999.f });
     desc.SetData("IsHit", _bool{ false });
     desc.SetData("Faction", FACTION_PLAYER);
+    desc.SetData("GrenadeCount", _int{ 0 });
+    desc.SetData("SpecialCount", _int{ 0 });
+    desc.SetData("MeleeDamage", _float{ 10.f });
+    
     pInfo->BindInfoDesc(desc);
 
     return S_OK;
@@ -618,7 +1134,7 @@ HRESULT Player::ReadyPlayerHitUI()
         desc.name = "PlayerHitDir";
         desc.x = g_iWinSizeX >> 1;
         desc.y = g_iWinSizeY >> 1;
-        desc.z = 0.f;
+        desc.z = 0.15f;
         desc.w = 512.f * 0.3f;
         desc.h = 256.f * 0.3f;
         desc.visible = true;
@@ -638,7 +1154,7 @@ HRESULT Player::ReadyPlayerHitUI()
         desc.name = "PlayerHitScreen";
         desc.x = g_iWinSizeX >> 1;
         desc.y = g_iWinSizeY >> 1;
-        desc.z = 0.01f;
+        desc.z = 0.15f;
         desc.w = 1280.f;
         desc.h = 720.f;
         desc.visible = true;
@@ -656,6 +1172,11 @@ HRESULT Player::ReadyPlayerHitUI()
 void Player::InputCheck()
 {
     m_isMove = false;
+    m_isShoot = false;
+    m_isSprint = false;
+    m_isReload = false;
+    m_isThrow = false;
+    m_isMelee = false;
 
     if (m_isPlayingMinigame)
         return;
@@ -680,7 +1201,9 @@ void Player::InputCheck()
 
     m_isSprint = m_pEngineUtility->IsKeyDown(DIK_LSHIFT) ? true : false;
     m_isShoot = m_pEngineUtility->IsMouseDown(MOUSEKEY_LEFTBUTTON) ? true : false;
-
+    m_isReload = m_pEngineUtility->IsKeyDown(DIK_R) ? true : false;
+    m_isThrow = m_pEngineUtility->IsKeyDown(DIK_G) ? true : false;
+    m_isMelee = m_pEngineUtility->IsKeyDown(DIK_F) ? true : false;
 }
 
 void Player::Move(_float fTimeDelta)
@@ -821,7 +1344,7 @@ void Player::Rotate(_float fTimeDelta)
 
     // 2) 이동 중이면 이동 방향으로 증분 회전
     static const _float moveDirDuration = 0.2f;
-    if (!m_isShoot && m_isMove)
+    if (!m_isShoot && m_isMove && !m_inThrowState)
     {
         // 현재/목표 방향(Y=0 평탄화)
         _vector look = XMVector3Normalize(XMVectorSetY(tf->GetState(MATRIXROW_LOOK), 0.f));
@@ -853,6 +1376,7 @@ void Player::Shoot()
         INFO_DESC desc = partInfo->GetInfo();
         _int curBullet = *std::get_if<_int>(desc.GetPtr("CurBullet"));
         _int maxBullet = *std::get_if<_int>(desc.GetPtr("MaxBullet"));
+        _int curAmmo = *std::get_if<_int>(desc.GetPtr("CurAmmo"));
 
         // ★ 재장전은 Reload 상태에서만 처리. 여기서는 0발이면 그냥 발사 안 함.
         if (curBullet <= 0)
@@ -869,6 +1393,14 @@ void Player::Shoot()
 
         if (auto* pMouseBulletCount = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"MouseBulletCount")))
             pMouseBulletCount->SetBulletRatio(bulletRatio);
+
+        if (curBullet <= 0 && curAmmo > 0)
+        {
+            if (auto* pSM = dynamic_cast<StateMachine*>(FindComponent(TEXT("StateMachine"))))
+            {
+                pSM->SetState("Reload");
+            }
+        }
     }
 
     _float2 mouse = m_pEngineUtility->GetMousePos();
@@ -967,6 +1499,266 @@ void Player::Shoot()
             }
         }
     }
+}
+
+void Player::BeginThrowAimFromMouse()
+{
+    m_hasThrowAim = false;
+    m_throwAimDir = XMVectorZero();
+
+    // 1) 마우스 → 뎁스 읽기
+    _float2 mouse = m_pEngineUtility->GetMousePos();
+    float d01 = 1.f;
+    if (!m_pEngineUtility->ReadDepthAtPixel((int)mouse.x, (int)mouse.y, &d01))
+        return;
+
+    // 2) Viewport / Unproject
+    D3D11_VIEWPORT vp{};
+    UINT vpCount = 1;
+    m_pEngineUtility->GetContext()->RSGetViewports(&vpCount, &vp);
+
+    float sx = std::clamp(mouse.x, 0.0f, vp.Width - 1.0f) + 0.5f;
+    float sy = std::clamp(mouse.y, 0.0f, vp.Height - 1.0f) + 0.5f;
+
+    _matrix V = m_pEngineUtility->GetTransformMatrix(D3DTS_VIEW);
+    _matrix P = m_pEngineUtility->GetTransformMatrix(D3DTS_PROJECTION);
+
+    _vector screen = XMVectorSet(sx, sy, d01, 1.f);
+    _vector pickPos = XMVector3Unproject(
+        screen,
+        vp.TopLeftX, vp.TopLeftY, vp.Width, vp.Height,
+        0.0f, 1.0f,
+        P, V, XMMatrixIdentity()
+    );
+
+    Transform* pTf = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Model* pModel = static_cast<Model*>(FindComponent(TEXT("Model")));
+    if (!pTf || !pModel)
+        return;
+
+    // 3) 왼손(수류탄) 위치 기준으로 방향 계산
+    const _float4x4* pPartPosMatPtr = m_Parts.at(0)->GetCombinedWorldMatrix();
+    _matrix partWorld = XMLoadFloat4x4(pPartPosMatPtr);
+
+    const _float4x4* pHandSocketPtr =
+        pModel->GetSocketBoneMatrixPtr("ValveBiped.Bip01_L_Hand");
+    _matrix handLocal = XMLoadFloat4x4(pHandSocketPtr);
+
+    _vector handPos = handLocal.r[3];
+    handPos = XMVector3TransformCoord(handPos, partWorld);
+
+    _vector moveDir = pickPos - handPos;
+    _vector dirXZ = XMVector3Normalize(XMVectorSetY(moveDir, 0.f));
+    if (XMVector3Equal(dirXZ, XMVectorZero()))
+        return;
+
+    // ★ 수류탄 던질 때 쓸 방향 저장
+    m_throwAimDir = dirXZ;
+    m_hasThrowAim = true;
+
+    // 4) 플레이어 회전 보간 시작 (Shoot에서 하던 것과 동일한 방식)
+    _vector look = XMVector3Normalize(XMVectorSetY(pTf->GetState(MATRIXROW_LOOK), 0.f));
+    const float baseOffset = XM_PI;
+
+    float curYaw = atan2f(XMVectorGetX(look), XMVectorGetZ(look));
+    float dstYaw = baseOffset + atan2f(XMVectorGetX(dirXZ), XMVectorGetZ(dirXZ));
+
+    float start = curYaw;
+    float target = dstYaw;
+    float delta = target - start;
+    while (delta > XM_PI) delta -= XM_2PI;
+    while (delta < -XM_PI) delta += XM_2PI;
+    target = start + delta;
+
+    if (fabsf(delta) < 1e-4f)
+    {
+        // 거의 이미 정렬되어 있으면 바로 스냅
+        pTf->RotateRadian(_vector{ 0.f,1.f,0.f,0.f }, target);
+        m_shootAimActive = false;
+    }
+    else
+    {
+        // 보간 회전 시작
+        m_shootYawStart = start;
+        m_shootYawTarget = target;
+        m_shootAimElapsed = 0.f;
+        m_shootAimActive = true;
+    }
+}
+
+void Player::ThrowGrenade()
+{
+    // 1) 수류탄 개수 체크
+    Info* pInfo = static_cast<Info*>(FindComponent(L"Info"));
+    if (!pInfo)
+        return;
+
+    INFO_DESC desc = pInfo->GetInfo();
+    _int grenadeCount = *std::get_if<_int>(desc.GetPtr("GrenadeCount"));
+    if (grenadeCount <= 0)
+        return;
+
+    Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    Model* pModel = static_cast<Model*>(FindComponent(TEXT("Model")));
+    if (!pTransform || !pModel)
+        return;
+
+    // 2) 방향: Enter에서 계산해 둔 에임 방향 우선 사용
+    _vector dir = XMVectorZero();
+    if (m_hasThrowAim)
+    {
+        dir = m_throwAimDir;
+    }
+    else
+    {
+        // 혹시 실패했으면 현재 바라보는 방향으로 fallback
+        _vector look = -pTransform->GetState(MATRIXROW_LOOK);
+        dir = XMVector3Normalize(XMVectorSetY(look, 0.f));
+        if (XMVector3Equal(dir, XMVectorZero()))
+            dir = XMVectorSet(0.f, 0.f, 1.f, 0.f);
+    }
+
+    // 3) 시작 위치: 왼손 소켓 기준
+    const _float4x4* socket = pModel->GetSocketBoneMatrixPtr("ValveBiped.Bip01_L_Hand");
+    _vector socketPos = _vector{ socket->_41, socket->_42, socket->_43, socket->_44 };
+
+    _vector pos = pTransform->GetState(MATRIXROW_POSITION);
+    _vector spawnPos = pos + socketPos * scaleOffset;
+
+    // 4) GRENADE_DESC 채워서 AddObject
+    GRENADE_DESC gDesc{};
+    XMStoreFloat3(&gDesc.vStartPos, spawnPos);
+    XMStoreFloat3(&gDesc.vDir, dir);
+
+    const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+    if (FAILED(m_pEngineUtility->AddObject(sceneId, TEXT("Grenade"), sceneId, TEXT("Projectile"), &gDesc)))
+        return;
+
+    // 5) 개수 감소 + UI 갱신
+    --grenadeCount;
+    desc.SetData("GrenadeCount", grenadeCount);
+    pInfo->BindInfoDesc(desc);
+
+    if (auto* ui = dynamic_cast<UILabel*>(m_pEngineUtility->FindUI(L"grenadeCount")))
+        ui->SetText(to_wstring(grenadeCount));
+}
+
+void Player::DoMeleeAttack()
+{
+    // 1) 내 히트박스 / Info / Transform 가져오기
+    auto* pAtkCol = static_cast<Collision*>(FindComponent(TEXT("AttackCollision")));
+    if (!pAtkCol)
+        return;
+
+    auto* pInfo = static_cast<Info*>(FindComponent(TEXT("Info")));
+    auto* pTf = static_cast<Transform*>(FindComponent(TEXT("Transform")));
+    if (!pInfo || !pTf)
+        return;
+
+    INFO_DESC& myDesc = pInfo->GetInfo();
+
+    _float meleeDamage = 10.f;
+    if (auto p = myDesc.GetPtr("MeleeDamage"))
+        meleeDamage = *std::get_if<_float>(p);
+
+    const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
+
+    auto HitLayer = [&](const wchar_t* layerName)
+        {
+            Layer* pLayer = m_pEngineUtility->FindLayer(sceneId, layerName);
+            if (!pLayer) return;
+
+            list<Object*> objs = pLayer->GetAllObjects();
+            for (auto* obj : objs)
+            {
+                if (!obj) continue;
+
+                // Info 확인해서 아군은 무시
+                auto* pTargetInfo = static_cast<Info*>(obj->FindComponent(TEXT("Info")));
+                if (!pTargetInfo) continue;
+
+                INFO_DESC& tDesc = pTargetInfo->GetInfo();
+                if (auto pf = tDesc.GetPtr("Faction"))
+                {
+                    _int faction = *std::get_if<_int>(pf);
+                    if (faction == FACTION_PLAYER) // 혹시라도 플레이어나 아군이면 스킵
+                        continue;
+                }
+
+                auto* pTargetCol = static_cast<Collision*>(obj->FindComponent(TEXT("Collision")));
+                if (!pTargetCol) continue;
+
+                // ★ 실제 히트박스 교차 체크
+                if (!pAtkCol->Intersect(pTargetCol))
+                    continue;
+
+                // 무적 시간 체크
+                _float invLeft = 0.f;
+                if (auto p = tDesc.GetPtr("InvincibleLeft"))
+                    invLeft = *std::get_if<_float>(p);
+                if (invLeft > 0.f)
+                    continue;
+
+                _float curHP = 0.f;
+                _float invT = 0.1f;
+                if (auto p = tDesc.GetPtr("CurHP"))          curHP = *std::get_if<_float>(p);
+                if (auto p = tDesc.GetPtr("InvincibleTime")) invT = *std::get_if<_float>(p);
+
+                curHP = max(0.f, curHP - meleeDamage);
+                tDesc.SetData("CurHP", _float{ curHP });
+                tDesc.SetData("IsHit", _bool{ true });
+                tDesc.SetData("InvincibleLeft", _float{ invT });
+
+                if (auto pT = tDesc.GetPtr("Time"))
+                    tDesc.SetData("LastHit", *std::get_if<_float>(pT));
+
+                pTargetInfo->BindInfoDesc(tDesc);
+
+                // 피 이펙트
+                if (auto* pTargetTf = static_cast<Transform*>(obj->FindComponent(TEXT("Transform"))))
+                {
+                    BloodHitEffect::BLOODHITEFFECT_DESC e{};
+                    e.fLifeTime = 0.25f;
+                    e.bLoop = false;
+                    e.bAutoKill = true;
+                    e.fRotationPerSec = 0.f;
+                    e.fSpeedPerSec = 0.f;
+                    XMStoreFloat3(&e.vCenterWS, pTargetTf->GetState(MATRIXROW_POSITION));
+                    e.baseColor = _float4(1.0f, 0.2f, 0.2f, 1.f);
+
+                    m_pEngineUtility->AddObject(
+                        SCENE::GAMEPLAY,
+                        TEXT("BloodHitEffect"),
+                        SCENE::GAMEPLAY,
+                        TEXT("Effect"),
+                        &e
+                    );
+                }
+
+                // 필요하면 여기서 넉백도 줄 수 있음 (몬스터 쪽에 SetHit 만들어져 있으면)
+                // 예시:
+                if (auto* drone = dynamic_cast<Drone*>(obj)) {
+                    _vector dirKB = XMVector3Normalize(
+                        XMVectorSetY(static_cast<Transform*>(drone->FindComponent(L"Transform"))->GetState(MATRIXROW_POSITION) - pTf->GetState(MATRIXROW_POSITION), 0.f));
+                    drone->SetHit(dirKB, 3.0f, 0.2f);
+                }
+                else if (auto* worm = dynamic_cast<Worm*>(obj)) {
+                    _vector dirKB = XMVector3Normalize(
+                        XMVectorSetY(static_cast<Transform*>(worm->FindComponent(L"Transform"))->GetState(MATRIXROW_POSITION) - pTf->GetState(MATRIXROW_POSITION), 0.f));
+                    worm->SetHit(dirKB, 3.0f, 0.2f);
+                }
+                else if (auto* shieldbug = dynamic_cast<Shieldbug*>(obj)) {
+                    _vector dirKB = XMVector3Normalize(
+                        XMVectorSetY(static_cast<Transform*>(shieldbug->FindComponent(L"Transform"))->GetState(MATRIXROW_POSITION) - pTf->GetState(MATRIXROW_POSITION), 0.f));
+                    shieldbug->SetHit(dirKB, 3.0f, 0.2f);
+                }
+            }
+        };
+
+    // ★ 실제로 치고 싶은 몬스터 레이어들 나열
+    HitLayer(TEXT("Drone"));
+    HitLayer(TEXT("Worm"));
+    HitLayer(TEXT("Shieldbug"));
 }
 
 void Player::HitBack(_float fTimeDelta)
@@ -1087,6 +1879,59 @@ void Player::UpdateHitUI(_float fTimeDelta)
     desc.x = centerPos.x + dirX * edgeOffset;
     desc.y = centerPos.y + dirY * edgeOffset;
     hitDir->ApplyUIDesc(desc);
+
+    Info* pInfo = static_cast<Info*>(FindComponent(L"Info"));
+    if (*std::get_if<_float>(pInfo->GetInfo().GetPtr("CurHP")) <= 0)
+    {
+        pInfo->GetInfo().SetData("InvincibleLeft", _float{ 999.f });
+        static_cast<endingUI*>(EngineUtility::GetInstance()->FindUI(L"endingUI"))->SetEndingText("mission\nfailed", endingUI::ENDTYPE::END_LOSE);
+        static_cast<endingUI*>(EngineUtility::GetInstance()->FindUI(L"endingUI"))->Show(true);
+    }
+}
+
+void Player::UpdateAfkSound(_float fTimeDelta)
+{
+    const bool isActive =
+        m_isMove ||
+        m_isShoot ||
+        m_isReload ||
+        m_isThrow ||
+        m_kbActive ||
+        m_isPickup ||
+        m_isPlayingMinigame;
+
+    if (isActive)
+    {
+        // 하나라도 행동이 있으면 타이머 리셋
+        m_idleTime = 0.f;
+        m_afkSoundAcc = 0.f;
+        return;
+    }
+
+    // 아무 행동도 없을 때만 idle 누적
+    m_idleTime += fTimeDelta;
+
+    // 10초 이전엔 아무 것도 안 함
+    if (m_idleTime < 10.f)
+    {
+        m_afkSoundAcc = 0.f; // 10초 전까지는 쿨다운도 같이 리셋
+        return;
+    }
+
+    // 10초를 넘겼으면 AFK 상태, 여기서부터 3초마다 사운드
+    m_afkSoundAcc += fTimeDelta;
+    if (m_afkSoundAcc >= 3.f)
+    {
+        _float r = m_pEngineUtility->Random(0, 3);
+        if (r >= 2)
+            m_pEngineUtility->PlaySound2D("FBX_playerAFK1");
+        else if( r >= 1)
+            m_pEngineUtility->PlaySound2D("FBX_playerAFK2");
+        else
+            m_pEngineUtility->PlaySound2D("FBX_playerAFK3");
+
+        m_afkSoundAcc = 0.f;
+    }
 }
 
 Player* Player::Create()

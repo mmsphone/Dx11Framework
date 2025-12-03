@@ -29,6 +29,9 @@ public:
 	void Drop(_float fTimeDelta);
 	void Spread(_float fTimeDelta);
 	void SpreadRepeat(_float fTimeDelta);
+	void SpreadXZ(_float fTimeDelta);
+	void SpreadUpward(_float fTimeDelta);
+	void SpreadGravity(_float fTimeDelta, _float gravity = 9.8f);
 
 	static VIBufferInstancingRect* Create(const INSTANCE_DESC* pDesc);
 	virtual Component* Clone(void* pArg) override;
@@ -43,6 +46,7 @@ private:
 	_bool m_repeatable = false;
 	_float2 m_vRepeatDurationRange = _float2{ 0.f, 0.f };
 	_float* m_pRepeatDurations = { nullptr };
+	_float* m_pVerticalSpeeds = { nullptr };
 };
 
 NS_END

@@ -58,10 +58,6 @@ HRESULT ClientApp::Initialize()
 		desc.fontColor = { 1.f,1.f,1.f,1.f };
 
 		m_pFPSLabel = dynamic_cast<UILabel*>(pUILabel->Clone(&desc));
-		if (m_pFPSLabel)
-		{
-			m_pEngineUtility->AddUI(L"FPS", m_pFPSLabel);
-		}
 	}
 	SafeRelease(pUILabel);
 #endif
@@ -91,7 +87,7 @@ HRESULT ClientApp::Render()
 	//m_pEngineUtility->RenderNavigation();
 	//m_pEngineUtility->RenderTriggerBoxes();
 	//m_pEngineUtility->RenderDebug();
-	m_pEngineUtility->FindUI(L"FPS")->Render();
+	m_pFPSLabel->Render();
 #endif
 
 	/* 후면버퍼를 전면으로 보여준다. */
@@ -156,6 +152,8 @@ HRESULT ClientApp::ReadyPrototypeForStatic()
 		return E_FAIL;
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_VtxBloodHit"), Shader::Create(TEXT("../bin/Shader/Shader_VtxBloodHit.hlsl"), VTXPOSTEX_INSTANCEWORLD::Elements, VTXPOSTEX_INSTANCEWORLD::iNumElements))))
 		return E_FAIL;
+	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("Shader_Explosion"), Shader::Create(TEXT("../bin/Shader/Shader_Explosion.hlsl"), VTXPOSTEX_INSTANCEWORLD::Elements, VTXPOSTEX_INSTANCEWORLD::iNumElements))))
+		return E_FAIL;
 
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("VIBufferRect"), VIBufferRect::Create())))
 		return E_FAIL;
@@ -188,6 +186,7 @@ HRESULT ClientApp::ReadyPrototypeForStatic()
 	if (FAILED(m_pEngineUtility->AddPrototype(SCENE::STATIC, TEXT("UIButton"), UIButton::Create())))
 		return E_FAIL;
 
+	m_pEngineUtility->LoadSound("BGM_loading", L"../bin/Resources/Sounds/BGM_loading.mp3", false, true);
 	return S_OK;
 }
 

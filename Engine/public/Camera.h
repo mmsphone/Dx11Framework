@@ -29,11 +29,13 @@ public:
 	virtual void LateUpdate(_float fTimeDelta) override;
 	virtual HRESULT Render() override;
 
+	_float GetFovy()   const;
+	_float GetNear()   const;
+	_float GetFar()    const;
+	_float GetAspect() const;
+
 	virtual Object* Clone(void* pArg) = 0;
 	virtual void Free() override;
-
-protected:
-	void UpdatePipeLine();
 
 protected:
 	_float					m_fFovy = {};

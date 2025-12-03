@@ -20,6 +20,8 @@ public:
     const TRIGGERBOX_DESC& GetTriggerBoxDesc();
     void UpdateFromDesc(const TRIGGERBOX_DESC& desc);
 
+    void SetTriggerTag(const _wstring& triggerTag);
+
     static TriggerBox* Create(void* pArg);
     virtual void       Free() override;
 

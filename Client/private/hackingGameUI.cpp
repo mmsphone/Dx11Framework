@@ -113,7 +113,7 @@ HRESULT hackingGameUI::Initialize(void* pArg)
     {
         pCloseBtn->SetEnable(true);
         pCloseBtn->ClearButtonFunctions();
-        pCloseBtn->AddButtonFunction([this]()
+        pCloseBtn->AddLeftButtonFunction([this]()
             {
                 this->CloseGame();
             });
@@ -128,7 +128,7 @@ HRESULT hackingGameUI::Initialize(void* pArg)
     {
         pMinBtn->SetEnable(true);
         pMinBtn->ClearButtonFunctions();
-        pMinBtn->AddButtonFunction([this]()
+        pMinBtn->AddLeftButtonFunction([this]()
             {
                 this->MinimizeGame();
             });
@@ -278,6 +278,8 @@ void hackingGameUI::ShowGame()
     m_minimized = false;
     Object* pPlayer = m_pEngineUtility->FindObject(m_pEngineUtility->GetCurrentSceneId(), L"Player", 0);
     static_cast<Player*>(pPlayer)->SetPlayingMinigame(true);
+
+    m_pEngineUtility->PlaySound2D("FBX_minigame2show");
 }
 
 void hackingGameUI::MinimizeGame()
@@ -530,9 +532,13 @@ void hackingGameUI::InitGame()
 
                 // 버튼 클릭 콜백 등록
                 cell.pButton->ClearButtonFunctions();
-                cell.pButton->AddButtonFunction([this, line, r, c]()
+                cell.pButton->AddLeftButtonFunction([this, line, r, c]()
                     {
-                        this->OnCellClick(line, r, c);
+                        this->OnCellClick(line, r, c, +1);
+                    });
+                cell.pButton->AddRightButtonFunction([this, line, r, c]()
+                    {
+                        this->OnCellClick(line, r, c, -1);
                     });
 
                 unsigned char req = required[r][c];
@@ -718,10 +724,19 @@ void hackingGameUI::OnGameClear()
     Unlock();
     if (m_pPanel)
         static_cast<Panel*>(m_pPanel)->SetVisiblePanelUI(true);
+
+    _float r = m_pEngineUtility->Random(0,3);
+    if (r >= 2)
+        m_pEngineUtility->PlaySound2D("FBX_playerHackComplete1");
+    else if(r >= 1)
+        m_pEngineUtility->PlaySound2D("FBX_playerHackComplete2");
+    else
+        m_pEngineUtility->PlaySound2D("FBX_playerHackComplete3");
+
     CloseGame();
 }
 
-void hackingGameUI::OnCellClick(_uint line, _uint row, _uint col)
+void hackingGameUI::OnCellClick(_uint line, _uint row, _uint col, _int dirStep)
 {
     if (m_finished)
         return;
@@ -733,15 +748,17 @@ void hackingGameUI::OnCellClick(_uint line, _uint row, _uint col)
 
     Cell& cell = m_cells[line][row][col];
 
-    // 90도 시계 방향 회전
-    cell.rotation = (cell.rotation + 1) & 3;
+    // dirStep > 0  → 시계방향(+1)
+    // dirStep < 0  → 반시계방향(-1 ≡ +3 mod 4)
+    _int step = (dirStep >= 0) ? 1 : -1;
+    cell.rotation = (cell.rotation + step + 4) & 3;
 
     if (cell.pImage)
     {
         cell.pImage->SetRotationRad(cell.rotation * XM_PIDIV2);
     }
 
-    // 해당 line(up/down)이 연결됐는지 체크
+    // 이하 기존 로직 그대로
     bool prevSolved = m_lineSolved[line];
     bool nowSolved = CheckLine(line);
     m_lineSolved[line] = nowSolved;
@@ -758,12 +775,13 @@ void hackingGameUI::OnCellClick(_uint line, _uint row, _uint col)
             m_progressTarget = 1.f;
     }
 
-    // 두 줄 다 완료되면 즉시 종료 X, progress 애니메이션 끝날 때까지 대기
     if (m_lineSolved[0] && m_lineSolved[1])
     {
         m_allSolved = true;
         m_clearWaitAcc = 0.f;
     }
+
+    m_pEngineUtility->PlaySound2D("FBX_minigameButton");
 }
 
 unsigned char hackingGameUI::GetRotatedMask(unsigned char baseMask, _int rotation) const

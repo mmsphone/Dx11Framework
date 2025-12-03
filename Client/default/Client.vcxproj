@@ -151,6 +151,7 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\public\Ammobag.h" />
     <ClInclude Include="..\public\BloodDieEffect.h" />
     <ClInclude Include="..\public\BloodHitEffect.h" />
     <ClInclude Include="..\public\ChaseCam.h" />
@@ -158,21 +159,28 @@
     <ClInclude Include="..\public\Door.h" />
     <ClInclude Include="..\public\Drone.h" />
     <ClInclude Include="..\public\EffectTemplate.h" />
+    <ClInclude Include="..\public\endingUI.h" />
+    <ClInclude Include="..\public\ExplosionEffect.h" />
     <ClInclude Include="..\public\GameScene1_Map.h" />
     <ClInclude Include="..\public\Client_Defines.h" />
     <ClInclude Include="..\public\ContainerTemplate.h" />
     <ClInclude Include="..\public\FixedCam.h" />
     <ClInclude Include="..\public\FreeCam.h" />
     <ClInclude Include="..\public\GameScene.h" />
+    <ClInclude Include="..\public\Grenade.h" />
+    <ClInclude Include="..\public\hacking2GameUI.h" />
     <ClInclude Include="..\public\hackingGameUI.h" />
+    <ClInclude Include="..\public\Itembox.h" />
     <ClInclude Include="..\public\Loader.h" />
     <ClInclude Include="..\public\LoadingScene.h" />
     <ClInclude Include="..\public\LogoScene.h" />
     <ClInclude Include="..\public\ClientApp.h" />
+    <ClInclude Include="..\public\minimapUI.h" />
     <ClInclude Include="..\public\ObjectTemplate.h" />
     <ClInclude Include="..\public\Panel.h" />
     <ClInclude Include="..\public\PartTemplate.h" />
     <ClInclude Include="..\public\Player.h" />
+    <ClInclude Include="..\public\QuestUI.h" />
     <ClInclude Include="..\public\Shieldbug.h" />
     <ClInclude Include="..\public\SMG_Projectile.h" />
     <ClInclude Include="..\public\Weapon_AR.h" />
@@ -184,6 +192,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\private\Ammobag.cpp" />
     <ClCompile Include="..\private\BloodDieEffect.cpp" />
     <ClCompile Include="..\private\BloodHitEffect.cpp" />
     <ClCompile Include="..\private\ChaseCam.cpp" />
@@ -191,20 +200,27 @@
     <ClCompile Include="..\private\Door.cpp" />
     <ClCompile Include="..\private\Drone.cpp" />
     <ClCompile Include="..\private\EffectTemplate.cpp" />
+    <ClCompile Include="..\private\endingUI.cpp" />
+    <ClCompile Include="..\private\ExplosionEffect.cpp" />
     <ClCompile Include="..\private\GameScene1_Map.cpp" />
     <ClCompile Include="..\private\ContainerTemplate.cpp" />
     <ClCompile Include="..\private\FixedCam.cpp" />
     <ClCompile Include="..\private\FreeCam.cpp" />
     <ClCompile Include="..\private\GameScene.cpp" />
+    <ClCompile Include="..\private\Grenade.cpp" />
+    <ClCompile Include="..\private\hacking2GameUI.cpp" />
     <ClCompile Include="..\private\hackingGameUI.cpp" />
+    <ClCompile Include="..\private\Itembox.cpp" />
     <ClCompile Include="..\private\Loader.cpp" />
     <ClCompile Include="..\private\LoadingScene.cpp" />
     <ClCompile Include="..\private\LogoScene.cpp" />
     <ClCompile Include="..\private\ClientApp.cpp" />
+    <ClCompile Include="..\private\minimapUI.cpp" />
     <ClCompile Include="..\private\ObjectTemplate.cpp" />
     <ClCompile Include="..\private\Panel.cpp" />
     <ClCompile Include="..\private\PartTemplate.cpp" />
     <ClCompile Include="..\private\Player.cpp" />
+    <ClCompile Include="..\private\QuestUI.cpp" />
     <ClCompile Include="..\private\Shieldbug.cpp" />
     <ClCompile Include="..\private\SMG_Projectile.cpp" />
     <ClCompile Include="..\private\Weapon_AR.cpp" />

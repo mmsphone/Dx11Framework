@@ -1,8 +1,6 @@
 #include "ChaseCam.h"
 #include "EngineUtility.h"
 
-NS_BEGIN(Client)
-
 ChaseCam::ChaseCam()
     : Camera{ }
 {
@@ -28,12 +26,13 @@ HRESULT ChaseCam::Initialize(void* pArg)
     if (FAILED(__super::Initialize(pArg)))
         return E_FAIL;
 
+    m_pEngineUtility->RegisterCamera(this);
+
     return S_OK;
 }
 
 void ChaseCam::PriorityUpdate(_float fTimeDelta)
 {
-    UpdatePipeLine();
 }
 
 void ChaseCam::Update(_float fTimeDelta)
@@ -88,9 +87,8 @@ Object* ChaseCam::Clone(void* pArg)
 
 void ChaseCam::Free()
 {
+    m_pEngineUtility->UnregisterCamera(this);
     __super::Free();
 
     m_pTarget = nullptr;
 }
-
-NS_END

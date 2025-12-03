@@ -85,7 +85,6 @@ void FreeCam::PriorityUpdate(_float fTimeDelta)
         }
     }
 
-    UpdatePipeLine();
 }
 
 void FreeCam::Update(_float fTimeDelta)

@@ -11,7 +11,7 @@ UIButton::UIButton()
 
 UIButton::UIButton(const UIButton& Prototype)
     : UI{ Prototype }
-    , buttonFunctions{}
+    , leftButtonFunctions{}
 {
 }
 
@@ -58,7 +58,11 @@ void UIButton::Update(_float fTimeDelta)
 
         if (m_pEngineUtility->IsMousePressed(MOUSEKEY_LEFTBUTTON))
         {
-            DoButtonFunctions();
+            DoLeftButtonFunctions();
+        }
+        if (m_pEngineUtility->IsMousePressed(MOUSEKEY_RIGHTBUTTON))
+        {
+            DoRightButtonFunctions();
         }
     }
     else
@@ -98,18 +102,36 @@ _bool UIButton::IsEnable()
     return m_desc.enable;
 }
 
-void UIButton::AddButtonFunction(function<void()> func)
+void UIButton::AddLeftButtonFunction(function<void()> func)
 {
     if (func)
-        buttonFunctions.push_back(std::move(func));
+        leftButtonFunctions.push_back(std::move(func));
 }
 
-void UIButton::DoButtonFunctions()
+void UIButton::DoLeftButtonFunctions()
 {
     if (m_desc.enable == false)
         return;
 
-    for (auto& func : buttonFunctions)
+    for (auto& func : leftButtonFunctions)
+    {
+        if (func)
+            func();
+    }
+}
+
+void UIButton::AddRightButtonFunction(function<void()> func)
+{
+    if (func)
+        rightButtonFunctions.push_back(std::move(func));
+}
+
+void UIButton::DoRightButtonFunctions()
+{
+    if (m_desc.enable == false)
+        return;
+
+    for (auto& func : rightButtonFunctions)
     {
         if (func)
             func();
@@ -118,7 +140,8 @@ void UIButton::DoButtonFunctions()
 
 void UIButton::ClearButtonFunctions()
 {
-    buttonFunctions.clear();
+    leftButtonFunctions.clear();
+    rightButtonFunctions.clear();
 }
 
 void UIButton::SetDefaultImage(const wstring& defaultKey)

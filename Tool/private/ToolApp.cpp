@@ -49,14 +49,14 @@ HRESULT ToolApp::Render()
 	m_pEngineUtility->BeginDraw(&vClearColor);
 
 #ifdef _DEBUG
-	//m_pEngineUtility->RenderGrid();
+	m_pEngineUtility->RenderGrid();
 #endif
 	/* 객체들을 그린다. */
 	m_pEngineUtility->Draw();
 
 #ifdef _DEBUG
-	//m_pEngineUtility->RenderNavigation();
-	//m_pEngineUtility->RenderTriggerBoxes();
+	m_pEngineUtility->RenderNavigation();
+	m_pEngineUtility->RenderTriggerBoxes();
 	//m_pEngineUtility->RenderDebug();
 #endif
 

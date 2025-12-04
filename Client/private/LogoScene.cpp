@@ -16,7 +16,7 @@ LogoScene::LogoScene()
 
 HRESULT LogoScene::Initialize()
 {
-	m_pEngineUtility->PlaySound2D("BGM_lobby");
+	m_pEngineUtility->PlaySound2D("BGM_lobby", 0.5f);
 
 	if (FAILED(ReadyLights()))
 		return E_FAIL;

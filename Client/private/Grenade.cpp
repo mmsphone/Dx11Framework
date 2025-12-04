@@ -1,4 +1,4 @@
-#include "Grenade.h"
+ï»¿#include "Grenade.h"
 
 #include "EngineUtility.h"
 #include "Layer.h"
@@ -30,11 +30,11 @@ HRESULT Grenade::Initialize(void* pArg)
         Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
 
         pTransform->RotateRadian(_vector{0.f,0.f,1.f,0.f}, XM_PIDIV2);
-        // ½ÃÀÛ À§Ä¡
+        // ì‹œì‘ ìœ„ì¹˜
         pTransform->SetState(MATRIXROW_POSITION, XMLoadFloat3(&pDesc->vStartPos));
 
-        // ´øÁö´Â ¹æÇâ ±â¹İ ÃÊ±â ¼Óµµ
-        _vector vDir = XMLoadFloat3(&pDesc->vDir);  // Á¤±ÔÈ­ ÀüÁ¦
+        // ë˜ì§€ëŠ” ë°©í–¥ ê¸°ë°˜ ì´ˆê¸° ì†ë„
+        _vector vDir = XMLoadFloat3(&pDesc->vDir);  // ì •ê·œí™” ì „ì œ
         _vector vForward = XMVector3Normalize(vDir);
         _vector vUp = XMVectorSet(0.f, 1.f, 0.f, 0.f);
 
@@ -54,83 +54,83 @@ void Grenade::Update(_float fTimeDelta)
     if (!pTransform)
         return;
 
-    // ¼ö¸í Áõ°¡
+    // ìˆ˜ëª… ì¦ê°€
     m_lifeTime += fTimeDelta;
 
-    // Áß·Â Àû¿ë (yÃà)
+    // ì¤‘ë ¥ ì ìš© (yì¶•)
     _float gravityStep = m_gravity * fTimeDelta;
     m_vVelocity = XMVectorSetY(m_vVelocity, XMVectorGetY(m_vVelocity) - gravityStep);
 
-    // ===== °øÁß¿¡¼­ ¼öÆò ¼Óµµ(Àü¹æ Æ÷ÇÔ) °è¼Ó °¨¼Ó =====
+    // ===== ê³µì¤‘ì—ì„œ ìˆ˜í‰ ì†ë„(ì „ë°© í¬í•¨) ê³„ì† ê°ì† =====
     {
-        // Y ¼ººĞ Á¦°Å ¡æ XZ ¼ººĞ¸¸ °¡Á®¿È
+        // Y ì„±ë¶„ ì œê±° â†’ XZ ì„±ë¶„ë§Œ ê°€ì ¸ì˜´
         _vector velXZ = XMVectorSetY(m_vVelocity, 0.f);
 
-        // 1ÃÊ¿¡ 40% Á¤µµ ÁÙ¾îµå´Â ´À³¦ (¿øÇÏ´Â °¨°¢¿¡ ¸Â°Ô ¼ıÀÚ¸¸ Á¶Àı)
+        // 1ì´ˆì— 40% ì •ë„ ì¤„ì–´ë“œëŠ” ëŠë‚Œ (ì›í•˜ëŠ” ê°ê°ì— ë§ê²Œ ìˆ«ìë§Œ ì¡°ì ˆ)
         _float drag = 1.f - m_airDragPerSec * fTimeDelta;
         if (drag < 0.f) drag = 0.f;
 
         velXZ *= drag;
 
-        // ´Ù½Ã Y ¼ººĞ ºÙ¿©¼­ m_vVelocity Àç±¸¼º
+        // ë‹¤ì‹œ Y ì„±ë¶„ ë¶™ì—¬ì„œ m_vVelocity ì¬êµ¬ì„±
         _float vy = XMVectorGetY(m_vVelocity);
         m_vVelocity = velXZ + XMVectorSet(0.f, vy, 0.f, 0.f);
     }
 
-    // ---- ÀÌµ¿ Àü/ÈÄ À§Ä¡ °è»ê ----
+    // ---- ì´ë™ ì „/í›„ ìœ„ì¹˜ ê³„ì‚° ----
     _vector prevPos = pTransform->GetState(MATRIXROW_POSITION);
     _vector newPos = prevPos + m_vVelocity * fTimeDelta;
 
-    // ---- ³×ºñ À§¿¡¼­ Áö¸é Æ¨±è Ã¼Å© ----
+    // ---- ë„¤ë¹„ ìœ„ì—ì„œ ì§€ë©´ íŠ•ê¹€ ì²´í¬ ----
     _int cellIndex = -1;
     if (m_pEngineUtility->IsInCell(newPos, &cellIndex))
     {
-        // ÇöÀç XZ ±âÁØ ³×ºñ Áö¸é "±âº»" ³ôÀÌ
+        // í˜„ì¬ XZ ê¸°ì¤€ ë„¤ë¹„ ì§€ë©´ "ê¸°ë³¸" ë†’ì´
         _float navBaseY = m_pEngineUtility->GetHeightPosOnCell(&newPos, cellIndex);
 
-        // ¡Ú ½ÇÁ¦·Î´Â Áö¸éº¸´Ù m_groundOffset ¸¸Å­ À§¸¦ ±âÁØÀ¸·Î »ç¿ë
+        // â˜… ì‹¤ì œë¡œëŠ” ì§€ë©´ë³´ë‹¤ m_groundOffset ë§Œí¼ ìœ„ë¥¼ ê¸°ì¤€ìœ¼ë¡œ ì‚¬ìš©
         _float navY = navBaseY + m_groundOffset;
 
         _float prevY = XMVectorGetY(prevPos);
         _float nextY = XMVectorGetY(newPos);
 
-        // ÀÌÀü À§Ä¡´Â ±âÁØ ³ôÀÌ À§(or °°À½)ÀÎµ¥ »õ À§Ä¡°¡ ±× ¾Æ·¡·Î ³»·Á°£ °æ¿ì ¡æ ¹Ù´Ú Ãæµ¹
+        // ì´ì „ ìœ„ì¹˜ëŠ” ê¸°ì¤€ ë†’ì´ ìœ„(or ê°™ìŒ)ì¸ë° ìƒˆ ìœ„ì¹˜ê°€ ê·¸ ì•„ë˜ë¡œ ë‚´ë ¤ê°„ ê²½ìš° â†’ ë°”ë‹¥ ì¶©ëŒ
         if (prevY >= navY && nextY < navY)
         {
-            // Áö¸é À§·Î ½º³À
+            // ì§€ë©´ ìœ„ë¡œ ìŠ¤ëƒ…
             _vector fixedPos{};
             m_pEngineUtility->SetHeightOnCell(newPos, &fixedPos);
 
-            // ¡Ú ¿©±â¼­µµ ±âÁØ ³ôÀÌ + ¿ÀÇÁ¼ÂÀ¸·Î ¸ÂÃçÁÜ
+            // â˜… ì—¬ê¸°ì„œë„ ê¸°ì¤€ ë†’ì´ + ì˜¤í”„ì…‹ìœ¼ë¡œ ë§ì¶°ì¤Œ
             fixedPos = XMVectorSetY(
                 fixedPos,
                 XMVectorGetY(fixedPos) + m_groundOffset
             );
             newPos = fixedPos;
 
-            // Y¼Óµµ ¹İÀü + °¨¼è
+            // Yì†ë„ ë°˜ì „ + ê°ì‡ 
             _float vy = XMVectorGetY(m_vVelocity);
             vy = -vy * m_restitutionY;
 
-            // ¼öÆò ¼Óµµ °¨¼è
+            // ìˆ˜í‰ ì†ë„ ê°ì‡ 
             _vector velXZ = XMVectorSetY(m_vVelocity, 0.f);
             velXZ *= m_restitutionXZ;
 
             m_vVelocity = velXZ + XMVectorSet(0.f, vy, 0.f, 0.f);
 
-            // ³Ê¹« ´À·ÁÁö¸é ¹Ù´Ú¿¡ °ÅÀÇ ºÙÀº »óÅÂ·Î ¸ØÃß°Ô
+            // ë„ˆë¬´ ëŠë ¤ì§€ë©´ ë°”ë‹¥ì— ê±°ì˜ ë¶™ì€ ìƒíƒœë¡œ ë©ˆì¶”ê²Œ
             if (fabsf(vy) < 0.5f)
             {
                 vy = 0.f;
-                m_vVelocity = XMVectorSetY(velXZ, 0.f); // ¿ÏÀü Æò¸é ÀÌµ¿¸¸ ³²±â°Å³ª ¾Æ¿¹ 0À¸·Î
+                m_vVelocity = XMVectorSetY(velXZ, 0.f); // ì™„ì „ í‰ë©´ ì´ë™ë§Œ ë‚¨ê¸°ê±°ë‚˜ ì•„ì˜ˆ 0ìœ¼ë¡œ
             }
         }
     }
 
-    // ÃÖÁ¾ À§Ä¡ ¹İ¿µ
+    // ìµœì¢… ìœ„ì¹˜ ë°˜ì˜
     pTransform->SetState(MATRIXROW_POSITION, newPos);
 
-    // Ç»Áî Áö³ª¸é Æø¹ß Ã³¸®
+    // í“¨ì¦ˆ ì§€ë‚˜ë©´ í­ë°œ ì²˜ë¦¬
     if (!m_exploded && m_lifeTime >= m_fuseTime)
     {
         Explode();
@@ -229,7 +229,7 @@ HRESULT Grenade::ReadyComponents()
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_VtxMesh"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
 
-    // Model - ½ÇÁ¦ ¼ö·ùÅº ¸ğµ¨ ¸®¼Ò½º ÀÌ¸§À¸·Î ¼öÁ¤
+    // Model - ì‹¤ì œ ìˆ˜ë¥˜íƒ„ ëª¨ë¸ ë¦¬ì†ŒìŠ¤ ì´ë¦„ìœ¼ë¡œ ìˆ˜ì •
     if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Model_Grenade"), TEXT("Model"), nullptr, nullptr)))
         return E_FAIL;
 
@@ -249,7 +249,7 @@ void Grenade::Explode()
         return;
     }
 
-    // Æø¹ß Áß½É
+    // í­ë°œ ì¤‘ì‹¬
     _vector vCenter = pTransform->GetState(MATRIXROW_POSITION);
     const _float radius = m_explodeRadius;
     const _float radiusSq = radius * radius;
@@ -257,7 +257,7 @@ void Grenade::Explode()
 
     const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
 
-    // ¡Ú °øÅë Ã³¸® ¶÷´Ù: Æ¯Á¤ ·¹ÀÌ¾î ¾ÈÀÇ ¸ğµç ¿ÀºêÁ§Æ®¿¡ ´ëÇØ °Å¸® Ã¼Å©
+    // â˜… ê³µí†µ ì²˜ë¦¬ ëŒë‹¤: íŠ¹ì • ë ˆì´ì–´ ì•ˆì˜ ëª¨ë“  ì˜¤ë¸Œì íŠ¸ì— ëŒ€í•´ ê±°ë¦¬ ì²´í¬
     auto ApplyExplosionToLayer = [&](const wchar_t* layerTag)
         {
             Layer* pLayer = m_pEngineUtility->FindLayer(sceneId, layerTag);
@@ -270,14 +270,14 @@ void Grenade::Explode()
                 if (!obj || obj->IsDead())
                     continue;
 
-                // Info ¾ø´Â ¾ÖµéÀº ÆĞ½º
+                // Info ì—†ëŠ” ì• ë“¤ì€ íŒ¨ìŠ¤
                 Info* pInfo = dynamic_cast<Info*>(obj->FindComponent(TEXT("Info")));
                 if (!pInfo)
                     continue;
 
                 INFO_DESC desc = pInfo->GetInfo();
 
-                // À§Ä¡ °¡Á®¿Í¼­ ¹İ°æ Ã¼Å©
+                // ìœ„ì¹˜ ê°€ì ¸ì™€ì„œ ë°˜ê²½ ì²´í¬
                 Transform* pTargetTf = static_cast<Transform*>(obj->FindComponent(TEXT("Transform")));
                 if (!pTargetTf)
                     continue;
@@ -287,22 +287,22 @@ void Grenade::Explode()
                 _float  distSq = XMVectorGetX(XMVector3LengthSq(vDiff));
 
                 if (distSq > radiusSq)
-                    continue; // Æø¹ß ¹İ°æ ¹Û
+                    continue; // í­ë°œ ë°˜ê²½ ë°–
 
-                // ----- °Å¸® ±â¹İ µ¥¹ÌÁö °¨¼è -----
+                // ----- ê±°ë¦¬ ê¸°ë°˜ ë°ë¯¸ì§€ ê°ì‡  -----
                 _float dist = sqrtf(distSq);
                 _float distNorm = 0.f;
                 if (radius > 0.f)
                     distNorm = std::clamp(dist / radius, 0.f, 1.f);
 
-                // Áß½É: 1.0, °¡ÀåÀÚ¸®: 0.25
+                // ì¤‘ì‹¬: 1.0, ê°€ì¥ìë¦¬: 0.25
                 const _float minFactor = 0.25f;
                 const _float t = 1.f - distNorm;
                 const _float damageFactor =
                     minFactor + (1.f - minFactor) * (1 - distNorm * distNorm);
                 const _float finalDamage = damage * damageFactor;
 
-                // HP °¨¼Ò
+                // HP ê°ì†Œ
                 if (auto curHpPtr = desc.GetPtr("CurHP"))
                 {
                     _float curHp = *std::get_if<_float>(curHpPtr);
@@ -311,25 +311,25 @@ void Grenade::Explode()
                         curHp = 0.f;
                     desc.SetData("CurHP", curHp);
 
-                    // ¸Â¾Ò´Ù´Â ÇÃ·¡±×°¡ ÀÖÀ¸¸é ÄÑÁÖ±â (ÀÖÀ» ¶§¸¸)
+                    // ë§ì•˜ë‹¤ëŠ” í”Œë˜ê·¸ê°€ ìˆìœ¼ë©´ ì¼œì£¼ê¸° (ìˆì„ ë•Œë§Œ)
                     if (desc.GetPtr("IsHit"))
                         desc.SetData("IsHit", _bool{ true });
 
                     pInfo->BindInfoDesc(desc);
                 }
 
-                // ====== ³Ë¹é Ã³¸® ======
-                // ¼öÆò ¹æÇâ (XZ) ±âÁØÀ¸·Î ¹Ğ¾î³¿
+                // ====== ë„‰ë°± ì²˜ë¦¬ ======
+                // ìˆ˜í‰ ë°©í–¥ (XZ) ê¸°ì¤€ìœ¼ë¡œ ë°€ì–´ëƒ„
                 _vector dirXZ = XMVectorSetY(vDiff, 0.f);
                 if (!XMVector3Equal(dirXZ, XMVectorZero()))
                 {
                     dirXZ = XMVector3Normalize(dirXZ);
 
                     _float dist = sqrtf(distSq);
-                    _float t = 1.f - (dist / radius);          // Áß½É: 1, °¡ÀåÀÚ¸®: 0
+                    _float t = 1.f - (dist / radius);          // ì¤‘ì‹¬: 1, ê°€ì¥ìë¦¬: 0
                     t = std::clamp(t, 0.f, 1.f);
 
-                    // °¡ÀåÀÚ¸®¿¡¼­µµ ¾à°£Àº ¹Ğ¸®°Ô ÃÖ¼Ò °è¼ö ¼¯±â
+                    // ê°€ì¥ìë¦¬ì—ì„œë„ ì•½ê°„ì€ ë°€ë¦¬ê²Œ ìµœì†Œ ê³„ìˆ˜ ì„ê¸°
                     _float kbFactor = m_kbMinFactor + (1.f - m_kbMinFactor) * t;
                     _float kbPower = m_kbPowerMax * kbFactor;
 
@@ -365,8 +365,8 @@ void Grenade::Explode()
             }
         };
 
-    // ½ÇÁ¦·Î ¾î¶² ·¹ÀÌ¾î ÀÌ¸§À» ¾²´ÂÁö´Â ³× ÇÁ·ÎÁ§Æ®¿¡ ¸ÂÃç¼­ ¼öÁ¤
-    // ¿¹½Ã: "Monster", "Drone", "Shieldbug" µî
+    // ì‹¤ì œë¡œ ì–´ë–¤ ë ˆì´ì–´ ì´ë¦„ì„ ì“°ëŠ”ì§€ëŠ” ë„¤ í”„ë¡œì íŠ¸ì— ë§ì¶°ì„œ ìˆ˜ì •
+    // ì˜ˆì‹œ: "Monster", "Drone", "Shieldbug" ë“±
     ApplyExplosionToLayer(TEXT("Drone"));
     ApplyExplosionToLayer(TEXT("Worm"));
     ApplyExplosionToLayer(TEXT("Shieldbug"));
@@ -386,7 +386,7 @@ void Grenade::Explode()
         shake.fInnerRadius = 0.f;
         shake.fOuterRadius = 25.f;
 
-        // ÁøÆøÀº ³ªÁß¿¡ Æø¹ß ¼¼±â µû¶ó Æ©´×
+        // ì§„í­ì€ ë‚˜ì¤‘ì— í­ë°œ ì„¸ê¸° ë”°ë¼ íŠœë‹
         shake.vAmpPos = _float3(0.3f, 0.1f, 0.15f);
         shake.vAmpRotDeg = _float3(0.6f, 0.6f, 0.6f);
         shake.fFrequency = 14.f;
@@ -396,6 +396,6 @@ void Grenade::Explode()
 
     m_pEngineUtility->PlaySound2D("FBX_explosion");
 
-    // ¼ö·ùÅº Á¦°Å
+    // ìˆ˜ë¥˜íƒ„ ì œê±°
     SetDead(true);
 }

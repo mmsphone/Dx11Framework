@@ -1,4 +1,4 @@
-#include "Itembox.h"
+ï»¿#include "Itembox.h"
 
 #include "EngineUtility.h"
 #include "UI.h"
@@ -27,24 +27,24 @@ void Itembox::Update(_float fTimeDelta)
 
     pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));
 
-    // ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
-    // ÀÌ¹Ì »ç¿ë ÈÄ ¡æ 1ÃÊ µ¿¾È ÆäÀÌµå ¾Æ¿ô
-    // ¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡¦¡
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ì´ë¯¸ ì‚¬ìš© í›„ â†’ 1ì´ˆ ë™ì•ˆ í˜ì´ë“œ ì•„ì›ƒ
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (m_isDying)
     { 
         m_deathTimer += fTimeDelta;
-        float t = m_deathTimer / 1.f; // 1ÃÊ ±âÁØ
+        float t = m_deathTimer / 1.f; // 1ì´ˆ ê¸°ì¤€
         if (t < 0.f) t = 0.f;
         if (t > 1.f) t = 1.f;
 
-        m_deathFade = 1.f - t;        // 1 ¡æ 0 °¨¼Ò
+        m_deathFade = 1.f - t;        // 1 â†’ 0 ê°ì†Œ
 
         if (m_deathTimer >= 1.f)
         {
             SetDead(true);
         }
 
-        // Á×´Â Áß¿¡´Â ´õ ÀÌ»ó UI, Ãæµ¹ Ã³¸® ¾È ÇÔ
+        // ì£½ëŠ” ì¤‘ì—ëŠ” ë” ì´ìƒ UI, ì¶©ëŒ ì²˜ë¦¬ ì•ˆ í•¨
         return;
     }
 
@@ -63,25 +63,25 @@ void Itembox::Update(_float fTimeDelta)
     {
         m_playerInRange = true;
 
-        // ¹üÀ§ ¾È¿¡ Ã³À½ µé¾î¿ÔÀ» ¶§ UI ÄÔ
+        // ë²”ìœ„ ì•ˆì— ì²˜ìŒ ë“¤ì–´ì™”ì„ ë•Œ UI ì¼¬
         if (!m_openedUI)
         {
             m_openedUI = true;
             SetVisibleItemboxUI(true);
         }
 
-        // E Å° ÀÔ·Â ½Ã ¾ÆÀÌÅÛ Áö±Ş, »ç¿ë Á¾·á + ÆäÀÌµå ½ÃÀÛ
+        // E í‚¤ ì…ë ¥ ì‹œ ì•„ì´í…œ ì§€ê¸‰, ì‚¬ìš© ì¢…ë£Œ + í˜ì´ë“œ ì‹œì‘
         if (!m_worked && m_pEngineUtility->IsKeyPressed(DIK_E))
         {
             if (GiveGrenadeToPlayer())
             {
                 m_worked = true;
 
-                // UI ²ô°í
+                // UI ë„ê³ 
                 m_openedUI = false;
                 SetVisibleItemboxUI(false);
 
-                // ÆäÀÌµå ½ÃÀÛ
+                // í˜ì´ë“œ ì‹œì‘
                 m_isDying = true;
                 m_deathFade = 1.f;
                 m_deathTimer = 0.f;
@@ -90,7 +90,7 @@ void Itembox::Update(_float fTimeDelta)
             }
         }
 
-        // ÆĞ³Î/¾Æ¸ğ¹é°ú µ¿ÀÏÇÏ°Ô Å° ¹İÂ¦ÀÓ Ã³¸® (UI ÄÑÁ® ÀÖÀ» ¶§¸¸)
+        // íŒ¨ë„/ì•„ëª¨ë°±ê³¼ ë™ì¼í•˜ê²Œ í‚¤ ë°˜ì§ì„ ì²˜ë¦¬ (UI ì¼œì ¸ ìˆì„ ë•Œë§Œ)
         if (m_openedUI)
         {
             m_keyBlinkAcc += fTimeDelta;
@@ -111,7 +111,7 @@ void Itembox::Update(_float fTimeDelta)
     }
     else
     {
-        // ¹üÀ§¿¡¼­ ¹ş¾î³ª¸é UI ²û
+        // ë²”ìœ„ì—ì„œ ë²—ì–´ë‚˜ë©´ UI ë”
         if (m_openedUI)
         {
             m_openedUI = false;
@@ -125,7 +125,7 @@ void Itembox::LateUpdate(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     if (pTransform && m_pEngineUtility->IsIn_Frustum_WorldSpace(pTransform->GetState(MATRIXROW_POSITION), scaleOffset))
     {
-        // Á×´Â ÁßÀÌ¸é BLEND, ¾Æ´Ï¸é NONBLEND
+        // ì£½ëŠ” ì¤‘ì´ë©´ BLEND, ì•„ë‹ˆë©´ NONBLEND
         if (m_isDying)
             m_pEngineUtility->JoinRenderGroup(RENDERGROUP::RENDER_BLEND, this);
         else
@@ -155,7 +155,7 @@ HRESULT Itembox::Render()
         m_pEngineUtility->GetPipelineFarDistance(), sizeof(_float))))
         return E_FAIL;
 
-    // ¾ËÆÄ °ª
+    // ì•ŒíŒŒ ê°’
     _float alphaMul = 1.f;
     if (m_isDying)
         alphaMul = m_deathFade;
@@ -175,7 +175,7 @@ HRESULT Itembox::Render()
             "g_DiffuseTexture", TextureType::Diffuse, 0)))
             continue;
 
-        // Á×´Â ÁßÀÌ¸é ModelAlpha ÆĞ½º(= index 6), ¾Æ´Ï¸é ±âº» GBuffer ÆĞ½º(= 0)
+        // ì£½ëŠ” ì¤‘ì´ë©´ ModelAlpha íŒ¨ìŠ¤(= index 6), ì•„ë‹ˆë©´ ê¸°ë³¸ GBuffer íŒ¨ìŠ¤(= 0)
         if (!m_isDying)
             pShader->Begin(0);
         else
@@ -232,7 +232,7 @@ HRESULT Itembox::ReadyComponents()
     if (FAILED(AddComponent(SCENE::STATIC, TEXT("Shader_VtxMesh"), TEXT("Shader"), nullptr, nullptr)))
         return E_FAIL;
 
-    // Model - ½ÇÁ¦ ¸®¼Ò½º ÀÌ¸§¿¡ ¸Â°Ô ¼öÁ¤
+    // Model - ì‹¤ì œ ë¦¬ì†ŒìŠ¤ ì´ë¦„ì— ë§ê²Œ ìˆ˜ì •
     if (FAILED(AddComponent(SCENE::GAMEPLAY, TEXT("Model_Itembox"), TEXT("Model"), nullptr, nullptr)))
         return E_FAIL;
 
@@ -304,7 +304,7 @@ _bool Itembox::GiveGrenadeToPlayer()
         m_pEngineUtility->PushEvent(ev);
     }
 
-    m_pEngineUtility->PlaySound2D("FBX_pickupItembox");
+    m_pEngineUtility->PlaySound2D("FBX_pickupItembox", 0.7f);
     static_cast<Player*>(pPlayerObj)->SetPickupState();
 
     return true;

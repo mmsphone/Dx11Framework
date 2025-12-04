@@ -1,4 +1,4 @@
-#include "minimapUI.h"
+ï»¿#include "minimapUI.h"
 
 #include "EngineUtility.h"
 #include "Transform.h"
@@ -56,7 +56,7 @@ HRESULT minimapUI::Initialize()
     if (FAILED(__super::Initialize(&desc)))
         return E_FAIL;
 
-    // 1) ÇÁ·¹ÀÓ / ¹è°æ / ¸Ê ÀÌ¹ÌÁö´Â ±âÁ¸Ã³·³ FindUI
+    // 1) í”„ë ˆì„ / ë°°ê²½ / ë§µ ì´ë¯¸ì§€ëŠ” ê¸°ì¡´ì²˜ëŸ¼ FindUI
     m_pFrameLeft = m_pEngineUtility->FindUI(L"minimapFrameLeft");
     m_pFrameRight = m_pEngineUtility->FindUI(L"minimapFrameRight");
     m_pFrameTop = m_pEngineUtility->FindUI(L"minimapFrameTop");
@@ -73,23 +73,23 @@ HRESULT minimapUI::Initialize()
     static_cast<UIImage*>(m_pFrameTop)->SetAlpha(0.5f);
     static_cast<UIImage*>(m_pFrameBot)->SetAlpha(0.5f);
 
-    // ¹Ì´Ï¸Ê Áß¾Ó °è»ê (¹é±×¶ó¿îµå ±âÁØ)
+    // ë¯¸ë‹ˆë§µ ì¤‘ì•™ ê³„ì‚° (ë°±ê·¸ë¼ìš´ë“œ ê¸°ì¤€)
     UI_DESC backDesc = m_pBack->GetUIDesc();
     m_viewCenter.x = backDesc.x;
     m_viewCenter.y = backDesc.y;
 
-    // ¸Ê ÀÌ¹ÌÁö ±âÁØ À§Ä¡ ÀúÀå
+    // ë§µ ì´ë¯¸ì§€ ê¸°ì¤€ ìœ„ì¹˜ ì €ì¥
     UI_DESC mapDesc = m_pMapImage->GetUIDesc();
     m_baseMapPos.x = mapDesc.x;
     m_baseMapPos.y = mapDesc.y;
 
-    // 2) minimap_playerDir »ı¼º (Áß¾Ó °íÁ¤ ÀÛÀº ¾ÆÀÌÄÜ)
+    // 2) minimap_playerDir ìƒì„± (ì¤‘ì•™ ê³ ì • ì‘ì€ ì•„ì´ì½˜)
     {
         UI_DESC dirDesc{};
         dirDesc.x = m_viewCenter.x - 12.f;
         dirDesc.y = m_viewCenter.y - 12.f;
         dirDesc.z = 0.01f;
-        dirDesc.w = 24.f;      // ¾ÆÀÌÄÜ Å©±â
+        dirDesc.w = 24.f;      // ì•„ì´ì½˜ í¬ê¸°
         dirDesc.h = 24.f;
         dirDesc.imagePath = L"../bin/Resources/Textures/Minimap/playerDir.png";
         dirDesc.visible = true;
@@ -104,7 +104,7 @@ HRESULT minimapUI::Initialize()
         m_pPlayerDir->SetMaskingColor(_float4{ 0.f,1.f,0.f,1.f });
     }
 
-    // 3) minimap_raider »ı¼º (Áß¾Ó¿¡¼­ Ä¿Áö´Â ¸µ °°Àº È¿°ú)
+    // 3) minimap_raider ìƒì„± (ì¤‘ì•™ì—ì„œ ì»¤ì§€ëŠ” ë§ ê°™ì€ íš¨ê³¼)
     {
         UI_DESC raiderDesc{};
         raiderDesc.x = m_viewCenter.x - 12.f;
@@ -113,7 +113,7 @@ HRESULT minimapUI::Initialize()
         raiderDesc.w = 24.f;
         raiderDesc.h = 24.f;
         raiderDesc.imagePath = L"../bin/Resources/Textures/Minimap/raider.png";
-        raiderDesc.visible = false;  // ±âº»Àº ¼û±è
+        raiderDesc.visible = false;  // ê¸°ë³¸ì€ ìˆ¨ê¹€
         raiderDesc.enable = true;
 
         m_pRaider = CreateMinimapIcon(m_pEngineUtility,
@@ -128,7 +128,7 @@ HRESULT minimapUI::Initialize()
         m_pRaider->SetMaskingColor(_float4{ 1.f,1.f,1.f,1.f });
     }
 
-    // 4) minimap_enemyPos ÅÛÇÃ¸´¸¸ ÀúÀå
+    // 4) minimap_enemyPos í…œí”Œë¦¿ë§Œ ì €ì¥
     {
         UI_DESC enemyDesc{};
         enemyDesc.x = m_viewCenter.x;
@@ -137,15 +137,15 @@ HRESULT minimapUI::Initialize()
         enemyDesc.w = 16.f;
         enemyDesc.h = 16.f;
         enemyDesc.imagePath = L"../bin/Resources/Textures/Minimap/enemyPos.png";
-        enemyDesc.visible = false; // ±âº»Àº ¼û±è
+        enemyDesc.visible = false; // ê¸°ë³¸ì€ ìˆ¨ê¹€
         enemyDesc.enable = true;
 
         m_enemyIconDesc = enemyDesc;
-        m_EnemyIcons.clear();     // È¤½Ã ¸ğ¸¦ ¾²·¹±â ÃÊ±âÈ­
+        m_EnemyIcons.clear();     // í˜¹ì‹œ ëª¨ë¥¼ ì“°ë ˆê¸° ì´ˆê¸°í™”
         m_EnemyPingAlpha.clear();
     }
 
-    // Ã³À½¿£ ÀüÃ¼ ¹Ì´Ï¸Ê ºñÈ°¼º »óÅÂ
+    // ì²˜ìŒì—” ì „ì²´ ë¯¸ë‹ˆë§µ ë¹„í™œì„± ìƒíƒœ
     Show(false);
 
     return S_OK;
@@ -158,10 +158,10 @@ void minimapUI::Update(_float fTimeDelta)
     if (!m_pPlayer || !m_pMapImage)
         return;
 
-    UpdateMapPosition();     // ¸Ê ÀÌ¹ÌÁö¸¸ ÇÃ·¹ÀÌ¾î ÀÌµ¿·®¿¡ µû¶ó ½½¶óÀÌµå
-    UpdatePlayerDir();       // Áß½É¿¡¼­ ÇÃ·¹ÀÌ¾î ¹æÇâ Ç¥½Ã
-    UpdateRaider(fTimeDelta);// ÁÖ±âÀûÀ¸·Î ³ªÅ¸³ª´Â ·¹ÀÌ´õ È¿°ú
-    UpdateEnemyPos(fTimeDelta);        // ÁÖº¯ Àû À§Ä¡ Âï±â
+    UpdateMapPosition();     // ë§µ ì´ë¯¸ì§€ë§Œ í”Œë ˆì´ì–´ ì´ë™ëŸ‰ì— ë”°ë¼ ìŠ¬ë¼ì´ë“œ
+    UpdatePlayerDir();       // ì¤‘ì‹¬ì—ì„œ í”Œë ˆì´ì–´ ë°©í–¥ í‘œì‹œ
+    UpdateRaider(fTimeDelta);// ì£¼ê¸°ì ìœ¼ë¡œ ë‚˜íƒ€ë‚˜ëŠ” ë ˆì´ë” íš¨ê³¼
+    UpdateEnemyPos(fTimeDelta);        // ì£¼ë³€ ì  ìœ„ì¹˜ ì°ê¸°
 }
 
 void minimapUI::Show(_bool bShow)
@@ -186,15 +186,15 @@ void minimapUI::StopMinimap()
 {
     m_isMinimapActive = false;
     Show(false);
-    // ´ÙÀ½¿¡ ´Ù½Ã ÄÑ¸é »õ ±âÁØÁ¡ Àâµµ·Ï
+    // ë‹¤ìŒì— ë‹¤ì‹œ ì¼œë©´ ìƒˆ ê¸°ì¤€ì  ì¡ë„ë¡
     m_bOriginSet = false;
 
-    // ·¹ÀÌ´õ/ÆÄµ¿ ¸®¼Â
+    // ë ˆì´ë”/íŒŒë™ ë¦¬ì…‹
     m_raiderTimer = 0.f;
     m_waveActive = false;
     m_waveT = 0.f;
 
-    // Àû ¾ÆÀÌÄÜµé ¼û±â°í ¾ËÆÄ 0À¸·Î
+    // ì  ì•„ì´ì½˜ë“¤ ìˆ¨ê¸°ê³  ì•ŒíŒŒ 0ìœ¼ë¡œ
     for (auto* pIcon : m_EnemyIcons)
     {
         if (!pIcon) continue;
@@ -241,7 +241,7 @@ void minimapUI::Free()
 }
 
 // --------------------------------------------------
-// 1) ¸Ê ÀÌ¹ÌÁö ÀÌµ¿ (¥Äpos * scale)
+// 1) ë§µ ì´ë¯¸ì§€ ì´ë™ (Î”pos * scale)
 // --------------------------------------------------
 
 void minimapUI::UpdateMapPosition()
@@ -253,20 +253,20 @@ void minimapUI::UpdateMapPosition()
     _float3 pos{};
     XMStoreFloat3(&pos, pTr->GetState(MATRIXROW_POSITION));
 
-    // Ã¹ ÇÁ·¹ÀÓ¿¡ ÇÃ·¹ÀÌ¾î À§Ä¡¸¦ "¿øÁ¡"À¸·Î Àâ´Â´Ù
+    // ì²« í”„ë ˆì„ì— í”Œë ˆì´ì–´ ìœ„ì¹˜ë¥¼ "ì›ì "ìœ¼ë¡œ ì¡ëŠ”ë‹¤
     if (!m_bOriginSet)
     {
         m_originWorld = pos;
         m_bOriginSet = true;
     }
 
-    // ÇÃ·¹ÀÌ¾î°¡ ±âÁØÁ¡¿¡¼­ ¾ó¸¶³ª ÀÌµ¿Çß´ÂÁö (¥Äx, ¥Äz)
+    // í”Œë ˆì´ì–´ê°€ ê¸°ì¤€ì ì—ì„œ ì–¼ë§ˆë‚˜ ì´ë™í–ˆëŠ”ì§€ (Î”x, Î”z)
     const float dx = pos.x - m_originWorld.x;
     const float dz = pos.z - m_originWorld.z;
 
     UI_DESC mapDesc = m_pMapImage->GetUIDesc();
 
-    // ¸Ê ÀÌ¹ÌÁö´Â ¹İ´ë·Î ¿òÁ÷ÀÎ´Ù (ÇÃ·¹ÀÌ¾î´Â Ç×»ó Áß¾Ó ±ÙÃ³¿¡ º¸ÀÌµµ·Ï)
+    // ë§µ ì´ë¯¸ì§€ëŠ” ë°˜ëŒ€ë¡œ ì›€ì§ì¸ë‹¤ (í”Œë ˆì´ì–´ëŠ” í•­ìƒ ì¤‘ì•™ ê·¼ì²˜ì— ë³´ì´ë„ë¡)
     mapDesc.x = m_baseMapPos.x - dx * m_fWorldToMiniScale;
     mapDesc.y = m_baseMapPos.y + dz * m_fWorldToMiniScale;
 
@@ -274,7 +274,7 @@ void minimapUI::UpdateMapPosition()
 }
 
 // --------------------------------------------------
-// 2) ÇÃ·¹ÀÌ¾î ¹æÇâ ¾ÆÀÌÄÜ (minimap_playerDir)
+// 2) í”Œë ˆì´ì–´ ë°©í–¥ ì•„ì´ì½˜ (minimap_playerDir)
 // --------------------------------------------------
 
 void minimapUI::UpdatePlayerDir()
@@ -289,17 +289,17 @@ void minimapUI::UpdatePlayerDir()
     _float3 look{};
     XMStoreFloat3(&look, pTr->GetState(MATRIXROW_LOOK));
 
-    float angle = std::atan2(look.x, look.z); // ÇÃ·¹ÀÌ¾î ¹Ù¶óº¸´Â ¹æÇâ(Yaw)
+    float angle = std::atan2(look.x, look.z); // í”Œë ˆì´ì–´ ë°”ë¼ë³´ëŠ” ë°©í–¥(Yaw)
 
     UI_DESC dirDesc = m_pPlayerDir->GetUIDesc();
 
-    // ½ÇÁ¦·Î UI¿¡ ÁÙ È¸Àü°ª (³×°¡ ¸ÂÃçµĞ ±×´ë·Î)
+    // ì‹¤ì œë¡œ UIì— ì¤„ íšŒì „ê°’ (ë„¤ê°€ ë§ì¶°ë‘” ê·¸ëŒ€ë¡œ)
     float rot = -XM_PIDIV2 - angle;
 
-    // ÀÌ¹ÌÁö ¹İÆø (half width)
-    float r = dirDesc.w;   // UI°¡ half-size ¾²´Â ±¸Á¶´Ï±î ±×´ë·Î »ç¿ë
+    // ì´ë¯¸ì§€ ë°˜í­ (half width)
+    float r = dirDesc.w;   // UIê°€ half-size ì“°ëŠ” êµ¬ì¡°ë‹ˆê¹Œ ê·¸ëŒ€ë¡œ ì‚¬ìš©
 
-    // ¡Ú È¸Àü ÈÄ¿¡µµ "¿ŞÂÊ Áß¾Ó"ÀÌ m_viewCenter¿¡ ¿Àµµ·Ï
+    // â˜… íšŒì „ í›„ì—ë„ "ì™¼ìª½ ì¤‘ì•™"ì´ m_viewCenterì— ì˜¤ë„ë¡
     dirDesc.x = m_viewCenter.x + r * std::cos(rot) * 0.5f;
     dirDesc.y = m_viewCenter.y - r * std::sin(rot) * 0.5f;
 
@@ -311,8 +311,8 @@ void minimapUI::UpdatePlayerDir()
 
 
 // --------------------------------------------------
-// 3) ·¹ÀÌ´õ ¾ÆÀÌÄÜ (minimap_raider)
-//    ÀÏÁ¤ ÁÖ±â¸¶´Ù Áß½É¿¡¼­ ³ªÅ¸³ª¸é¼­ Ä¿Áö´Â È¿°ú
+// 3) ë ˆì´ë” ì•„ì´ì½˜ (minimap_raider)
+//    ì¼ì • ì£¼ê¸°ë§ˆë‹¤ ì¤‘ì‹¬ì—ì„œ ë‚˜íƒ€ë‚˜ë©´ì„œ ì»¤ì§€ëŠ” íš¨ê³¼
 // --------------------------------------------------
 
 void minimapUI::UpdateRaider(_float dt)
@@ -320,13 +320,25 @@ void minimapUI::UpdateRaider(_float dt)
     if (!m_pRaider)
         return;
 
-    m_raiderTimer += dt;
-
     const float cycle = m_raiderInterval + m_raiderDuration;
+
+    // íƒ€ì´ë¨¸ ì •ê·œí™”(í˜¹ì‹œë¼ë„ ì´ì „ í”„ë ˆì„ì—ì„œ ì´ˆê³¼ë¼ ìˆë‹¤ë©´)
     if (m_raiderTimer > cycle)
-    {
         m_raiderTimer -= cycle;
-        m_pEngineUtility->PlaySound2D("FBX_raider");
+
+    // ì´ì „ ê°’ ì €ì¥
+    float prevTimer = m_raiderTimer;
+
+    // ì´ë²ˆ í”„ë ˆì„ ì¦ê°€
+    m_raiderTimer += dt;
+    if (m_raiderTimer > cycle)
+        m_raiderTimer -= cycle;
+
+    // â˜… ì—¬ê¸°ì—ì„œ "ì›¨ì´ë¸Œ ì‹œì‘ êµ¬ê°„" ì§„ì… ì²´í¬
+    //   ì´ì „ì—ëŠ” interval ë¯¸ë§Œì´ì—ˆëŠ”ë°, ì´ë²ˆ í”„ë ˆì„ì— interval ì´ìƒì´ ë˜ë©´ â†’ ì‚¬ìš´ë“œ ì¬ìƒ
+    if (prevTimer < m_raiderInterval && m_raiderTimer >= m_raiderInterval)
+    {
+        m_pEngineUtility->PlaySound2D("FBX_raider", 0.7f);
     }
 
     UI_DESC desc = m_pRaider->GetUIDesc();
@@ -336,7 +348,7 @@ void minimapUI::UpdateRaider(_float dt)
         desc.visible = false;
         m_pRaider->ApplyUIDesc(desc);
 
-        // ¡Ú ÆÄµ¿ ºñÈ°¼º
+        // â˜… íŒŒë™ ë¹„í™œì„±
         m_waveActive = false;
         m_waveT = 0.f;
         return;
@@ -345,7 +357,7 @@ void minimapUI::UpdateRaider(_float dt)
     float t = (m_raiderTimer - m_raiderInterval) / m_raiderDuration; // 0 ~ 1
     if (t > 1.f) t = 1.f;
 
-    // ¡Ú ÆÄµ¿ ÁøÇàµµ ÀúÀå
+    // â˜… íŒŒë™ ì§„í–‰ë„ ì €ì¥
     m_waveActive = true;
     m_waveT = t;
 
@@ -364,29 +376,28 @@ void minimapUI::UpdateRaider(_float dt)
     m_pRaider->SetAlpha(1 - t * t * t);
 }
 
-
 // --------------------------------------------------
-// 4) Àû À§Ä¡ ¾ÆÀÌÄÜ (minimap_enemyPos)
-//    ÇÃ·¹ÀÌ¾î ÁÖº¯ Àû Áß °¡Àå °¡±î¿î ÇÑ °³¸¸ Ç¥½Ã
+// 4) ì  ìœ„ì¹˜ ì•„ì´ì½˜ (minimap_enemyPos)
+//    í”Œë ˆì´ì–´ ì£¼ë³€ ì  ì¤‘ ê°€ì¥ ê°€ê¹Œìš´ í•œ ê°œë§Œ í‘œì‹œ
 // --------------------------------------------------
 
 void minimapUI::UpdateEnemyPos(_float dt)
 {
-    // 0) ÀúÀåµÈ ¾ËÆÄ ¸ÕÀú °¨¼è (ÆÄµ¿°ú ¹«°üÇÏ°Ô 0.8ÃÊ µ¿¾È ¼­¼­È÷ °¨¼Ò)
+    // 0) ì €ì¥ëœ ì•ŒíŒŒ ë¨¼ì € ê°ì‡  (íŒŒë™ê³¼ ë¬´ê´€í•˜ê²Œ 0.8ì´ˆ ë™ì•ˆ ì„œì„œíˆ ê°ì†Œ)
     if (!m_EnemyPingAlpha.empty())
     {
         for (size_t i = 0; i < m_EnemyPingAlpha.size(); ++i)
         {
             if (m_EnemyPingAlpha[i] > 0.f)
             {
-                m_EnemyPingAlpha[i] -= dt / m_enemyFadeDuration; // 0.8ÃÊ µ¿¾È 1 ¡æ 0
+                m_EnemyPingAlpha[i] -= dt / m_enemyFadeDuration; // 0.8ì´ˆ ë™ì•ˆ 1 â†’ 0
                 if (m_EnemyPingAlpha[i] < 0.f)
                     m_EnemyPingAlpha[i] = 0.f;
             }
         }
     }
 
-    // ÇÃ·¹ÀÌ¾î°¡ ¾øÀ¸¸é ÀüºÎ ¼û±è + ¿©±â¼­ ³¡
+    // í”Œë ˆì´ì–´ê°€ ì—†ìœ¼ë©´ ì „ë¶€ ìˆ¨ê¹€ + ì—¬ê¸°ì„œ ë
     if (!m_pPlayer)
     {
         for (auto* pIcon : m_EnemyIcons)
@@ -417,7 +428,7 @@ void minimapUI::UpdateEnemyPos(_float dt)
 
     const float maxDistSq = m_enemyMaxWorldDist * m_enemyMaxWorldDist;
 
-    // 1) Drone / Worm / Shieldbug ÀüºÎ ¸ğÀ¸±â
+    // 1) Drone / Worm / Shieldbug ì „ë¶€ ëª¨ìœ¼ê¸°
     std::vector<Object*> monsters;
     monsters.reserve(64);
 
@@ -467,7 +478,7 @@ void minimapUI::UpdateEnemyPos(_float dt)
         if (distSq > maxDistSq)
             continue;
 
-        // ¾ÆÀÌÄÜ Ç®¿¡¼­ ÇÏ³ª °¡Á®¿À°Å³ª, ¾øÀ¸¸é »õ·Î »ı¼º
+        // ì•„ì´ì½˜ í’€ì—ì„œ í•˜ë‚˜ ê°€ì ¸ì˜¤ê±°ë‚˜, ì—†ìœ¼ë©´ ìƒˆë¡œ ìƒì„±
         Engine::UIImage* pIcon = nullptr;
 
         if (activeCount < m_EnemyIcons.size())
@@ -489,13 +500,13 @@ void minimapUI::UpdateEnemyPos(_float dt)
             pIcon->SetMaskingColorGradient(_float4{ 1.f, 0.f, 0.f, 1.f });
 
             m_EnemyIcons.push_back(pIcon);
-            m_EnemyPingAlpha.push_back(0.f); // ¡Ú »õ ¾ÆÀÌÄÜÀº ¾ËÆÄ 0
+            m_EnemyPingAlpha.push_back(0.f); // â˜… ìƒˆ ì•„ì´ì½˜ì€ ì•ŒíŒŒ 0
         }
 
         if (!pIcon)
             continue;
 
-        // ¾ÆÀÌÄÜ À§Ä¡ °»½Å
+        // ì•„ì´ì½˜ ìœ„ì¹˜ ê°±ì‹ 
         UI_DESC desc = pIcon->GetUIDesc();
 
         float offsetX = dx * m_fWorldToMiniScale;
@@ -507,7 +518,7 @@ void minimapUI::UpdateEnemyPos(_float dt)
 
         pIcon->ApplyUIDesc(desc);
 
-        // ¡Ú ÆÄµ¿ÀÌ È°¼º »óÅÂÀÏ ¶§ "ÆÄµ¿ÀÌ ÀÌ ÀûÀ» ½ºÃÆ´ÂÁö" È®ÀÎ
+        // â˜… íŒŒë™ì´ í™œì„± ìƒíƒœì¼ ë•Œ "íŒŒë™ì´ ì´ ì ì„ ìŠ¤ì³¤ëŠ”ì§€" í™•ì¸
         if (m_waveActive)
         {
             float dist = sqrtf(distSq);
@@ -526,18 +537,18 @@ void minimapUI::UpdateEnemyPos(_float dt)
 
             if (band > 0.f)
             {
-                // ÆÄµ¿ÀÌ ´êÀº ÇÁ·¹ÀÓ: ÀúÀå ¾ËÆÄ¸¦ È® ¿Ã·ÁÁÜ (band ºñÀ²¸¸Å­)
+                // íŒŒë™ì´ ë‹¿ì€ í”„ë ˆì„: ì €ì¥ ì•ŒíŒŒë¥¼ í™• ì˜¬ë ¤ì¤Œ (band ë¹„ìœ¨ë§Œí¼)
                 float newAlpha = band; // 0~1
                 if (activeCount < m_EnemyPingAlpha.size())
                 {
-                    // ÀÌ¹Ì ³²¾Æ ÀÖ´Â ¾ËÆÄº¸´Ù Å©¸é °»½Å
+                    // ì´ë¯¸ ë‚¨ì•„ ìˆëŠ” ì•ŒíŒŒë³´ë‹¤ í¬ë©´ ê°±ì‹ 
                     if (newAlpha > m_EnemyPingAlpha[activeCount])
                         m_EnemyPingAlpha[activeCount] = newAlpha;
                 }
             }
         }
 
-        // ¡Ú ÀúÀåµÈ ¾ËÆÄ¸¦ ½ÇÁ¦ ¾ÆÀÌÄÜ¿¡ Àû¿ë
+        // â˜… ì €ì¥ëœ ì•ŒíŒŒë¥¼ ì‹¤ì œ ì•„ì´ì½˜ì— ì ìš©
         if (activeCount < m_EnemyPingAlpha.size())
             pIcon->SetAlpha(m_EnemyPingAlpha[activeCount]);
         else
@@ -546,7 +557,7 @@ void minimapUI::UpdateEnemyPos(_float dt)
         ++activeCount;
     }
 
-    // ÀÌ¹ø ÇÁ·¹ÀÓ¿¡ ¾È ¾´ ³ª¸ÓÁö ¾ÆÀÌÄÜµéÀº ¼û±â±â
+    // ì´ë²ˆ í”„ë ˆì„ì— ì•ˆ ì“´ ë‚˜ë¨¸ì§€ ì•„ì´ì½˜ë“¤ì€ ìˆ¨ê¸°ê¸°
     for (_uint i = activeCount; i < m_EnemyIcons.size(); ++i)
     {
         Engine::UIImage* pIcon = m_EnemyIcons[i];
@@ -556,7 +567,7 @@ void minimapUI::UpdateEnemyPos(_float dt)
         d.visible = false;
         pIcon->ApplyUIDesc(d);
 
-        // ¾È ¾²´Â ¾ÆÀÌÄÜÀº ¾ËÆÄµµ 0À¸·Î
+        // ì•ˆ ì“°ëŠ” ì•„ì´ì½˜ì€ ì•ŒíŒŒë„ 0ìœ¼ë¡œ
         if (i < m_EnemyPingAlpha.size())
             m_EnemyPingAlpha[i] = 0.f;
     }

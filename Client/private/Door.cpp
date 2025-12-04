@@ -1,4 +1,4 @@
-#include "Door.h"
+﻿#include "Door.h"
 
 #include "EngineUtility.h"
 
@@ -133,7 +133,7 @@ void Door::Open()
     m_isOpening = true;
     m_openT = 0.f;
 
-    m_pEngineUtility->PlaySound2D("FBX_doorMove");
+    m_pEngineUtility->PlaySound2D("FBX_doorMove", 0.7f);
     m_pEngineUtility->PlaySound2D("FBX_playerOpenDoor");
 }
 

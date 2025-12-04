@@ -1,4 +1,4 @@
-#include "Console.h"
+ï»¿#include "Console.h"
 
 #include "EngineUtility.h"
 #include "UI.h"
@@ -57,7 +57,7 @@ void Console::Update(_float fTimeDelta)
         {
             m_playerInRange = true;
 
-            // Ã³À½ µé¾î¿ÔÀ» ¶§ hacking2_ UI ¶ç¿ì±â
+            // ì²˜ìŒ ë“¤ì–´ì™”ì„ ë•Œ hacking2_ UI ë„ìš°ê¸°
             UI* pTextPlate = m_pEngineUtility->FindUI(L"hacking2_text_plate");
             if (pTextPlate && !pTextPlate->IsVisible())
             {
@@ -66,19 +66,19 @@ void Console::Update(_float fTimeDelta)
                 SetVisibleConsoleUI(true);
             }
 
-            // E Å° ¡æ ¿şÀÌºê ½ÃÀÛ + hackingGame2UI ½ÇÇà
+            // E í‚¤ â†’ ì›¨ì´ë¸Œ ì‹œì‘ + hackingGame2UI ì‹¤í–‰
             if (m_pEngineUtility->IsKeyPressed(DIK_E))
             {
-                // 1) ¿şÀÌºê ½ÃÄö½º ½ÃÀÛ (ÀÌ¹Ì ÁøÇà ÁßÀÌ¸é ³»ºÎ¿¡¼­ ¹«½Ã)
+                // 1) ì›¨ì´ë¸Œ ì‹œí€€ìŠ¤ ì‹œì‘ (ì´ë¯¸ ì§„í–‰ ì¤‘ì´ë©´ ë‚´ë¶€ì—ì„œ ë¬´ì‹œ)
                 StartWaveSequence();
 
-                // 2) ¹Ì´Ï°ÔÀÓ UI »ı¼º ¹× º¸¿©ÁÖ±â
+                // 2) ë¯¸ë‹ˆê²Œì„ UI ìƒì„± ë° ë³´ì—¬ì£¼ê¸°
                 if (m_pEngineUtility->FindUI(L"hacking2GameUI") == nullptr)
                 {
-                    // Object »ı¼º
+                    // Object ìƒì„±
                     m_pEngineUtility->AddObject(SCENE::GAMEPLAY, TEXT("hacking2GameUI"), SCENE::GAMEPLAY, L"UI");
                 
-                    // UI ·¹ÀÌ¾î¿¡¼­ ¸¶Áö¸· Object °¡Á®¿Í¼­ UI·Î µî·Ï
+                    // UI ë ˆì´ì–´ì—ì„œ ë§ˆì§€ë§‰ Object ê°€ì ¸ì™€ì„œ UIë¡œ ë“±ë¡
                     UI* pUI = static_cast<UI*>(m_pEngineUtility->FindLayer(SCENE::GAMEPLAY, L"UI")->GetAllObjects().back());
                     m_pEngineUtility->AddUI(L"hacking2GameUI", pUI);
                 
@@ -90,7 +90,7 @@ void Console::Update(_float fTimeDelta)
                 }
             }
 
-            // Å° ±ôºıÀÓ
+            // í‚¤ ê¹œë¹¡ì„
             if (m_openedHackingUI)
             {
                 m_keyBlinkAcc += fTimeDelta;
@@ -108,23 +108,23 @@ void Console::Update(_float fTimeDelta)
         }
         else if (m_openedHackingUI)
         {
-            // ¹üÀ§ ¹ÛÀ¸·Î ³ª°¡¸é ÄÜ¼Ö UI ´İ±â
+            // ë²”ìœ„ ë°–ìœ¼ë¡œ ë‚˜ê°€ë©´ ì½˜ì†” UI ë‹«ê¸°
             m_openedHackingUI = false;
             SetVisibleConsoleUI(false);
         }
     }
 
-    // === ¿şÀÌºê ÁøÇà ·ÎÁ÷ (±âÁ¸ °Í À¯Áö) ===
+    // === ì›¨ì´ë¸Œ ì§„í–‰ ë¡œì§ (ê¸°ì¡´ ê²ƒ ìœ ì§€) ===
     if (m_isActive && m_waveIndex < m_waveDurations.size())
     {
         m_waveTimer -= fTimeDelta;
 
         if (m_waveTimer <= 0.f)
         {
-            // ¿şÀÌºê ½ºÆù
+            // ì›¨ì´ë¸Œ ìŠ¤í°
             m_pEngineUtility->Spawn(7);
 
-            // ´ÙÀ½ ¿şÀÌºê ÁØºñ
+            // ë‹¤ìŒ ì›¨ì´ë¸Œ ì¤€ë¹„
             ++m_waveIndex;
             if (m_waveIndex < m_waveDurations.size())
             {
@@ -133,18 +133,18 @@ void Console::Update(_float fTimeDelta)
             }
             else
             {
-                // ¸ğµç ¿şÀÌºê ³¡
+                // ëª¨ë“  ì›¨ì´ë¸Œ ë
                 m_waveTimer = 0.f;
                 m_currentWaveDuration = 0.f;
                 m_isActive = false;
-                m_pEngineUtility->PlaySound2D("BGM_game");
+                m_pEngineUtility->PlaySound2D("BGM_game", 0.5f);
                 m_pEngineUtility->StopSound("BGM_wave");
                 m_pEngineUtility->StopSound("BGM_waveBeep");
             }
         }
     }
 
-    // »ó´Ü wave_progress / wave_left0~6 °»½Å
+    // ìƒë‹¨ wave_progress / wave_left0~6 ê°±ì‹ 
     UpdateWaveUI(fTimeDelta);
 }
 
@@ -200,15 +200,15 @@ void Console::StopWave()
     if (!m_isActive && m_waveIndex >= m_waveDurations.size())
         return;
 
-    // ¿şÀÌºê °­Á¦ Á¾·á
+    // ì›¨ì´ë¸Œ ê°•ì œ ì¢…ë£Œ
     m_isActive = false;
     m_waveTimer = 0.f;
     m_currentWaveDuration = 0.f;
 
-    // "¸ğµç ¿şÀÌºê ³¡" »óÅÂ·Î Ãë±ŞµÇµµ·Ï ÀÎµ¦½º¸¦ ³¡±îÁö ¹Ğ¾îÁÜ
+    // "ëª¨ë“  ì›¨ì´ë¸Œ ë" ìƒíƒœë¡œ ì·¨ê¸‰ë˜ë„ë¡ ì¸ë±ìŠ¤ë¥¼ ëê¹Œì§€ ë°€ì–´ì¤Œ
     m_waveIndex = static_cast<_uint>(m_waveDurations.size());
 
-    // BGM ¿øº¹ ¹× ¿şÀÌºê °ü·Ã »ç¿îµå Á¤¸®
+    // BGM ì›ë³µ ë° ì›¨ì´ë¸Œ ê´€ë ¨ ì‚¬ìš´ë“œ ì •ë¦¬
     m_pEngineUtility->StopSound("BGM_game");
     m_pEngineUtility->StopSound("BGM_wave");
     m_pEngineUtility->StopSound("BGM_waveBeep");
@@ -338,16 +338,16 @@ void Console::UpdateWaveUI(_float fTimeDelta)
     if (!m_waveUIReady)
         return;
 
-    // ¿şÀÌºê°¡ ÇÑ ¹øÀÌ¶óµµ ½ÃÀÛÇß´ÂÁö
+    // ì›¨ì´ë¸Œê°€ í•œ ë²ˆì´ë¼ë„ ì‹œì‘í–ˆëŠ”ì§€
     const bool waveStarted = (m_isActive || m_waveIndex > 0);
 
-    // ¿şÀÌºê°¡ ÀüºÎ ³¡³­ »óÅÂÀÎÁö
+    // ì›¨ì´ë¸Œê°€ ì „ë¶€ ëë‚œ ìƒíƒœì¸ì§€
     const bool waveFinished = (!m_isActive && m_waveIndex >= m_waveDurations.size());
 
-    // 1) ¿şÀÌºê ½ÃÀÛ ÀüÀÌ°Å³ª, ¸ğµç ¿şÀÌºê°¡ ³¡³­ »óÅÂ¸é wave_* ÀüºÎ OFF
+    // 1) ì›¨ì´ë¸Œ ì‹œì‘ ì „ì´ê±°ë‚˜, ëª¨ë“  ì›¨ì´ë¸Œê°€ ëë‚œ ìƒíƒœë©´ wave_* ì „ë¶€ OFF
     if (!waveStarted || waveFinished)
     {
-        // wave_left0~6 ÀüºÎ ²ô±â
+        // wave_left0~6 ì „ë¶€ ë„ê¸°
         wchar_t name[32]{};
         for (int i = 0; i <= 6; ++i)
         {
@@ -359,7 +359,7 @@ void Console::UpdateWaveUI(_float fTimeDelta)
             pLeft->SetVisible(false);
         }
 
-        // ÅØ½ºÆ® / ¹Ù / ¹è°æµµ ²ô±â
+        // í…ìŠ¤íŠ¸ / ë°” / ë°°ê²½ë„ ë„ê¸°
         if (UI* pText = m_pEngineUtility->FindUI(L"wave_text"))        pText->SetVisible(false);
         if (UI* pBg = m_pEngineUtility->FindUI(L"wave_progress"))    pBg->SetVisible(false);
         if (UI* pBar = m_pEngineUtility->FindUI(L"wave_progressbar")) pBar->SetVisible(false);
@@ -367,9 +367,9 @@ void Console::UpdateWaveUI(_float fTimeDelta)
         return;
     }
 
-    // ===== ¿©±âºÎÅÍ´Â "¿şÀÌºê ÁøÇà Áß" »óÅÂ =====
+    // ===== ì—¬ê¸°ë¶€í„°ëŠ” "ì›¨ì´ë¸Œ ì§„í–‰ ì¤‘" ìƒíƒœ =====
 
-    // 2) ³²Àº ¿şÀÌºê °³¼ö¿¡ µû¶ó wave_left0~6 Áß ÇÏ³ª¸¸ ÄÒ´Ù.
+    // 2) ë‚¨ì€ ì›¨ì´ë¸Œ ê°œìˆ˜ì— ë”°ë¼ wave_left0~6 ì¤‘ í•˜ë‚˜ë§Œ ì¼ ë‹¤.
     _int remain = GetRemainWaveCount();
     if (remain < 0) remain = 0;
     if (remain > 6) remain = 6;
@@ -385,7 +385,7 @@ void Console::UpdateWaveUI(_float fTimeDelta)
         pLeft->SetVisible(i == remain);
     }
 
-    // 3) wave_text / wave_progress / wave_progressbar ³ëÃâ Á¦¾î
+    // 3) wave_text / wave_progress / wave_progressbar ë…¸ì¶œ ì œì–´
     UI* pText = m_pEngineUtility->FindUI(L"wave_text");
     UI* pBg = m_pEngineUtility->FindUI(L"wave_progress");
     UI* pBar = m_pEngineUtility->FindUI(L"wave_progressbar");
@@ -399,7 +399,7 @@ void Console::UpdateWaveUI(_float fTimeDelta)
     if (!showBar || !pBar)
         return;
 
-    // 4) wave_progressbar¸¦ ¿ŞÂÊ¿¡¼­ ¿À¸¥ÂÊÀ¸·Î Â÷¿À¸£°Ô
+    // 4) wave_progressbarë¥¼ ì™¼ìª½ì—ì„œ ì˜¤ë¥¸ìª½ìœ¼ë¡œ ì°¨ì˜¤ë¥´ê²Œ
     if (auto pImg = dynamic_cast<UIImage*>(pBar))
     {
         _float fill = GetWaveFillRatio(); // 0 ~ 1
@@ -417,9 +417,9 @@ _float Console::GetWaveFillRatio() const
         return 0.f;
 
     if (m_currentWaveDuration <= 0.f)
-        return 1.f; // 0ÃÊ ¿şÀÌºê¸é ±×³É ²Ë Âù°É·Î
+        return 1.f; // 0ì´ˆ ì›¨ì´ë¸Œë©´ ê·¸ëƒ¥ ê½‰ ì°¬ê±¸ë¡œ
 
-    // °æ°ú ½Ã°£ = ÀüÃ¼ - ³²Àº
+    // ê²½ê³¼ ì‹œê°„ = ì „ì²´ - ë‚¨ì€
     _float elapsed = m_currentWaveDuration - m_waveTimer;
     if (elapsed < 0.f)                 elapsed = 0.f;
     if (elapsed > m_currentWaveDuration) elapsed = m_currentWaveDuration;
@@ -437,16 +437,16 @@ _int Console::GetRemainWaveCount() const
 
     if (m_isActive)
     {
-        // ÁøÇà ÁßÀÌ¸é m_waveIndex °³¼ö¸¸Å­ ÀÌ¹Ì ³ª°£ »óÅÂ
+        // ì§„í–‰ ì¤‘ì´ë©´ m_waveIndex ê°œìˆ˜ë§Œí¼ ì´ë¯¸ ë‚˜ê°„ ìƒíƒœ
         spawned = static_cast<_int>(m_waveIndex);
     }
     else
     {
-        // ÁøÇà ÁßÀº ¾Æ´Ñµ¥ ÀÎµ¦½º°¡ ³¡±îÁö °¬À¸¸é ÀüºÎ ¼ÒÁøµÈ »óÅÂ
+        // ì§„í–‰ ì¤‘ì€ ì•„ë‹Œë° ì¸ë±ìŠ¤ê°€ ëê¹Œì§€ ê°”ìœ¼ë©´ ì „ë¶€ ì†Œì§„ëœ ìƒíƒœ
         if (m_waveIndex >= m_waveDurations.size())
-            spawned = total;   // ³²Àº ¿şÀÌºê 0
+            spawned = total;   // ë‚¨ì€ ì›¨ì´ë¸Œ 0
         else
-            spawned = 0;       // ¾ÆÁ÷ ½ÃÀÛ Àü
+            spawned = 0;       // ì•„ì§ ì‹œì‘ ì „
     }
 
     _int remain = total - spawned;
@@ -459,7 +459,7 @@ _int Console::GetRemainWaveCount() const
 void Console::StartWaveSequence()
 {
     if (m_isActive)
-        return; // ÀÌ¹Ì ¿şÀÌºê ÁøÇàÁßÀÌ¸é ¹«½Ã
+        return; // ì´ë¯¸ ì›¨ì´ë¸Œ ì§„í–‰ì¤‘ì´ë©´ ë¬´ì‹œ
 
     if (m_waveIndex >= m_waveDurations.size())
         return;
@@ -477,7 +477,7 @@ void Console::StartWaveSequence()
         m_currentWaveDuration = 0.f;
     }
 
-    // Ã¹ °£°İÀÌ 0ÀÌ¸é ¹Ù·Î Ã¹ ¿şÀÌºê ½ºÆù
+    // ì²« ê°„ê²©ì´ 0ì´ë©´ ë°”ë¡œ ì²« ì›¨ì´ë¸Œ ìŠ¤í°
     if (m_waveTimer <= 0.f)
     {
         m_pEngineUtility->Spawn(7);
@@ -497,8 +497,8 @@ void Console::StartWaveSequence()
     }
 
     m_pEngineUtility->StopSound("BGM_game");
-    m_pEngineUtility->PlaySound2D("BGM_wave");
-    m_pEngineUtility->PlaySound2D("BGM_waveBeep");
+    m_pEngineUtility->PlaySound2D("BGM_wave", 0.5f);
+    m_pEngineUtility->PlaySound2D("BGM_waveBeep", 0.7f);
 
     m_pEngineUtility->PlaySound2D("FBX_playerHolyshit");
     static_cast<Player*>(m_pEngineUtility->FindObject(SCENE::GAMEPLAY, L"Player", 0))->SetGlobalSightScale(4.f);

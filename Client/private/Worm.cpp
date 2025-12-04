@@ -296,9 +296,9 @@ HRESULT Worm::SetUpStateMachine()
 
             _float r = EngineUtility::GetInstance()->Random(0, 2);
             if (r >= 1)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar1");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar1", 0.7f);
             else
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar2");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar2", 0.7f);
         },
          [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
             Worm* pWorm = dynamic_cast<Worm*>(owner);
@@ -362,29 +362,29 @@ HRESULT Worm::SetUpStateMachine()
 
             _float r = EngineUtility::GetInstance()->Random(0, 12);
             if (r >= 11)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit1");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit1", 0.7f);
             else if (r >= 10)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit2");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit2", 0.7f);
             else if (r >= 9)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit3");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit3", 0.7f);
             else if (r >= 8)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit4");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit4", 0.7f);
             else if (r >= 7)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit5");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit5", 0.7f);
             else if (r >= 6)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit6");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit6", 0.7f);
             else if (r >= 5)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit7");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit7", 0.7f);
             else if (r >= 4)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit8");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit8", 0.7f);
             else if (r >= 3)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit9");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit9", 0.7f);
             else if (r >= 2)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit10");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit10", 0.7f);
             else if (r >= 1)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit11");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit11", 0.7f);
             else
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit12");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit12", 0.7f);
         },
         [](Object* owner, StateMachine* /*sm*/, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -432,7 +432,7 @@ HRESULT Worm::SetUpStateMachine()
                 EngineUtility::GetInstance()->PushEvent(ev);
             }
 
-            EngineUtility::GetInstance()->PlaySound2D("FBX_wormDie1");
+            EngineUtility::GetInstance()->PlaySound2D("FBX_wormDie1", 0.7f);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Worm* pMonster = dynamic_cast<Worm*>(owner);

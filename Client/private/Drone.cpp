@@ -1,4 +1,4 @@
-#include "Drone.h"
+ï»¿#include "Drone.h"
 
 #include "EngineUtility.h"
 
@@ -310,7 +310,7 @@ HRESULT Drone::SetUpStateMachine()
     if (!pSM || !pModel)
         return E_FAIL;
 
-    //»óÅÂ µî·Ï
+    //ìƒíƒœ ë“±ë¡
     pSM->RegisterState("Roar", {
         [](Object* owner, StateMachine* sm) {
             Drone* pDrone = dynamic_cast<Drone*>(owner);
@@ -320,9 +320,9 @@ HRESULT Drone::SetUpStateMachine()
 
             _float r = EngineUtility::GetInstance()->Random(0, 2);
             if (r >= 1)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar1");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar1", 0.7f);
             else
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar2");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneRoar2", 0.7f);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -402,29 +402,29 @@ HRESULT Drone::SetUpStateMachine()
 
             _float r = EngineUtility::GetInstance()->Random(0, 12);
             if (r >= 11)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit1");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit1", 0.7f);
             else if (r >= 10)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit2");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit2", 0.7f);
             else if (r >= 9)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit3");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit3", 0.7f);
             else if (r >= 8)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit4");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit4", 0.7f);
             else if (r >= 7)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit5");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit5", 0.7f);
             else if (r >= 6)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit6");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit6", 0.7f);
             else if (r >= 5)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit7");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit7", 0.7f);
             else if (r >= 4)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit8");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit8", 0.7f);
             else if (r >= 3)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit9");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit9", 0.7f);
             else if (r >= 2)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit10");      
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit10", 0.7f);
             else if (r >= 1)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit11");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit11", 0.7f);
             else
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit12");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneHit12", 0.7f);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Model* pModel = dynamic_cast<Model*>(owner->FindComponent(TEXT("Model")));
@@ -473,13 +473,13 @@ HRESULT Drone::SetUpStateMachine()
 
             _float r = EngineUtility::GetInstance()->Random(0, 4);
             if(r >= 3)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie1");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie1", 0.7f);
             else if(r >= 2)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie2");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie2", 0.7f);
             else if(r >= 1)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie3");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie3", 0.7f);
             else
-                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie4");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_droneDie4", 0.7f);
            
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
@@ -503,7 +503,7 @@ HRESULT Drone::SetUpStateMachine()
         nullptr
     });
 
-    //ÀüÀÌ µî·Ï
+    //ì „ì´ ë“±ë¡
     //Roar ->
     pSM->AddTransition("Roar", "Idle", FindPriorityIndex("Idle"),
         [](Object* owner, StateMachine* sm) {
@@ -716,7 +716,7 @@ HRESULT Drone::SetUpStateMachine()
             return pInfo->IsDead();
         });
 
-    // ½ÃÀÛ »óÅÂ: Roar
+    // ì‹œì‘ ìƒíƒœ: Roar
     pSM->SetState("Roar");
 
     return S_OK;
@@ -766,7 +766,7 @@ HRESULT Drone::SetUpAIProcess()
 
     AIPROCESS_DESC proc{};
 
-    // [1] SENSE: ÀÔ·Â º¸°­¸¸ ´ã´ç (this¿¡¼­ Transform Á¶È¸)
+    // [1] SENSE: ì…ë ¥ ë³´ê°•ë§Œ ë‹´ë‹¹ (thisì—ì„œ Transform ì¡°íšŒ)
     proc.sense = [this](AIINPUT_DESC& in, _float /*dt*/, _float time)
         {
             Transform* tf = dynamic_cast<Transform*>(this->FindComponent(TEXT("Transform")));
@@ -777,7 +777,7 @@ HRESULT Drone::SetUpAIProcess()
             const AIValue* pDronePos = in.GetPtr("DronePos");
             const AIValue* pPlayerPos = in.GetPtr("PlayerPos");
 
-            // ±âº» °¡½Ã¼º false
+            // ê¸°ë³¸ ê°€ì‹œì„± false
             in.SetData("Visible", _bool{ false });
 
             if (pDronePos && pPlayerPos)
@@ -785,18 +785,18 @@ HRESULT Drone::SetUpAIProcess()
                 const _vector dronePos = std::get<_vector>(*pDronePos);
                 const _vector playerPos = std::get<_vector>(*pPlayerPos);
 
-                // °Å¸®
+                // ê±°ë¦¬
                 const _float distance = XMVectorGetX(XMVector3Length(playerPos - dronePos));
                 in.SetData("Distance", _float{ distance });
 
-                // ÆÄ¶ó¹ÌÅÍ(¾øÀ¸¸é ±âº»°ª)
+                // íŒŒë¼ë¯¸í„°(ì—†ìœ¼ë©´ ê¸°ë³¸ê°’)
                 float sightRange = in.GetPtr("SightRange") ? std::get<_float>(*in.GetPtr("SightRange")) : 10.f;
                 _float globalSightScale = static_cast<Player*>(m_pEngineUtility->FindObject(SCENE::GAMEPLAY, L"Player", 0))->GetGlobalSightScale();
                 sightRange *= globalSightScale;
                 const float fovDeg = in.GetPtr("FovDegree") ? std::get<_float>(*in.GetPtr("FovDegree")) : 360.f;
                 const float chasePersistTime = in.GetPtr("ChasePersistTime") ? std::get<_float>(*in.GetPtr("ChasePersistTime")) : 3.f;
 
-                // °¡½Ã¼º (XZ Æò¸é FOV)
+                // ê°€ì‹œì„± (XZ í‰ë©´ FOV)
                 bool inRangeSight = (distance <= sightRange);
 
                 bool inFov = true;
@@ -823,7 +823,7 @@ HRESULT Drone::SetUpAIProcess()
             }
         };
 
-    // [2] DECIDE: ÆÄ»ı ÆÇ´Ü(out: inRange/tracking/isMove/attack)
+    // [2] DECIDE: íŒŒìƒ íŒë‹¨(out: inRange/tracking/isMove/attack)
     proc.decide = [this](const AIINPUT_DESC& in, AIOUTPUT_DESC& out, _float /*dt*/, _float /*time*/)
         {
             const AIValue* pDronePos = in.GetPtr("DronePos");
@@ -861,7 +861,7 @@ HRESULT Drone::SetUpAIProcess()
             }
         };
 
-    // [3] ACT: Ãâ·Â º¸Á¤
+    // [3] ACT: ì¶œë ¥ ë³´ì •
     proc.act = [this](AIOUTPUT_DESC& out, _float /*dt*/, _float /*time*/)
         {
             if (auto p = out.GetPtr("moveDir")) {
@@ -871,7 +871,7 @@ HRESULT Drone::SetUpAIProcess()
             }
         };
 
-    // [4] APPLY: Drone ¸â¹ö ¹İ¿µ
+    // [4] APPLY: Drone ë©¤ë²„ ë°˜ì˜
     proc.applyOutput = [this](const AIOUTPUT_DESC& out)
         {
             m_isMove = false;
@@ -897,12 +897,12 @@ void Drone::Move(_float fTimeDelta)
     Transform* pTransform = static_cast<Transform*>(FindComponent(TEXT("Transform")));
     _vector prePos = pTransform->GetState(MATRIXROW_POSITION);
 
-    // ÇöÀç À§Ä¡
+    // í˜„ì¬ ìœ„ì¹˜
     _float3 curPos3;
     XMStoreFloat3(&curPos3, prePos);
 
     // -----------------------------
-    // [0] °°Àº ¼¿ÀÌ¸é ¡æ ÇÃ·¹ÀÌ¾î ÂÊÀ¸·Î ¹Ù·Î ÀÌµ¿
+    // [0] ê°™ì€ ì…€ì´ë©´ â†’ í”Œë ˆì´ì–´ ìª½ìœ¼ë¡œ ë°”ë¡œ ì´ë™
     // -----------------------------
     _bool   directToPlayer = false;
     _float3 directTarget3{};
@@ -927,7 +927,7 @@ void Drone::Move(_float fTimeDelta)
                     m_pEngineUtility->IsInCell(vPlayerPos, &playerCell) &&
                     myCell >= 0 && myCell == playerCell)
                 {
-                    // °°Àº ³×ºñ ¼¿¿¡ ÀÖÀ¸¸é ±×³É ÇÃ·¹ÀÌ¾î¸¦ ¸ñÇ¥·Î
+                    // ê°™ì€ ë„¤ë¹„ ì…€ì— ìˆìœ¼ë©´ ê·¸ëƒ¥ í”Œë ˆì´ì–´ë¥¼ ëª©í‘œë¡œ
                     directToPlayer = true;
                     directTarget3 = playerPos3;
                 }
@@ -936,7 +936,7 @@ void Drone::Move(_float fTimeDelta)
     }
 
     // -----------------------------
-    // [1] ¸ñÇ¥Á¡ °è»ê (Á÷Á¢ ÃßÀû vs °æ·Î ÃßÀû)
+    // [1] ëª©í‘œì  ê³„ì‚° (ì§ì ‘ ì¶”ì  vs ê²½ë¡œ ì¶”ì )
     // -----------------------------
     _float3 target{};
 
@@ -946,13 +946,13 @@ void Drone::Move(_float fTimeDelta)
     }
     else
     {
-        // °æ·Î°¡ ¾øÀ¸¸é ÀÌµ¿ X
+        // ê²½ë¡œê°€ ì—†ìœ¼ë©´ ì´ë™ X
         if (m_path.empty() || m_pathIndex < 0 || m_pathIndex >= (_int)m_path.size())
             return;
 
         target = m_path[m_pathIndex];
 
-        // ---- look-ahead: ¾Õ 1~2°³ ¿şÀÌÆ÷ÀÎÆ®±îÁö º¸¸é¼­ ÄÚ³Ê¸¦ ±ğ±â ----
+        // ---- look-ahead: ì• 1~2ê°œ ì›¨ì´í¬ì¸íŠ¸ê¹Œì§€ ë³´ë©´ì„œ ì½”ë„ˆë¥¼ ê¹ê¸° ----
         auto Dist3 = [](const _float3& a, const _float3& b)
             {
                 float dx = a.x - b.x;
@@ -969,7 +969,7 @@ void Drone::Move(_float fTimeDelta)
         const float cutStrength1 = 0.3f;
         const float cutStrength2 = 0.3f;
         const float cutStrength3 = 0.3f;
-        // 1Ä­ ¾Õ
+        // 1ì¹¸ ì•
         if (m_pathIndex + 1 < (_int)m_path.size() && distToCur < lookAheadRadius1)
         {
             const _float3& next1 = m_path[m_pathIndex + 1];
@@ -988,7 +988,7 @@ void Drone::Move(_float fTimeDelta)
             target = blended;
         }
 
-        // 2Ä­ ¾Õ
+        // 2ì¹¸ ì•
         if (m_pathIndex + 2 < (_int)m_path.size() && distToCur < lookAheadRadius2)
         {
             const _float3& next2 = m_path[m_pathIndex + 2];
@@ -1007,7 +1007,7 @@ void Drone::Move(_float fTimeDelta)
             target = blended2;
         }
 
-        // 3Ä­ ¾Õ
+        // 3ì¹¸ ì•
         if (m_pathIndex + 3 < (_int)m_path.size() && distToCur < lookAheadRadius3)
         {
             const _float3& next3 = m_path[m_pathIndex + 3];
@@ -1025,10 +1025,10 @@ void Drone::Move(_float fTimeDelta)
 
             target = blended3;
         }
-        // ---- look-ahead ³¡ ----
+        // ---- look-ahead ë ----
     }
 
-    // ¸ñÇ¥±îÁö º¤ÅÍ/°Å¸®
+    // ëª©í‘œê¹Œì§€ ë²¡í„°/ê±°ë¦¬
     _float3 toTarget3{
         target.x - curPos3.x,
         target.y - curPos3.y,
@@ -1041,7 +1041,7 @@ void Drone::Move(_float fTimeDelta)
         toTarget3.z * toTarget3.z
     );
 
-    // directToPlayer ¾Æ´Ò ¶§¸¸ ¿şÀÌÆ÷ÀÎÆ® ÀÎµ¦½º °»½Å
+    // directToPlayer ì•„ë‹ ë•Œë§Œ ì›¨ì´í¬ì¸íŠ¸ ì¸ë±ìŠ¤ ê°±ì‹ 
     if (!directToPlayer)
     {
         if (distToTarget < m_arriveRadius)
@@ -1067,7 +1067,7 @@ void Drone::Move(_float fTimeDelta)
         }
     }
 
-    // ¹æÇâ º¤ÅÍ
+    // ë°©í–¥ ë²¡í„°
     _vector toTarget = XMLoadFloat3(&toTarget3);
     _vector dir = XMVector3Normalize(toTarget);
 
@@ -1078,15 +1078,15 @@ void Drone::Move(_float fTimeDelta)
     if (distance <= 0.f)
         return;
 
-    // ³×ºñ¿ë delta
+    // ë„¤ë¹„ìš© delta
     _vector delta = XMVectorScale(dir, distance);
 
-    // 1Â÷ ÀÌµ¿ Àû¿ë
+    // 1ì°¨ ì´ë™ ì ìš©
     pTransform->Translate(m_aimDir, fTimeDelta);
     _vector movePos = pTransform->GetState(MATRIXROW_POSITION);
 
     // -----------------------------
-    // [2] Door Ãæµ¹ Ã³¸® (Player¿Í µ¿ÀÏ ÆĞÅÏ)
+    // [2] Door ì¶©ëŒ ì²˜ë¦¬ (Playerì™€ ë™ì¼ íŒ¨í„´)
     // -----------------------------
     {
         Collision* pCollision = static_cast<Collision*>(FindComponent(TEXT("Collision")));
@@ -1101,7 +1101,7 @@ void Drone::Move(_float fTimeDelta)
                 Collision* pDoorCol = static_cast<Collision*>(door->FindComponent(TEXT("Collision")));
                 if (pDoorCol && pDoorCol->Intersect(pCollision))
                 {
-                    // ¹®¿¡ ¹ÚÀ¸¸é ¿øÀ§Ä¡·Î ·Ñ¹é
+                    // ë¬¸ì— ë°•ìœ¼ë©´ ì›ìœ„ì¹˜ë¡œ ë¡¤ë°±
                     pTransform->SetState(MATRIXROW_POSITION, prePos);
                     return;
                 }
@@ -1110,28 +1110,28 @@ void Drone::Move(_float fTimeDelta)
     }
 
     // -----------------------------
-    // [3] ³×ºñ°ÔÀÌ¼Ç ½½¶óÀÌµå Ã³¸®
+    // [3] ë„¤ë¹„ê²Œì´ì…˜ ìŠ¬ë¼ì´ë“œ ì²˜ë¦¬
     // -----------------------------
     _int cellIndex = -1;
 
-    // »õ À§Ä¡°¡ ¼¿ ¾ÈÀÌ¸é ±×´ë·Î OK
+    // ìƒˆ ìœ„ì¹˜ê°€ ì…€ ì•ˆì´ë©´ ê·¸ëŒ€ë¡œ OK
     if (m_pEngineUtility->IsInCell(movePos, &cellIndex))
         return;
 
-    // ÀÌÀü À§Ä¡Á¶Â÷ ¼¿ ¹ÛÀÌ¸é ±×³É ·Ñ¹é
+    // ì´ì „ ìœ„ì¹˜ì¡°ì°¨ ì…€ ë°–ì´ë©´ ê·¸ëƒ¥ ë¡¤ë°±
     if (!m_pEngineUtility->IsInCell(prePos, &cellIndex))
     {
         pTransform->SetState(MATRIXROW_POSITION, prePos);
         return;
     }
 
-    // ½½¶óÀÌµå º¤ÅÍ Àû¿ë
+    // ìŠ¬ë¼ì´ë“œ ë²¡í„° ì ìš©
     _vector slideDelta{};
     if (m_pEngineUtility->GetSlideVectorOnCell(prePos, delta, cellIndex, &slideDelta))
     {
         pTransform->SetState(MATRIXROW_POSITION, prePos + slideDelta);
 
-        // ¾ÈÀüÀåÄ¡: ¿©ÀüÈ÷ ¼¿ ¹ÛÀÌ¸é ·Ñ¹é
+        // ì•ˆì „ì¥ì¹˜: ì—¬ì „íˆ ì…€ ë°–ì´ë©´ ë¡¤ë°±
         _vector slidePos = pTransform->GetState(MATRIXROW_POSITION);
         if (!m_pEngineUtility->IsInCell(slidePos))
             pTransform->SetState(MATRIXROW_POSITION, prePos);
@@ -1148,7 +1148,7 @@ void Drone::Rotate(_float fTimeDelta)
     Transform* tf = dynamic_cast<Transform*>(FindComponent(TEXT("Transform")));
     if (!tf) return;
 
-    // 1) ¸ñÇ¥ ¹æÇâ: ¿ì¼± m_aimDir, ¾øÀ¸¸é ÇÃ·¹ÀÌ¾î ÇâÇÏµµ·Ï °è»ê
+    // 1) ëª©í‘œ ë°©í–¥: ìš°ì„  m_aimDir, ì—†ìœ¼ë©´ í”Œë ˆì´ì–´ í–¥í•˜ë„ë¡ ê³„ì‚°
     _vector desiredDir = m_aimDir;
     if (XMVector3Equal(desiredDir, XMVectorZero()))
     {
@@ -1162,7 +1162,7 @@ void Drone::Rotate(_float fTimeDelta)
 
     desiredDir = XMVector3Normalize(desiredDir);
 
-    // 2) ÇöÀç/¸ñÇ¥ yaw (¸ğµ¨ Àü¹æÀÌ -Z¶ó¸é +PI º¸Á¤)
+    // 2) í˜„ì¬/ëª©í‘œ yaw (ëª¨ë¸ ì „ë°©ì´ -Zë¼ë©´ +PI ë³´ì •)
     const float baseOffset = XM_PI;
 
     _vector curLook = XMVector3Normalize(XMVectorSetY(tf->GetState(MATRIXROW_LOOK), 0.f));
@@ -1171,7 +1171,7 @@ void Drone::Rotate(_float fTimeDelta)
     while (dstYaw > XM_PI) dstYaw -= XM_2PI;
     while (dstYaw < -XM_PI) dstYaw += XM_2PI;
 
-    // 3) ¸ñÇ¥°¡ ÀÇ¹Ì ÀÖ°Ô ¹Ù²î¸é Àçº¸°£ ½ÃÀÛ
+    // 3) ëª©í‘œê°€ ì˜ë¯¸ ìˆê²Œ ë°”ë€Œë©´ ì¬ë³´ê°„ ì‹œì‘
     float shortestDelta = dstYaw - m_yawTarget;
     while (shortestDelta > XM_PI) shortestDelta -= XM_2PI;
     while (shortestDelta < -XM_PI) shortestDelta += XM_2PI;
@@ -1185,7 +1185,7 @@ void Drone::Rotate(_float fTimeDelta)
         m_yawTarget = dstYaw;
     }
 
-    // 4) º¸°£ ÁøÇà
+    // 4) ë³´ê°„ ì§„í–‰
     if (m_yawInterpActive)
     {
         m_yawInterpT += max(0.f, fTimeDelta);
@@ -1201,7 +1201,7 @@ void Drone::Rotate(_float fTimeDelta)
         while (yawNow > XM_PI) yawNow -= XM_2PI;
         while (yawNow < -XM_PI) yawNow += XM_2PI;
 
-        // Àı´ë yaw¸¦ ¼¼ÆÃÇÏ´Â ¹æ½Ä(³ÊÀÇ TransformÀÌ ÇÃ·¹ÀÌ¾î ÄÚµå¿Í µ¿ÀÏ µ¿ÀÛ °¡Á¤)
+        // ì ˆëŒ€ yawë¥¼ ì„¸íŒ…í•˜ëŠ” ë°©ì‹(ë„ˆì˜ Transformì´ í”Œë ˆì´ì–´ ì½”ë“œì™€ ë™ì¼ ë™ì‘ ê°€ì •)
         tf->RotateRadian(_vector{ 0.f,1.f,0.f,0.f }, yawNow);
 
         if (t >= 1.f) m_yawInterpActive = false;
@@ -1210,7 +1210,7 @@ void Drone::Rotate(_float fTimeDelta)
 
 void Drone::Attack()
 {
-    // ÇÃ·¹ÀÌ¾î Ã£±â
+    // í”Œë ˆì´ì–´ ì°¾ê¸°
     const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
     Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
     if (!pPlayer) 
@@ -1265,7 +1265,7 @@ _bool Drone::ApplyDamageToPlayer(Object* pTarget, Info* info, _float damage)
 
     info->BindInfoDesc(Desc);
 
-    // ---- ¿©±â¼­ È÷Æ® ÀÌÆåÆ® »ı¼º (Worm_Projectile°ú µ¿ÀÏ ÆĞÅÏ) ----
+    // ---- ì—¬ê¸°ì„œ íˆíŠ¸ ì´í™íŠ¸ ìƒì„± (Worm_Projectileê³¼ ë™ì¼ íŒ¨í„´) ----
     if (Transform* pTF = static_cast<Transform*>(pTarget->FindComponent(TEXT("Transform"))))
     {
         BloodHitEffect::BLOODHITEFFECT_DESC e{};
@@ -1276,7 +1276,7 @@ _bool Drone::ApplyDamageToPlayer(Object* pTarget, Info* info, _float damage)
         e.fSpeedPerSec = 0.f;
         XMStoreFloat3(&e.vCenterWS, pTF->GetState(MATRIXROW_POSITION));
 
-        // »öÀº Àû´çÈ÷ »¡°£»ö °è¿­
+        // ìƒ‰ì€ ì ë‹¹íˆ ë¹¨ê°„ìƒ‰ ê³„ì—´
         e.baseColor = _float4(1.0f, 0.2f, 0.2f, 1.f);
 
         m_pEngineUtility->AddObject(
@@ -1320,7 +1320,7 @@ void Drone::UpdatePath(_float dt)
 
     m_repathTimer -= dt;
 
-    // Å¸°Ù(ÇÃ·¹ÀÌ¾î) À§Ä¡ °¡Á®¿À±â
+    // íƒ€ê²Ÿ(í”Œë ˆì´ì–´) ìœ„ì¹˜ ê°€ì ¸ì˜¤ê¸°
     const _uint sceneId = m_pEngineUtility->GetCurrentSceneId();
     Object* pPlayer = m_pEngineUtility->FindObject(sceneId, TEXT("Player"), 0);
     if (!pPlayer)
@@ -1334,20 +1334,20 @@ void Drone::UpdatePath(_float dt)
     _float3 playerPos;
     XMStoreFloat3(&playerPos, vPlayerPos);
 
-    // 1) ¾ÆÁ÷ °æ·Î°¡ ¾ø°Å³ª ´Ù ½á¹ö·ÈÀ¸¸é ¡æ ¹«Á¶°Ç »õ·Î ¸¸µç´Ù
+    // 1) ì•„ì§ ê²½ë¡œê°€ ì—†ê±°ë‚˜ ë‹¤ ì¨ë²„ë ¸ìœ¼ë©´ â†’ ë¬´ì¡°ê±´ ìƒˆë¡œ ë§Œë“ ë‹¤
     const bool needNewPath =
         m_path.empty() ||
         m_pathIndex < 0 ||
         m_pathIndex >= (_int)m_path.size();
 
-    // 2) °æ·Î´Â ÀÖ±ä ÇÑµ¥, ¸®ÆĞ½º ½Ã°£µµ Áö³µÀ¸¸é ¡æ »õ·Î ¸¸µç´Ù
+    // 2) ê²½ë¡œëŠ” ìˆê¸´ í•œë°, ë¦¬íŒ¨ìŠ¤ ì‹œê°„ë„ ì§€ë‚¬ìœ¼ë©´ â†’ ìƒˆë¡œ ë§Œë“ ë‹¤
     if (needNewPath || m_repathTimer <= 0.f)
     {
         if (BuildPathToTarget(playerPos))
         {
             m_repathTimer = m_repathInterval;
         }
-        // ½ÇÆĞÇÏ¸é ±×³É ±âÁ¸ °æ·Î À¯Áö (È¤Àº Áö¿öµµ µÊ: m_path.clear(); m_pathIndex=-1;)
+        // ì‹¤íŒ¨í•˜ë©´ ê·¸ëƒ¥ ê¸°ì¡´ ê²½ë¡œ ìœ ì§€ (í˜¹ì€ ì§€ì›Œë„ ë¨: m_path.clear(); m_pathIndex=-1;)
     }
 }
 
@@ -1362,7 +1362,7 @@ void Drone::HitBack(_float fTimeDelta)
 
     const float dt = max(0.f, fTimeDelta);
 
-    // ³²Àº ½Ã°£ ºñÀ²(1 ¡æ 0) ±â¹İÀ¸·Î °¨¼Ó
+    // ë‚¨ì€ ì‹œê°„ ë¹„ìœ¨(1 â†’ 0) ê¸°ë°˜ìœ¼ë¡œ ê°ì†
     const float t = (m_kbDuration > 1e-6f) ? (m_kbRemain / m_kbDuration) : 0.f;
     const float speed = m_kbPower * t;
 
@@ -1371,7 +1371,7 @@ void Drone::HitBack(_float fTimeDelta)
 
     _vector newPos = pTransform->GetState(MATRIXROW_POSITION);
 
-    // ³×ºñ ¹ÛÀ¸·Î ¹Ğ·Á³ª¸é ¿øº¹
+    // ë„¤ë¹„ ë°–ìœ¼ë¡œ ë°€ë ¤ë‚˜ë©´ ì›ë³µ
     _int cellIndex = -1;
     if (!m_pEngineUtility->IsInCell(newPos, &cellIndex))
     {
@@ -1379,13 +1379,13 @@ void Drone::HitBack(_float fTimeDelta)
     }
     else
     {
-        // ³×ºñ ³ôÀÌ¿¡ ºÙÀÌ±â (ÇÊ¿ä ¾øÀ¸¸é »ı·«ÇØµµ µÊ)
+        // ë„¤ë¹„ ë†’ì´ì— ë¶™ì´ê¸° (í•„ìš” ì—†ìœ¼ë©´ ìƒëµí•´ë„ ë¨)
         _vector fixed{};
         m_pEngineUtility->SetHeightOnCell(newPos, &fixed);
         pTransform->SetState(MATRIXROW_POSITION, fixed);
     }
 
-    // ¹® µî°ú Ãæµ¹ ½Ãµµ ¿øº¹ (Player¿Í µ¿ÀÏÇÏ°Ô ÇÏ°í ½ÍÀ¸¸é)
+    // ë¬¸ ë“±ê³¼ ì¶©ëŒ ì‹œë„ ì›ë³µ (Playerì™€ ë™ì¼í•˜ê²Œ í•˜ê³  ì‹¶ìœ¼ë©´)
     if (auto* pCollision = dynamic_cast<Collision*>(FindComponent(TEXT("Collision"))))
     {
         pCollision->Update(XMLoadFloat4x4(pTransform->GetWorldMatrixPtr()));

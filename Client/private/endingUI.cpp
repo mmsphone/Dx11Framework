@@ -1,4 +1,4 @@
-#include "endingUI.h"
+ï»¿#include "endingUI.h"
 
 #include "EngineUtility.h"
 #include "UI.h"
@@ -76,7 +76,7 @@ void endingUI::Update(_float fTimeDelta)
 
     m_animTime += fTimeDelta;
 
-    // 1) ¹é±×¶ó¿îµå ÀÌ¹ÌÁö / ÇÃ·¹ÀÌÆ® ÆäÀÌµå ÀÎ (0 -> target alpha)
+    // 1) ë°±ê·¸ë¼ìš´ë“œ ì´ë¯¸ì§€ / í”Œë ˆì´íŠ¸ í˜ì´ë“œ ì¸ (0 -> target alpha)
     _float tPlate = clamp01(m_animTime / m_plateFadeDuration);
 
     if (auto* pImg = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"ending_image")))
@@ -85,7 +85,7 @@ void endingUI::Update(_float fTimeDelta)
     if (auto* pPlate = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"ending_textplate")))
         pPlate->SetAlpha(m_plateTargetAlpha * tPlate);
 
-    // 2) ±ÛÀÚ ÆËÀÎ ¿¬Ãâ (ÇÃ·¹ÀÌÆ® ÆäÀÌµå°¡ ³¡³­ µÚºÎÅÍ)
+    // 2) ê¸€ì íŒì¸ ì—°ì¶œ (í”Œë ˆì´íŠ¸ í˜ì´ë“œê°€ ëë‚œ ë’¤ë¶€í„°)
     if (m_animTime <= m_plateFadeDuration)
         return;
 
@@ -107,7 +107,7 @@ void endingUI::Update(_float fTimeDelta)
         if (!glowImg || !mainImg)
             continue;
 
-        // ÀÌ ±ÛÀÚÀÇ ½ÃÀÛ ½Ã°£°ú ·ÎÄÃ ½Ã°£
+        // ì´ ê¸€ìì˜ ì‹œì‘ ì‹œê°„ê³¼ ë¡œì»¬ ì‹œê°„
         _float startTime = (_float)i * m_letterAppearInterval;
         _float local = letterTime - startTime;
 
@@ -116,13 +116,13 @@ void endingUI::Update(_float fTimeDelta)
 
         if (local <= 0.f)
         {
-            // ¾ÆÁ÷ ½ÃÀÛ ¾ÈÇÔ
+            // ì•„ì§ ì‹œì‘ ì•ˆí•¨
             scale = 1.f;
             alpha = 0.f;
         }
         else if (local >= m_letterPopDuration)
         {
-            // ¾Ö´Ï¸ŞÀÌ¼Ç ¿Ï·á
+            // ì• ë‹ˆë©”ì´ì…˜ ì™„ë£Œ
             scale = 1.f;
             alpha = 1.f;
         }
@@ -133,12 +133,12 @@ void endingUI::Update(_float fTimeDelta)
             alpha = u;                                                   // 0 -> 1
         }
 
-        // w/h¸¸ ½ºÄÉÀÏ, Áß½É(x,y)´Â ±×´ë·Î
+        // w/hë§Œ ìŠ¤ì¼€ì¼, ì¤‘ì‹¬(x,y)ëŠ” ê·¸ëŒ€ë¡œ
         UI_DESC glowDesc = glowImg->GetUIDesc();
         glowDesc.w = m_letterBaseW[i] * scale;
         glowDesc.h = m_letterBaseH[i] * scale;
         glowImg->ApplyUIDesc(glowDesc);
-        glowImg->SetAlpha(alpha); // GetAlpha()°¡ ¾ø´Ù¸é ±×³É alpha
+        glowImg->SetAlpha(alpha); // GetAlpha()ê°€ ì—†ë‹¤ë©´ ê·¸ëƒ¥ alpha
 
         UI_DESC mainDesc = mainImg->GetUIDesc();
         mainDesc.w = m_letterBaseW[i] * scale;
@@ -182,7 +182,7 @@ void endingUI::Show(_bool bShow)
 
     if (!bShow)
     {
-        // ²ø ¶§´Â ±×³É ´Ù ¼û±â±â¸¸
+        // ëŒ ë•ŒëŠ” ê·¸ëƒ¥ ë‹¤ ìˆ¨ê¸°ê¸°ë§Œ
         if (UI* p = m_pEngineUtility->FindUI(L"ending_image"))
             p->SetVisible(false);
         if (UI* p = m_pEngineUtility->FindUI(L"ending_textplate"))
@@ -200,7 +200,7 @@ void endingUI::Show(_bool bShow)
 
     m_animTime = 0.f;
 
-    // ÀÌ¹ÌÁö/ÇÃ·¹ÀÌÆ®´Â ¾ËÆÄ 0ºÎÅÍ ½ÃÀÛ
+    // ì´ë¯¸ì§€/í”Œë ˆì´íŠ¸ëŠ” ì•ŒíŒŒ 0ë¶€í„° ì‹œì‘
     if (auto* pImg = dynamic_cast<UIImage*>(m_pEngineUtility->FindUI(L"ending_image")))
     {
         pImg->SetVisible(true);
@@ -212,7 +212,7 @@ void endingUI::Show(_bool bShow)
         pPlate->SetAlpha(0.f);
     }
 
-    // ±ÛÀÚµé ±âº» »óÅÂ : º¸ÀÌ±ä ÇÏµÇ ¾ËÆÄ 0
+    // ê¸€ìë“¤ ê¸°ë³¸ ìƒíƒœ : ë³´ì´ê¸´ í•˜ë˜ ì•ŒíŒŒ 0
     for (UI* p : m_letterGlowList)
     {
         if (auto* img = dynamic_cast<UIImage*>(p))
@@ -234,15 +234,15 @@ void endingUI::Show(_bool bShow)
     m_pEngineUtility->FindUI(L"MouseBulletCount")->SetVisible(false);
 
     if (m_isWin == true)
-        m_pEngineUtility->PlaySound2D("FBX_gameclear");
+        m_pEngineUtility->PlaySound2D("FBX_gameclear", 0.7f);
     else
     {
-        m_pEngineUtility->PlaySound2D("FBX_gameover");
+        m_pEngineUtility->PlaySound2D("FBX_gameover", 0.7f);
         _float r = m_pEngineUtility->Random(0, 2);
         if( r >= 1)
-            m_pEngineUtility->PlaySound2D("FBX_playerDie1");
+            m_pEngineUtility->PlaySound2D("FBX_playerDie1", 0.7f);
         else
-            m_pEngineUtility->PlaySound2D("FBX_playerDie2");
+            m_pEngineUtility->PlaySound2D("FBX_playerDie2", 0.7f);
     }
 
     m_pEngineUtility->StopSound("BGM_wave");
@@ -263,7 +263,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
 
     UI_DESC plateDesc = pPlate->GetUIDesc();
 
-    // ±âÁ¸ ±ÛÀÚ ¼û±â°í ¸®½ºÆ® Á¤¸®
+    // ê¸°ì¡´ ê¸€ì ìˆ¨ê¸°ê³  ë¦¬ìŠ¤íŠ¸ ì •ë¦¬
     for (UI* p : m_letterGlowList)
         if (p) p->SetVisible(false);
     for (UI* p : m_letterMainList)
@@ -278,13 +278,13 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
         return;
 
     const _float charHeight = plateDesc.h * m_letterHeightRatio;
-    const _float glyphWidth = charHeight * m_letterWidthRatio;   // ¸ğµç ±ÛÀÚ °øÅë Æø
-    const _float baseSpacing = glyphWidth * m_letterSpacingRatio; // ±âº» °£°İ(À½¼ö °¡´É)
+    const _float glyphWidth = charHeight * m_letterWidthRatio;   // ëª¨ë“  ê¸€ì ê³µí†µ í­
+    const _float baseSpacing = glyphWidth * m_letterSpacingRatio; // ê¸°ë³¸ ê°„ê²©(ìŒìˆ˜ ê°€ëŠ¥)
     const _float lineStep = charHeight * m_lineSpacingRatio;
 
     // ---------------------------
-    // 1) ¶óÀÎº° ÀüÃ¼ Æø °è»ê
-    //    (µÎ ±ÛÀÚ ÆÑÅÍ Æò±ÕÀ» ÀÌ¿ëÇØ spacing °è»ê)
+    // 1) ë¼ì¸ë³„ ì „ì²´ í­ ê³„ì‚°
+    //    (ë‘ ê¸€ì íŒ©í„° í‰ê· ì„ ì´ìš©í•´ spacing ê³„ì‚°)
     // ---------------------------
     std::vector<_float> lineWidths;
     _float currentWidth = 0.f;
@@ -300,7 +300,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
 
     bool  hasPrev = false;
     float prevFactor = 1.f;
-    float prevGlyphWidth = glyphWidth; // ÇöÀç´Â °íÁ¤ÀÌÁö¸¸ È®Àå °í·ÁÇØ¼­ µÒ
+    float prevGlyphWidth = glyphWidth; // í˜„ì¬ëŠ” ê³ ì •ì´ì§€ë§Œ í™•ì¥ ê³ ë ¤í•´ì„œ ë‘ 
 
     for (size_t i = 0; i < text.size(); ++i)
     {
@@ -320,19 +320,19 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
 
         if (c == ' ')
         {
-            // °ø¹é Æø
+            // ê³µë°± í­
             curGlyphWidth = glyphWidth * m_spaceWidthFactor;
-            curFactor = 1.f; // °ø¹éÀº Ä¿´× °¡ÁßÄ¡´Â 1·Î µÒ (¿øÇÏ¸é º°µµ ÆÑÅÍ ½áµµ µÊ)
+            curFactor = 1.f; // ê³µë°±ì€ ì»¤ë‹ ê°€ì¤‘ì¹˜ëŠ” 1ë¡œ ë‘  (ì›í•˜ë©´ ë³„ë„ íŒ©í„° ì¨ë„ ë¨)
         }
         else
         {
-            // ·»´õ °¡´ÉÇÑ ±ÛÀÚ¸¸ Æø °è»ê
+            // ë Œë” ê°€ëŠ¥í•œ ê¸€ìë§Œ í­ ê³„ì‚°
             wchar_t dummy[2]{};
             if (!((c >= 'A' && c <= 'Z') ||
                 (c >= 'a' && c <= 'z') ||
                 (c >= '0' && c <= '9')))
             {
-                // Áö¿ø ¾È ÇÏ´Â ¹®ÀÚ´Â Æø¸¸ ¼ÒºñÇÏÁö ¾Ê°í ±×³É ½ºÅµ
+                // ì§€ì› ì•ˆ í•˜ëŠ” ë¬¸ìëŠ” í­ë§Œ ì†Œë¹„í•˜ì§€ ì•Šê³  ê·¸ëƒ¥ ìŠ¤í‚µ
                 continue;
             }
 
@@ -341,13 +341,13 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
 
         if (!hasPrev)
         {
-            // Ã¹ ±ÛÀÚ(¶Ç´Â Ã¹ °ø¹é)´Â spacing ¾øÀÌ Æø¸¸ ´õÇÔ
+            // ì²« ê¸€ì(ë˜ëŠ” ì²« ê³µë°±)ëŠ” spacing ì—†ì´ í­ë§Œ ë”í•¨
             currentWidth += curGlyphWidth;
             hasPrev = true;
         }
         else
         {
-            // prev / current ÆÑÅÍ Æò±ÕÀ¸·Î spacing °áÁ¤
+            // prev / current íŒ©í„° í‰ê· ìœ¼ë¡œ spacing ê²°ì •
             const float spacing = baseSpacing * 0.5f * (prevFactor + curFactor);
             currentWidth += spacing + curGlyphWidth;
         }
@@ -362,14 +362,14 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
         return;
 
     // ---------------------------
-    // 2) ¶óÀÎº° ½ÃÀÛ X/Y °è»ê
+    // 2) ë¼ì¸ë³„ ì‹œì‘ X/Y ê³„ì‚°
     // ---------------------------
     const _uint  numLines = (_uint)lineWidths.size();
     const _float centerX = plateDesc.x;
     const _float baseY = plateDesc.y - lineStep * ((_float)numLines - 1.f) * 0.5f;
 
     // ---------------------------
-    // 3) ½ÇÁ¦ ±ÛÀÚ ¹èÄ¡ (Æø °è»ê°ú µ¿ÀÏÇÑ ·ÎÁ÷À¸·Î ÁøÇà)
+    // 3) ì‹¤ì œ ê¸€ì ë°°ì¹˜ (í­ ê³„ì‚°ê³¼ ë™ì¼í•œ ë¡œì§ìœ¼ë¡œ ì§„í–‰)
     // ---------------------------
     _uint  lineIndex = 0;
     _float curY = baseY;
@@ -379,7 +379,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
     prevFactor = 1.f;
     prevGlyphWidth = glyphWidth;
 
-    float widthAccum = 0.f; // ÇöÀç ¶óÀÎ¿¡¼­ ½×ÀÎ Æø
+    float widthAccum = 0.f; // í˜„ì¬ ë¼ì¸ì—ì„œ ìŒ“ì¸ í­
 
     for (size_t i = 0; i < text.size(); ++i)
     {
@@ -387,7 +387,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
 
         if (c == '\n')
         {
-            // ´ÙÀ½ ¶óÀÎÀ¸·Î
+            // ë‹¤ìŒ ë¼ì¸ìœ¼ë¡œ
             ++lineIndex;
             if (lineIndex >= numLines)
                 break;
@@ -409,7 +409,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
         {
             curGlyphWidth = glyphWidth * m_spaceWidthFactor;
             curFactor = 1.f;
-            renderGlyph = false; // °ø¹éÀº ±×¸®Áö ¾ÊÀ½
+            renderGlyph = false; // ê³µë°±ì€ ê·¸ë¦¬ì§€ ì•ŠìŒ
         }
         else
         {
@@ -417,7 +417,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
                 (c >= 'a' && c <= 'z') ||
                 (c >= '0' && c <= '9')))
             {
-                // Áö¿ø ¾È ÇÏ´Â ¹®ÀÚ´Â ±×³É ½ºÅµ (Æøµµ ¾È ¸ÔÀ½)
+                // ì§€ì› ì•ˆ í•˜ëŠ” ë¬¸ìëŠ” ê·¸ëƒ¥ ìŠ¤í‚µ (í­ë„ ì•ˆ ë¨¹ìŒ)
                 continue;
             }
 
@@ -439,13 +439,13 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
 
         if (renderGlyph)
         {
-            // ÅØ½ºÃ³ ÀÌ¸§ ±¸¼º
+            // í…ìŠ¤ì²˜ ì´ë¦„ êµ¬ì„±
             wchar_t letterName[64] = {};
             if (c >= 'A' && c <= 'Z')
                 swprintf_s(letterName, L"letter_%c", c);
             else if (c >= 'a' && c <= 'z')
                 swprintf_s(letterName, L"letter_%c", (char)toupper(c));
-            else // ¼ıÀÚ
+            else // ìˆ«ì
                 swprintf_s(letterName, L"letter_%c", c);
 
             std::wstring basePath = L"../bin/Resources/Textures/Ending/";
@@ -472,7 +472,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
                 m_letterGlowList.push_back(pGlow);
                 if (auto* img = dynamic_cast<UIImage*>(pGlow))
                 {
-                    img->SetAlpha(0.f); // ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ ¾ËÆÄ
+                    img->SetAlpha(0.f); // ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘ ì•ŒíŒŒ
                     _float4 maskColor = (type == END_WIN)
                         ? _float4{ 0.4f, 1.f, 1.f, 1.f }
                     : _float4{ 1.f, 0.4f, 0.4f, 1.f };
@@ -494,7 +494,7 @@ void endingUI::SetEndingText(const std::string& text, ENDTYPE type)
             {
                 m_letterMainList.push_back(pMain);
                 if (auto* img = dynamic_cast<UIImage*>(pMain))
-                    img->SetAlpha(0.f); // ¾Ö´Ï¸ŞÀÌ¼Ç ½ÃÀÛ ¾ËÆÄ
+                    img->SetAlpha(0.f); // ì• ë‹ˆë©”ì´ì…˜ ì‹œì‘ ì•ŒíŒŒ
             }
 
             if (pGlow && pMain)
@@ -576,15 +576,15 @@ _float endingUI::GetCharWidthFactor(char c) const
     if (c >= 'a' && c <= 'z')
         c = (char)toupper(c);
 
-    // ¾ãÀº ±ÛÀÚµé
+    // ì–‡ì€ ê¸€ìë“¤
     if (c == 'I' || c == '1')
         return m_thinWidthFactor;
 
-    // ³ĞÀº ±ÛÀÚµé
+    // ë„“ì€ ê¸€ìë“¤
     if (c == 'M' || c == 'W')
         return m_wideWidthFactor;
 
-    // °ø¹é
+    // ê³µë°±
     if (c == ' ')
         return m_spaceWidthFactor;
 

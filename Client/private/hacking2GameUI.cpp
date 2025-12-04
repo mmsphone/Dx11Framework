@@ -137,6 +137,10 @@ HRESULT hacking2GameUI::SetupButtons()
             {
                 CloseGame();
             });
+        pClose->AddRightButtonFunction([this]()
+            {
+                CloseGame();
+            });
         pClose->SetDefaultImage(L"hacking2_close_default");
         pClose->SetOnImage(L"hacking2_close_on");
     }
@@ -147,6 +151,10 @@ HRESULT hacking2GameUI::SetupButtons()
         pMinimize->SetEnable(true);
         pMinimize->ClearButtonFunctions();
         pMinimize->AddLeftButtonFunction([this]()
+            {
+                MinimizeGame();
+            });
+        pMinimize->AddRightButtonFunction([this]()
             {
                 MinimizeGame();
             });
@@ -371,7 +379,7 @@ void hacking2GameUI::OnClickDir(_uint index, _int dir)
     m_lines[index].dir = dir;
     UpdateLineButtonVisual(index);
 
-    m_pEngineUtility->PlaySound2D("FBX_minigame2Button");
+    m_pEngineUtility->PlaySound2D("FBX_minigame2Button", 0.7f);
 }
 
 _bool hacking2GameUI::IsAllLinesAligned() const

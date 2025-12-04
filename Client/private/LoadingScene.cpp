@@ -17,7 +17,7 @@ LoadingScene::LoadingScene()
 
 HRESULT LoadingScene::Initialize(SCENE eNextSceneId)
 {
-	m_pEngineUtility->PlaySound2D("BGM_loading");
+	m_pEngineUtility->PlaySound2D("BGM_loading", 0.5f);
 	m_eNextSceneId = eNextSceneId;
 	m_pEngineUtility->ClearUIs();
 	if (FAILED(ReadyLayerBackGround()))

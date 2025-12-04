@@ -49,7 +49,7 @@ HRESULT Player::Initialize(void* pArg)
         return E_FAIL;
 
     Physics* pPhysics = static_cast<Physics*>(FindComponent(TEXT("Physics")));
-    pPhysics->SetOnGround(true);
+    pPhysics->SetOnGround(false);
     m_isPlayingMinigame = false;
 
     return S_OK;
@@ -216,19 +216,19 @@ void Player::SetHit(_vector dirXZ, float power, float duration)
 
     _float r = m_pEngineUtility->Random(0, 7);
     if(r >= 6)
-        m_pEngineUtility->PlaySound2D("FBX_playerHit1");
+        m_pEngineUtility->PlaySound2D("FBX_playerHit1", 0.7f);
     else if (r >= 5)
-        m_pEngineUtility->PlaySound2D("FBX_playerHit2");
+        m_pEngineUtility->PlaySound2D("FBX_playerHit2", 0.7f);
     else if (r >= 4)
-        m_pEngineUtility->PlaySound2D("FBX_playerHit3");
+        m_pEngineUtility->PlaySound2D("FBX_playerHit3", 0.7f);
     else if (r >= 3)
-        m_pEngineUtility->PlaySound2D("FBX_playerHit4");
+        m_pEngineUtility->PlaySound2D("FBX_playerHit4", 0.7f);
     else if (r >= 2)
-        m_pEngineUtility->PlaySound2D("FBX_playerHit5");
+        m_pEngineUtility->PlaySound2D("FBX_playerHit5", 0.7f);
     else if (r >= 1)
-        m_pEngineUtility->PlaySound2D("FBX_playerHit6");
+        m_pEngineUtility->PlaySound2D("FBX_playerHit6", 0.7f);
     else
-        m_pEngineUtility->PlaySound2D("FBX_playerHit7");
+        m_pEngineUtility->PlaySound2D("FBX_playerHit7", 0.7f);
 }
 
 void Player::SetPlayingMinigame(_bool bPlayingMinigame)
@@ -486,9 +486,9 @@ HRESULT Player::SetUpStateMachine()
 
             _float r = EngineUtility::GetInstance()->Random(0, 2);
             if (r >= 1)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_shootAR1");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_shootAR1", 0.7f);
             else
-                EngineUtility::GetInstance()->PlaySound2D("FBX_shootAR2");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_shootAR2", 0.7f);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = static_cast<Player*>(owner);
@@ -508,21 +508,91 @@ HRESULT Player::SetUpStateMachine()
 
     pSM->RegisterState("MeleeAttack", {
            // Enter
-        [](Object* owner, StateMachine* sm) {
+         [](Object* owner, StateMachine* sm) {
         auto* pPlayer = static_cast<Player*>(owner);
         if (!pPlayer) return;
-        
+
         auto* pModel = static_cast<Model*>(owner->FindComponent(TEXT("Model")));
         if (!pModel) return;
-        
-                   // 근접 애니 한 번 재생
+
+        // 근접 애니 한 번 재생
         pModel->SetAnimation(pPlayer->FindAnimIndex("MeleeAttack"), false, 0.05f, false);
-        
+
         pPlayer->m_meleeDidHit = false;
-        
-                   // 근접 공격 사운드
-        EngineUtility::GetInstance()->PlaySound2D("FBX_swing");
-        },
+
+        // 근접 공격 사운드
+        EngineUtility::GetInstance()->PlaySound2D("FBX_swing", 0.7f);
+
+        // ============================
+        //  마우스 방향으로 회전 세팅
+        //  (Shoot / Throw 와 동일한 로직 축약 버전)
+        // ============================
+        auto* util = EngineUtility::GetInstance();
+        _float2 mouse = util->GetMousePos();
+        float d01 = 1.f;
+        if (util->ReadDepthAtPixel((int)mouse.x, (int)mouse.y, &d01))
+        {
+            D3D11_VIEWPORT vp{};
+            UINT vpCount = 1;
+            util->GetContext()->RSGetViewports(&vpCount, &vp);
+
+            float sx = std::clamp(mouse.x, 0.0f, vp.Width - 1.0f) + 0.5f;
+            float sy = std::clamp(mouse.y, 0.0f, vp.Height - 1.0f) + 0.5f;
+
+            _matrix V = util->GetTransformMatrix(D3DTS_VIEW);
+            _matrix P = util->GetTransformMatrix(D3DTS_PROJECTION);
+
+            _vector screen = XMVectorSet(sx, sy, d01, 1.f);
+            _vector pickPos = XMVector3Unproject(
+                screen,
+                vp.TopLeftX, vp.TopLeftY, vp.Width, vp.Height,
+                0.0f, 1.0f,
+                P, V, XMMatrixIdentity()
+            );
+
+            auto* tf = static_cast<Transform*>(pPlayer->FindComponent(TEXT("Transform")));
+            if (tf)
+            {
+                _vector playerPos = tf->GetState(MATRIXROW_POSITION);
+                _vector moveDir = pickPos - playerPos;
+                _vector dirXZ = XMVector3Normalize(XMVectorSetY(moveDir, 0.f));
+
+                if (!XMVector3Equal(dirXZ, XMVectorZero()))
+                {
+                    _vector look = XMVector3Normalize(XMVectorSetY(tf->GetState(MATRIXROW_LOOK), 0.f));
+                    const float baseOffset = XM_PI;
+
+                    float curYaw = atan2f(XMVectorGetX(look),  XMVectorGetZ(look));
+                    float dstYaw = baseOffset + atan2f(
+                        XMVectorGetX(dirXZ),
+                        XMVectorGetZ(dirXZ)
+                    );
+
+                    float start = curYaw;
+                    float target = dstYaw;
+                    float delta = target - start;
+                    while (delta > XM_PI) delta -= XM_2PI;
+                    while (delta < -XM_PI) delta += XM_2PI;
+                    target = start + delta;
+
+                    if (fabsf(delta) < 1e-4f)
+                    {
+                        // 거의 정렬이면 바로 스냅
+                        tf->RotateRadian(_vector{ 0.f,1.f,0.f,0.f }, target);
+                        pPlayer->m_shootAimActive = false;
+                    }
+                    else
+                    {
+                        // 수류탄/총과 동일하게 보간 회전
+                        pPlayer->m_shootYawStart = start;
+                        pPlayer->m_shootYawTarget = target;
+                        pPlayer->m_shootAimElapsed = 0.f;
+                        pPlayer->m_shootAimActive = true;
+                    }
+                }
+            }
+        }
+    },
                // Update
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
         auto* pPlayer = static_cast<Player*>(owner);
@@ -532,8 +602,9 @@ HRESULT Player::SetUpStateMachine()
         if (!pModel) return;
         
         pModel->PlayAnimation(fTimeDelta * 1.8f);
-        
-                   // 애니 중간 타이밍에 한 번만 히트
+        pPlayer->Rotate(fTimeDelta);
+
+          // 애니 중간 타이밍에 한 번만 히트
         const float cur = pModel->GetCurAnimTrackPos();
         const float total = pModel->GetCurAnimDuration();
         if (!pPlayer->m_meleeDidHit && total > 0.f && cur > total * 0.35f && cur < total * 0.7f)
@@ -558,7 +629,7 @@ HRESULT Player::SetUpStateMachine()
 
             pModel->SetAnimation(pPlayer->FindAnimIndex("Reload"), false, 0.05f, false);
 
-            EngineUtility::GetInstance()->PlaySound2D("FBX_reload");
+            EngineUtility::GetInstance()->PlaySound2D("FBX_reload", 0.8f);
 
             _float r = EngineUtility::GetInstance()->Random(0, 2);
             if(r >= 1)
@@ -568,17 +639,17 @@ HRESULT Player::SetUpStateMachine()
 
             r = EngineUtility::GetInstance()->Random(0, 3);
             if (r >= 2)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell1");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell1", 0.5f);
             else if (r >= 1)
-                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell2");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell2", 0.5f);
             else
-                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell3");
+                EngineUtility::GetInstance()->PlaySound2D("FBX_playerShell3", 0.5f);
         },
         [](Object* owner, StateMachine* sm, _float fTimeDelta) {
             Player* pPlayer = static_cast<Player*>(owner);
 
             if (auto pModel = dynamic_cast<Model*>(pPlayer->FindComponent(TEXT("Model"))))
-                pModel->PlayAnimation(fTimeDelta * 2.2f);
+                pModel->PlayAnimation(fTimeDelta * 2.5f);
 
 
         },
@@ -670,7 +741,7 @@ HRESULT Player::SetUpStateMachine()
             pPlayer->m_throwed = false;
             pPlayer->GetParts().at(0)->SetVisible(false);
 
-            EngineUtility::GetInstance()->PlaySound2D("FBX_throw");
+            EngineUtility::GetInstance()->PlaySound2D("FBX_throw", 0.7f);
 
             _float r = EngineUtility::GetInstance()->Random(0, 2);
             if (r >= 1)
@@ -1204,6 +1275,27 @@ void Player::InputCheck()
     m_isReload = m_pEngineUtility->IsKeyDown(DIK_R) ? true : false;
     m_isThrow = m_pEngineUtility->IsKeyDown(DIK_G) ? true : false;
     m_isMelee = m_pEngineUtility->IsKeyDown(DIK_F) ? true : false;
+
+    if (m_pEngineUtility->IsKeyPressed(DIK_T))
+    {
+        Info* pInfo = static_cast<Info*>(FindComponent(L"Info"));
+		_int iSpecialCount = *std::get_if<_int>(pInfo->GetInfo().GetPtr("SpecialCount"));
+        if (iSpecialCount > 0)
+        {
+            --iSpecialCount;
+			pInfo->GetInfo().SetData("SpecialCount", iSpecialCount);
+            
+			_float fCurHP = *std::get_if<_float>(pInfo->GetInfo().GetPtr("CurHP"));
+			_float fMaxHP = *std::get_if<_float>(pInfo->GetInfo().GetPtr("MaxHP"));
+			fCurHP += 50.f;
+			fCurHP = fCurHP > fMaxHP ? fMaxHP : fCurHP;
+            pInfo->GetInfo().SetData("CurHP", fCurHP);
+
+            _float hpRatio = fCurHP / fMaxHP;
+			static_cast<UIImage*>(m_pEngineUtility->FindUI(L"playerHpFront"))->SetHPRatio(hpRatio);
+            static_cast<UILabel*>(m_pEngineUtility->FindUI(L"specialCount"))->SetText(L"x" + to_wstring(iSpecialCount));
+        }
+    }
 }
 
 void Player::Move(_float fTimeDelta)
@@ -1724,7 +1816,7 @@ void Player::DoMeleeAttack()
                     e.fRotationPerSec = 0.f;
                     e.fSpeedPerSec = 0.f;
                     XMStoreFloat3(&e.vCenterWS, pTargetTf->GetState(MATRIXROW_POSITION));
-                    e.baseColor = _float4(1.0f, 0.2f, 0.2f, 1.f);
+                    e.baseColor = _float4(0.2f, 1.0f, 0.2f, 1.f);
 
                     m_pEngineUtility->AddObject(
                         SCENE::GAMEPLAY,

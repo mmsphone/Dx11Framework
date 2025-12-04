@@ -1,4 +1,4 @@
-#include "hackingGameUI.h"
+ï»¿#include "hackingGameUI.h"
 
 #include "EngineUtility.h"
 #include "Panel.h"
@@ -9,7 +9,7 @@
 
 namespace
 {
-    // ¹æÇâ ºñÆ® ÀÎµ¦½º
+    // ë°©í–¥ ë¹„íŠ¸ ì¸ë±ìŠ¤
     enum DIR_BIT
     {
         DIR_UP = 0,
@@ -90,18 +90,18 @@ HRESULT hackingGameUI::Initialize(void* pArg)
     {
         m_pFastMarker->SetVisible(true);
 
-        // ¡Ú fastmarker / progressbar À§Ä¡¿¡¼­ ½ÃÀÛ¡¤³¡ X °è»ê
+        // â˜… fastmarker / progressbar ìœ„ì¹˜ì—ì„œ ì‹œì‘Â·ë X ê³„ì‚°
         UI_DESC barDesc = m_pProgressBar->GetUIDesc();
         UI_DESC markerDesc = m_pFastMarker->GetUIDesc();
 
-        // bar ¿ŞÂÊÀ» start, ¿À¸¥ÂÊÀ» end ·Î »ç¿ë (marker Å©±â °í·ÁÇØ¼­ Á¶±İ ¾ÈÂÊÀ¸·Î Àâ°í ½ÍÀ¸¸é +/- Á¶Á¤)
+        // bar ì™¼ìª½ì„ start, ì˜¤ë¥¸ìª½ì„ end ë¡œ ì‚¬ìš© (marker í¬ê¸° ê³ ë ¤í•´ì„œ ì¡°ê¸ˆ ì•ˆìª½ìœ¼ë¡œ ì¡ê³  ì‹¶ìœ¼ë©´ +/- ì¡°ì •)
         _float barLeft = barDesc.x - barDesc.w * 0.5f;
         _float barRight = barDesc.x + barDesc.w * 0.5f;
 
         m_fastStartX = barLeft;
         m_fastEndX = barRight;
 
-        // ½ÃÀÛ À§Ä¡·Î °­Á¦ ¼¼ÆÃ
+        // ì‹œì‘ ìœ„ì¹˜ë¡œ ê°•ì œ ì„¸íŒ…
         markerDesc.x = m_fastStartX;
         m_pFastMarker->ApplyUIDesc(markerDesc);
     }
@@ -117,6 +117,10 @@ HRESULT hackingGameUI::Initialize(void* pArg)
             {
                 this->CloseGame();
             });
+        pCloseBtn->AddRightButtonFunction([this]()
+            {
+                this->CloseGame();
+            });
         pCloseBtn->SetDefaultImage(L"hacking_close_default");
         pCloseBtn->SetOnImage(L"hacking_close_on");
     }
@@ -129,6 +133,10 @@ HRESULT hackingGameUI::Initialize(void* pArg)
         pMinBtn->SetEnable(true);
         pMinBtn->ClearButtonFunctions();
         pMinBtn->AddLeftButtonFunction([this]()
+            {
+                this->MinimizeGame();
+            });
+        pMinBtn->AddRightButtonFunction([this]()
             {
                 this->MinimizeGame();
             });
@@ -244,7 +252,7 @@ void hackingGameUI::ShowGame()
     SetVisibleAndEnable(L"hacking_minimize_on", false, false);
     SetVisibleAndEnable(L"hacking_minimize", true, true);
 
-    // ÆÄÀÌÇÁ ¹öÆ° ´Ù½Ã È°¼ºÈ­
+    // íŒŒì´í”„ ë²„íŠ¼ ë‹¤ì‹œ í™œì„±í™”
     SetVisibleAndEnable(L"hacking_up_00", true, true);
     SetVisibleAndEnable(L"hacking_up_01", true, true);
     SetVisibleAndEnable(L"hacking_up_02", true, true);
@@ -262,7 +270,7 @@ void hackingGameUI::ShowGame()
     SetVisibleAndEnable(L"hacking_progressbar", true, true);
     SetVisibleAndEnable(L"hacking_fastmarker", true, true);
 
-    // ÆÄÀÌÇÁ ÀÌ¹ÌÁö ´Ù½Ã Ç¥½Ã (rotation, baseMask µî ±âÁ¸ »óÅÂ ±×´ë·Î)
+    // íŒŒì´í”„ ì´ë¯¸ì§€ ë‹¤ì‹œ í‘œì‹œ (rotation, baseMask ë“± ê¸°ì¡´ ìƒíƒœ ê·¸ëŒ€ë¡œ)
     for (_uint line = 0; line < LINE; ++line)
     {
         for (_uint r = 0; r < ROWS; ++r)
@@ -303,7 +311,7 @@ void hackingGameUI::MinimizeGame()
     SetVisibleAndEnable(L"hacking_minimize_on", false, false);
     SetVisibleAndEnable(L"hacking_minimize", false, false);
 
-    // ÆÄÀÌÇÁ ¹öÆ° ºñÈ°¼ºÈ­
+    // íŒŒì´í”„ ë²„íŠ¼ ë¹„í™œì„±í™”
     SetVisibleAndEnable(L"hacking_up_00", false, false);
     SetVisibleAndEnable(L"hacking_up_01", false, false);
     SetVisibleAndEnable(L"hacking_up_02", false, false);
@@ -321,7 +329,7 @@ void hackingGameUI::MinimizeGame()
     SetVisibleAndEnable(L"hacking_progressbar", false, false);
     SetVisibleAndEnable(L"hacking_fastmarker", false, false);
 
-    // ÆÄÀÌÇÁ ÀÌ¹ÌÁöµµ ¾È º¸ÀÌ°Ô¸¸ (»óÅÂ´Â ±×´ë·Î À¯Áö)
+    // íŒŒì´í”„ ì´ë¯¸ì§€ë„ ì•ˆ ë³´ì´ê²Œë§Œ (ìƒíƒœëŠ” ê·¸ëŒ€ë¡œ ìœ ì§€)
     for (_uint line = 0; line < LINE; ++line)
     {
         for (_uint r = 0; r < ROWS; ++r)
@@ -393,7 +401,7 @@ void hackingGameUI::InitGame()
         m_lineSolved[line] = false;
 
         // ----------------------------------------------------
-        // 1) (0,0) -> (ROWS-1, COLS-1) ±îÁö ·£´ı °æ·Î ¸¸µé±â
+        // 1) (0,0) -> (ROWS-1, COLS-1) ê¹Œì§€ ëœë¤ ê²½ë¡œ ë§Œë“¤ê¸°
         // ----------------------------------------------------
         unsigned char required[ROWS][COLS] = {};
         Pos start{ 0, 0 };
@@ -433,14 +441,14 @@ void hackingGameUI::InitGame()
                         candidates[candCount++] = { r, c };
                     };
 
-                // ÀÌ¿ô(»óÇÏÁÂ¿ì) ¼öÁı
+                // ì´ì›ƒ(ìƒí•˜ì¢Œìš°) ìˆ˜ì§‘
                 tryAdd(cur.r, cur.c + 1); // right
                 tryAdd(cur.r, cur.c - 1); // left
                 tryAdd(cur.r - 1, cur.c); // up
                 tryAdd(cur.r + 1, cur.c); // down
 
                 if (candCount == 0)
-                    break; // ¸·ÇûÀ¸´Ï ÀÌ attempt ½ÇÆĞ, ´ÙÀ½ attempt
+                    break; // ë§‰í˜”ìœ¼ë‹ˆ ì´ attempt ì‹¤íŒ¨, ë‹¤ìŒ attempt
 
                 Pos next = candidates[rand() % candCount];
                 visited[next.r][next.c] = true;
@@ -448,7 +456,7 @@ void hackingGameUI::InitGame()
             }
         }
 
-        // ¸¸¾à ·£´ı °æ·Î »ı¼º ½ÇÆĞ ½Ã, °íÁ¤µÈ ¾ÈÀü °æ·Î »ç¿ë
+        // ë§Œì•½ ëœë¤ ê²½ë¡œ ìƒì„± ì‹¤íŒ¨ ì‹œ, ê³ ì •ëœ ì•ˆì „ ê²½ë¡œ ì‚¬ìš©
         if (!pathOk)
         {
             path.clear();
@@ -459,7 +467,7 @@ void hackingGameUI::InitGame()
         }
 
         // ----------------------------------------------------
-        // 2) °æ·Î¸¦ ¹ÙÅÁÀ¸·Î requiredMask °è»ê
+        // 2) ê²½ë¡œë¥¼ ë°”íƒ•ìœ¼ë¡œ requiredMask ê³„ì‚°
         // ----------------------------------------------------
         memset(required, 0, sizeof(required));
 
@@ -468,11 +476,11 @@ void hackingGameUI::InitGame()
         const unsigned char DOWN = (1 << DIR_DOWN);
         const unsigned char LEFT = (1 << DIR_LEFT);
 
-        // ½ÃÀÛ/³¡ ¿ÜºÎ ¿¬°á
-        required[start.r][start.c] |= LEFT;   // 00ÀÇ ¿ŞÂÊ
-        required[goal.r][goal.c] |= RIGHT;  // 12ÀÇ ¿À¸¥ÂÊ
+        // ì‹œì‘/ë ì™¸ë¶€ ì—°ê²°
+        required[start.r][start.c] |= LEFT;   // 00ì˜ ì™¼ìª½
+        required[goal.r][goal.c] |= RIGHT;  // 12ì˜ ì˜¤ë¥¸ìª½
 
-        // °æ·Î»óÀÇ ÀÎÁ¢Ä­µé³¢¸® ¿¬°á ¹æÇâ Ãß°¡
+        // ê²½ë¡œìƒì˜ ì¸ì ‘ì¹¸ë“¤ë¼ë¦¬ ì—°ê²° ë°©í–¥ ì¶”ê°€
         for (size_t i = 0; i + 1 < path.size(); ++i)
         {
             Pos a = path[i];
@@ -507,8 +515,8 @@ void hackingGameUI::InitGame()
         }
 
         // ----------------------------------------------------
-        // 3) requiredMask¿¡ ¸Â°Ô °¢ ¼¿ÀÇ baseMask / rotation ¼³Á¤
-        //    + UI ¹öÆ° / ÀÌ¹ÌÁö »ı¼º
+        // 3) requiredMaskì— ë§ê²Œ ê° ì…€ì˜ baseMask / rotation ì„¤ì •
+        //    + UI ë²„íŠ¼ / ì´ë¯¸ì§€ ìƒì„±
         // ----------------------------------------------------
         unsigned char baseLine = MakeMask(false, true, false, true); // L-R
         unsigned char baseCurve = MakeMask(false, false, true, true); // D-L
@@ -524,13 +532,13 @@ void hackingGameUI::InitGame()
                 cell.pImage = nullptr;
                 cell.isCurve = false;
 
-                // ¹öÆ° Ã£±â
+                // ë²„íŠ¼ ì°¾ê¸°
                 cell.pButton = dynamic_cast<UIButton*>(
                     m_pEngineUtility->FindUI(PIPE_BTN_NAMES[line][r][c]));
                 if (!cell.pButton)
                     continue;
 
-                // ¹öÆ° Å¬¸¯ Äİ¹é µî·Ï
+                // ë²„íŠ¼ í´ë¦­ ì½œë°± ë“±ë¡
                 cell.pButton->ClearButtonFunctions();
                 cell.pButton->AddLeftButtonFunction([this, line, r, c]()
                     {
@@ -543,11 +551,11 @@ void hackingGameUI::InitGame()
 
                 unsigned char req = required[r][c];
 
-                int solvedRot = 0; // "Á¤´ä" È¸Àü°ª
+                int solvedRot = 0; // "ì •ë‹µ" íšŒì „ê°’
 
                 if (req != 0)
                 {
-                    // --- ¸ŞÀÎ °æ·Î À§ÀÇ ¼¿: reqMask¿¡ µü ¸Â´Â Å¸ÀÏ(Á÷¼±/°î¼±+È¸Àü) ¼±ÅÃ ---
+                    // --- ë©”ì¸ ê²½ë¡œ ìœ„ì˜ ì…€: reqMaskì— ë”± ë§ëŠ” íƒ€ì¼(ì§ì„ /ê³¡ì„ +íšŒì „) ì„ íƒ ---
                     struct Candidate
                     {
                         bool isCurve;
@@ -578,7 +586,7 @@ void hackingGameUI::InitGame()
                     }
                     else
                     {
-                        // È¤½Ã¶óµµ ¸øÃ£À¸¸é ¼öÆò Á÷¼± ±âº»°ª
+                        // í˜¹ì‹œë¼ë„ ëª»ì°¾ìœ¼ë©´ ìˆ˜í‰ ì§ì„  ê¸°ë³¸ê°’
                         chosen.isCurve = false;
                         chosen.baseMask = baseLine;
                         chosen.rot = 0;
@@ -590,17 +598,17 @@ void hackingGameUI::InitGame()
                 }
                 else
                 {
-                    // --- ¸ŞÀÎ °æ·Î¿¡ ¼ÓÇÏÁö ¾Ê´Â ¼¿: ¿ÏÀü ·£´ı ---
+                    // --- ë©”ì¸ ê²½ë¡œì— ì†í•˜ì§€ ì•ŠëŠ” ì…€: ì™„ì „ ëœë¤ ---
                     cell.isCurve = (rand() % 2) == 1;
                     cell.baseMask = cell.isCurve ? baseCurve : baseLine;
-                    solvedRot = rand() % 4; // ÀÌ ¼¿Àº ¾îÂ÷ÇÇ ¿ä±¸Á¶°Ç ¾øÀ½
+                    solvedRot = rand() % 4; // ì´ ì…€ì€ ì–´ì°¨í”¼ ìš”êµ¬ì¡°ê±´ ì—†ìŒ
                 }
 
-                // ½ÃÀÛ »óÅÂ´Â "Á¤´ä È¸Àü + ·£´ı ¿ÀÇÁ¼Â" À¸·Î ¼¯¾î µĞ´Ù.
+                // ì‹œì‘ ìƒíƒœëŠ” "ì •ë‹µ íšŒì „ + ëœë¤ ì˜¤í”„ì…‹" ìœ¼ë¡œ ì„ì–´ ë‘”ë‹¤.
                 int scramble = rand() % 4;
                 cell.rotation = (solvedRot + scramble) & 3;
 
-                // ¹öÆ° À§Ä¡/Å©±â·Î UIImage »ı¼º
+                // ë²„íŠ¼ ìœ„ì¹˜/í¬ê¸°ë¡œ UIImage ìƒì„±
                 auto btnDesc = cell.pButton->GetUIDesc();
 
                 std::string imgName;
@@ -638,13 +646,13 @@ void hackingGameUI::InitGame()
                         pImg
                     );
 
-                    // ÇöÀç rotation °ª Àû¿ë (¼¯ÀÎ »óÅÂ)
+                    // í˜„ì¬ rotation ê°’ ì ìš© (ì„ì¸ ìƒíƒœ)
                     pImg->SetRotationRad(cell.rotation * XM_PIDIV2);
                 }
             }
         }
 
-        // ½ÃÀÛ ½Ã¿¡´Â Ç×»ó ¹Ì¿Ï¼º »óÅÂ·Î µÎ°í, ºÒ ²¨Áø »óÅÂ·Î ¿¬Ãâ
+        // ì‹œì‘ ì‹œì—ëŠ” í•­ìƒ ë¯¸ì™„ì„± ìƒíƒœë¡œ ë‘ê³ , ë¶ˆ êº¼ì§„ ìƒíƒœë¡œ ì—°ì¶œ
         m_lineSolved[line] = false;
         UpdateLineVisual(line);
     }
@@ -655,7 +663,7 @@ void hackingGameUI::CloseGame()
 {
     if (m_finished == false)
     {
-        // ½ÇÆĞ/Æ÷±â ½Ã º°µµ ¿¬Ãâ µé¾î°¥ ÀÚ¸®
+        // ì‹¤íŒ¨/í¬ê¸° ì‹œ ë³„ë„ ì—°ì¶œ ë“¤ì–´ê°ˆ ìë¦¬
     }
 
     SetVisibleAndEnable(L"hacking_back", false, false);
@@ -677,7 +685,7 @@ void hackingGameUI::CloseGame()
     SetVisibleAndEnable(L"hacking_minimize_on", false, false);
     SetVisibleAndEnable(L"hacking_minimize", false, false);
 
-    // ÆÄÀÌÇÁ ¹öÆ° ºñÈ°¼ºÈ­
+    // íŒŒì´í”„ ë²„íŠ¼ ë¹„í™œì„±í™”
     SetVisibleAndEnable(L"hacking_up_00", false, false);
     SetVisibleAndEnable(L"hacking_up_01", false, false);
     SetVisibleAndEnable(L"hacking_up_02", false, false);
@@ -695,7 +703,7 @@ void hackingGameUI::CloseGame()
     SetVisibleAndEnable(L"hacking_progressbar", false, false);
     SetVisibleAndEnable(L"hacking_fastmarker", false, false);
 
-    // »ı¼ºÇØ µĞ ÆÄÀÌÇÁ ÀÌ¹ÌÁö Á¦°Å
+    // ìƒì„±í•´ ë‘” íŒŒì´í”„ ì´ë¯¸ì§€ ì œê±°
     for (_uint line = 0; line < LINE; ++line)
     {
         for (_uint r = 0; r < ROWS; ++r)
@@ -748,8 +756,8 @@ void hackingGameUI::OnCellClick(_uint line, _uint row, _uint col, _int dirStep)
 
     Cell& cell = m_cells[line][row][col];
 
-    // dirStep > 0  ¡æ ½Ã°è¹æÇâ(+1)
-    // dirStep < 0  ¡æ ¹İ½Ã°è¹æÇâ(-1 ¡Õ +3 mod 4)
+    // dirStep > 0  â†’ ì‹œê³„ë°©í–¥(+1)
+    // dirStep < 0  â†’ ë°˜ì‹œê³„ë°©í–¥(-1 â‰¡ +3 mod 4)
     _int step = (dirStep >= 0) ? 1 : -1;
     cell.rotation = (cell.rotation + step + 4) & 3;
 
@@ -758,7 +766,7 @@ void hackingGameUI::OnCellClick(_uint line, _uint row, _uint col, _int dirStep)
         cell.pImage->SetRotationRad(cell.rotation * XM_PIDIV2);
     }
 
-    // ÀÌÇÏ ±âÁ¸ ·ÎÁ÷ ±×´ë·Î
+    // ì´í•˜ ê¸°ì¡´ ë¡œì§ ê·¸ëŒ€ë¡œ
     bool prevSolved = m_lineSolved[line];
     bool nowSolved = CheckLine(line);
     m_lineSolved[line] = nowSolved;
@@ -781,7 +789,7 @@ void hackingGameUI::OnCellClick(_uint line, _uint row, _uint col, _int dirStep)
         m_clearWaitAcc = 0.f;
     }
 
-    m_pEngineUtility->PlaySound2D("FBX_minigameButton");
+    m_pEngineUtility->PlaySound2D("FBX_minigameButton", 0.7f);
 }
 
 unsigned char hackingGameUI::GetRotatedMask(unsigned char baseMask, _int rotation) const
@@ -795,7 +803,7 @@ unsigned char hackingGameUI::GetRotatedMask(unsigned char baseMask, _int rotatio
     {
         if (baseMask & (1 << dir))
         {
-            int newDir = (dir - rotation + 4) & 3; // ½Ã°è ¹æÇâ È¸Àü
+            int newDir = (dir - rotation + 4) & 3; // ì‹œê³„ ë°©í–¥ íšŒì „
             result |= (1 << newDir);
         }
     }
@@ -820,7 +828,7 @@ _bool hackingGameUI::CheckLine(_uint line) const
             );
         };
 
-    // ½ÃÀÛ/³¡ ¼¿ ºñÆ® Á¶°Ç
+    // ì‹œì‘/ë ì…€ ë¹„íŠ¸ ì¡°ê±´
     unsigned char mStart = maskAt(0, 0);                  // 00
     unsigned char mGoal = maskAt(ROWS - 1, COLS - 1);    // 12
 
@@ -858,17 +866,17 @@ _bool hackingGameUI::CheckLine(_uint line) const
                 }
             };
 
-        // ¿À¸¥ÂÊ
+        // ì˜¤ë¥¸ìª½
         tryPush(r, c + 1, RIGHT, LEFT);
-        // ¿ŞÂÊ
+        // ì™¼ìª½
         tryPush(r, c - 1, LEFT, RIGHT);
-        // À§ÂÊ
+        // ìœ„ìª½
         tryPush(r - 1, c, UP, DOWN);
-        // ¾Æ·¡ÂÊ
+        // ì•„ë˜ìª½
         tryPush(r + 1, c, DOWN, UP);
     }
 
-    return visited[ROWS - 1][COLS - 1];   // 12±îÁö µµ´ŞÇß´ÂÁö
+    return visited[ROWS - 1][COLS - 1];   // 12ê¹Œì§€ ë„ë‹¬í–ˆëŠ”ì§€
 }
 
 void hackingGameUI::UpdateLineVisual(_uint line)

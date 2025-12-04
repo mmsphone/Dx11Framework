@@ -922,7 +922,17 @@ HRESULT Loader::LoadMapObjects(SCENE sceneId, const std::vector<MAP_OBJECTDATA>&
 			pTransform->SetState(MATRIXROW_LOOK, look);
 			pTransform->SetState(MATRIXROW_POSITION, pos);
 
-		}
+			if (auto* pPlayer = dynamic_cast<Player*>(pObject))
+			{
+				_int cellIndex = -1;
+				if (m_pEngineUtility->IsInCell(pTransform->GetState(MATRIXROW_POSITION), &cellIndex))
+				{
+					_vector fixedPos = XMVectorZero();
+					m_pEngineUtility->SetHeightOnCell(pos, &fixedPos);
+					pTransform->SetState(MATRIXROW_POSITION, fixedPos);
+				}
+			}
+		}		
 	}
 
 	return S_OK;

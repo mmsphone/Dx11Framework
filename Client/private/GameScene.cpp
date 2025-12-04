@@ -27,7 +27,7 @@ GameScene::GameScene()
 
 HRESULT GameScene::Initialize()
 {
-	m_pEngineUtility->PlaySound2D("BGM_game");
+	m_pEngineUtility->PlaySound2D("BGM_game", 0.5f);
 
 	if (FAILED(ReadyLights()))
 		return E_FAIL;
@@ -177,7 +177,7 @@ HRESULT GameScene::ReadyLayerCamera()
 	if (pTransform == nullptr)
 		return E_FAIL;
 	Desc.pTarget = pPlayer;
-	Desc.offset = _vector{ 0.f, 7.8f, -3.2f, 0.f };
+	Desc.offset = _vector{ 0.f, 8.2f, -3.3f, 0.f };
 	XMStoreFloat3(&Desc.vAt, pTransform->GetState(MATRIXROW_POSITION));
 	XMStoreFloat3(&Desc.vEye, pTransform->GetState(MATRIXROW_POSITION) + Desc.offset);
 	Desc.fFovy = XMConvertToRadians(60.0f);
@@ -282,13 +282,17 @@ HRESULT GameScene::ReadyUI()
 		else if (str == "specialCount")	{ 
 			Object* pPlayer = m_pEngineUtility->FindObject(SCENE::GAMEPLAY, TEXT("Player"), 0);
 			Info* pInfo = static_cast<Info*>(pPlayer->FindComponent(TEXT("Info")));
-			_int iGrenadeCount = *std::get_if<_int>(pInfo->GetInfo().GetPtr("SpecialCount"));
-			static_cast<UILabel*>(u)->SetText(L"x"+to_wstring(iGrenadeCount));
+			_int iSpecialCount = *std::get_if<_int>(pInfo->GetInfo().GetPtr("SpecialCount"));
+			static_cast<UILabel*>(u)->SetText(L"x"+to_wstring(iSpecialCount));
 			u->SetVisible(true); 
 		}
 		else if (str == "playerWeaponIcon") { 
 			static_cast<UIImage*>(u)->SetAlpha(0.5f);
 			u->SetVisible(true); 
+		}
+		else if (str == "specialIcon") {
+			static_cast<UIImage*>(u)->SetMaskingColor(_float4{0.4f, 1.f, 1.f, 1.f});
+			u->SetVisible(true);
 		}
 
 		//hackingUI
@@ -692,6 +696,14 @@ HRESULT GameScene::ReadyQuest()
 		EngineUtility::GetInstance()->Play2DWithCallback("FBX_questPickup", 1.f, []() {
 			EngineUtility::GetInstance()->PlaySound2D("FBX_playerYes");
 			});
+	});
+	m_pEngineUtility->SetQuestCompleteFunction(2, []() {
+		Object* pPlayer = EngineUtility::GetInstance()->FindObject(SCENE::GAMEPLAY, TEXT("Player"), 0);
+		Info* pInfo = static_cast<Info*>(pPlayer->FindComponent(TEXT("Info")));
+		_int iSpecialCount = *std::get_if<_int>(pInfo->GetInfo().GetPtr("SpecialCount"));
+		iSpecialCount += 5;
+		pInfo->GetInfo().SetData("SpecialCount", iSpecialCount);
+		static_cast<UILabel*>(EngineUtility::GetInstance()->FindUI(L"specialCount"))->SetText(L"x" + to_wstring(iSpecialCount));
 	});
 
 	//퀘스트 3
